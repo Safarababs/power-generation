@@ -1,0 +1,108 @@
+diff --git a/node_modules/react-ui/node_modules/@reach/alert/dist/reach-alert.esm.js b/node_modules/react-ui/node_modules/@reach/alert/dist/reach-alert.esm.js
+index dfefc55..4bd1089 100644
+--- a/node_modules/react-ui/node_modules/@reach/alert/dist/reach-alert.esm.js
++++ b/node_modules/react-ui/node_modules/@reach/alert/dist/reach-alert.esm.js
+@@ -1,5 +1,5 @@
+ import { forwardRef, useRef, useMemo, createElement, useEffect, cloneElement } from 'react';
+-import { render } from 'react-dom';
++// import { render } from 'react-dom';
+ import { VisuallyHidden } from '@reach/visually-hidden';
+ import { usePrevious } from '@reach/utils/use-previous';
+ import { getOwnerDocument } from '@reach/utils/owner-document';
+@@ -108,7 +108,7 @@ function createMirror(type, doc) {
+   var mount = function mount(element) {
+     if (liveRegions[type]) {
+       elements[type][key] = element;
+-      renderAlerts();
++      // renderAlerts();
+     } else {
+       var node = doc.createElement("div");
+       node.setAttribute("data-reach-live-" + type, "true");
+@@ -120,12 +120,12 @@ function createMirror(type, doc) {
+ 
+   var update = function update(element) {
+     elements[type][key] = element;
+-    renderAlerts();
++    // renderAlerts();
+   };
+ 
+   var unmount = function unmount() {
+     delete elements[type][key];
+-    renderAlerts();
++    // renderAlerts();
+   };
+ 
+   return {
+@@ -135,39 +135,39 @@ function createMirror(type, doc) {
+   };
+ }
+ 
+-function renderAlerts() {
+-  if (renderTimer != null) {
+-    window.clearTimeout(renderTimer);
+-  }
+-
+-  renderTimer = window.setTimeout(function () {
+-    Object.keys(elements).forEach(function (elementType) {
+-      var regionType = elementType;
+-      var container = liveRegions[regionType];
+-
+-      if (container) {
+-        render( /*#__PURE__*/createElement(VisuallyHidden, {
+-          as: "div"
+-        }, /*#__PURE__*/createElement("div", {
+-          // The status role is a type of live region and a container whose
+-          // content is advisory information for the user that is not
+-          // important enough to justify an alert, and is often presented as
+-          // a status bar. When the role is added to an element, the browser
+-          // will send out an accessible status event to assistive
+-          // technology products which can then notify the user about it.
+-          // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_status_role
+-          role: regionType === "assertive" ? "alert" : "status",
+-          "aria-live": regionType
+-        }, Object.keys(elements[regionType]).map(function (key) {
+-          return /*#__PURE__*/cloneElement(elements[regionType][key], {
+-            key: key,
+-            ref: null
+-          });
+-        }))), liveRegions[regionType]);
+-      }
+-    });
+-  }, 500);
+-}
++// function renderAlerts() {
++//   if (renderTimer != null) {
++//     window.clearTimeout(renderTimer);
++//   }
++
++//   renderTimer = window.setTimeout(function () {
++//     Object.keys(elements).forEach(function (elementType) {
++//       var regionType = elementType;
++//       var container = liveRegions[regionType];
++
++//       if (container) {
++//         render( /*#__PURE__*/createElement(VisuallyHidden, {
++//           as: "div"
++//         }, /*#__PURE__*/createElement("div", {
++//           // The status role is a type of live region and a container whose
++//           // content is advisory information for the user that is not
++//           // important enough to justify an alert, and is often presented as
++//           // a status bar. When the role is added to an element, the browser
++//           // will send out an accessible status event to assistive
++//           // technology products which can then notify the user about it.
++//           // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/ARIA_Techniques/Using_the_status_role
++//           role: regionType === "assertive" ? "alert" : "status",
++//           "aria-live": regionType
++//         }, Object.keys(elements[regionType]).map(function (key) {
++//           return /*#__PURE__*/cloneElement(elements[regionType][key], {
++//             key: key,
++//             ref: null
++//           });
++//         }))), liveRegions[regionType]);
++//       }
++//     });
++//   }, 500);
++// }
+ 
+ function useMirrorEffects(regionType, element, ref) {
+   var prevType = usePrevious(regionType);
