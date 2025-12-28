@@ -21,7 +21,7 @@ function App() {
           <Layout>
             <Routes>
               <Route path="/Moharram" element={<FullPixelInventory />} />
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" exact element={<Dashboard />} />
               <Route path="/generation" element={<Generation />} />
               <Route path="/monitoring" element={<Monitoring />} />
               <Route path="/controls" element={<Controls />} />

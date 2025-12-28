@@ -144,7 +144,10 @@ export const DataProvider = ({ children }) => {
     );
   };
 
-  updateGeneratorStatus();
+  useEffect(() => {
+    updateGeneratorStatus(1, "offline");
+  }, []);
+
   // end of example
 
   const updateGenerator = (id, updates) => {
