@@ -2,7 +2,7 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaHome,
-  FaChartLine,
+  // FaChartLine,
   FaCog,
   FaExclamationTriangle,
   FaChartBar,
@@ -18,11 +18,12 @@ const Sidebar = ({ collapsed }) => {
     // { icon: <FaHome size={20} />, label: "Moharram", path: "/Moharram" },
     { icon: <FaHome size={20} />, label: "Dashboard", path: "/" },
     { icon: <FaBolt size={20} />, label: "Generation", path: "/generation" },
-    {
-      icon: <FaChartLine size={20} />,
-      label: "Monitoring",
-      path: "/monitoring",
-    },
+    // Live monitoring removed
+    // {
+    //   icon: <FaChartLine size={20} />,
+    //   label: "Monitoring",
+    //   path: "/monitoring",
+    // },
     { icon: <FaSliders size={20} />, label: "Controls", path: "/controls" },
     { icon: <FaChartBar size={20} />, label: "Analytics", path: "/analytics" },
     {
@@ -42,7 +43,9 @@ const Sidebar = ({ collapsed }) => {
           <div className="sidebar-logo-icon">
             <FaBolt size={18} />
           </div>
-          {!collapsed && <span className="font-bold text-lg">PowerOps</span>}
+          {!collapsed && (
+            <span className="font-bold text-lg">NAS PG Samawa</span>
+          )}
         </div>
       </div>
 

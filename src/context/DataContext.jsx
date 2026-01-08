@@ -8,7 +8,7 @@ export const DataProvider = ({ children }) => {
       id: 1,
       name: "Generator 1",
       status: "online",
-      output: 120.5,
+      output: 9.78,
       capacity: 150,
       uptime: "24d 13h",
       nextMaintenance: "7d",
