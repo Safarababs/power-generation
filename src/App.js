@@ -11,6 +11,7 @@ import Alerts from "./pages/Alerts";
 import Reports from "./pages/Reports";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
+import ControlRoomReadings from "./components/Daily Readings/ElectricalREadings.jsx";
 
 import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 function App() {
@@ -30,6 +31,8 @@ function App() {
               <Route path="/reports" element={<Reports />} />
               <Route path="/team" element={<Team />} />
               <Route path="/settings" element={<Settings />} />
+              {/* readings starting from here */}
+              <Route path="/readings" element={<ControlRoomReadings />} />
             </Routes>
           </Layout>
         </Router>

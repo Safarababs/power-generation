@@ -33,6 +33,8 @@ const Sidebar = ({ collapsed }) => {
     },
     { icon: <FaFileAlt size={20} />, label: "Reports", path: "/reports" },
     { icon: <FaUsers size={20} />, label: "Team", path: "/team" },
+    { icon: <FaUsers size={20} />, label: "Readings", path: "/readings" },
+
     { icon: <FaCog size={20} />, label: "Settings", path: "/settings" },
   ];
 
