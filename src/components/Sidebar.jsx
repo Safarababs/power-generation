@@ -9,6 +9,7 @@ import {
   FaFileAlt,
   FaUsers,
   FaBolt,
+  FaChartLine,
 } from "react-icons/fa";
 import { FaSliders } from "react-icons/fa6";
 const Sidebar = ({ collapsed }) => {
@@ -17,6 +18,11 @@ const Sidebar = ({ collapsed }) => {
   const navItems = [
     // { icon: <FaHome size={20} />, label: "Moharram", path: "/Moharram" },
     { icon: <FaHome size={20} />, label: "Dashboard", path: "/" },
+    {
+      icon: <FaChartLine size={20} />,
+      label: "Feeders Tripping",
+      path: "/feeders",
+    },
     { icon: <FaBolt size={20} />, label: "Generation", path: "/generation" },
     // Live monitoring removed
     // {

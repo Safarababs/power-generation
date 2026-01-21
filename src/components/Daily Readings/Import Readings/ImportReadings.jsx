@@ -1,144 +1,92 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaBolt, FaBatteryFull } from "react-icons/fa";
 import { IoMdTrendingDown, IoIosTrendingUp } from "react-icons/io";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 
 const ImportReadings = () => {
-  // LastDoc and secondLastDoc there are KWH State to hold the last two documents from Firestore collection
-  const [lastDoc, setLastDoc] = useState(null);
-  const [secondLastDoc, setSecondLastDoc] = useState(null);
+  const [lastReading, setLastReading] = useState(null);
+  const [secondLastReading, setSecondLastReading] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const q = query(
-        collection(db, "engineReadings"),
-        orderBy("timestamp", "desc"),
-        limit(2) // 🔹 only fetch last 2 docs
-      );
+    const q = query(
+      collection(db, "engineReadings"),
+      orderBy("date", "desc"),
+      limit(2),
+    );
 
-      const snapshot = await getDocs(q);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map((doc) => {
-        const docData = doc.data();
+        const data = doc.data();
         return {
           id: doc.id,
-          operator: docData.operator,
-          readings:
-            docData.readings?.map((r) => ({
-              kwh: Number(r.kwh),
-              rhrs: Number(r.rhrs),
-              timestamp: r.timestamp || null,
-            })) || [],
-          timestamp: docData.timestamp || null,
+          generation: data.generation || [],
+          date: data.date,
+          timestamp: data.timestamp || null,
         };
       });
 
-      // 🔹 docs[0] = latest, docs[1] = second latest
       if (docs.length > 0) {
-        setLastDoc(docs[0]);
+        setLastReading(docs[0]);
         if (docs.length > 1) {
-          setSecondLastDoc(docs[1]);
+          setSecondLastReading(docs[1]);
         }
       }
-    };
-    fetchData();
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // we can calculate total generation and rhrs by using lasDoc and secondKLastDoc but we need individual engines generation and rhrs for that we will use useState hooks
-  const [GensetOneGeneration, setGensetOneGeneration] = useState(0);
-  const [GensetTwoGeneration, setGensetTwoGeneration] = useState(0);
-  const [GensetThreeGeneration, setGensetThreeGeneration] = useState(0);
-  const [GensetFourGeneration, setGensetFourGeneration] = useState(0);
-  const [GensetFiveGeneration, setGensetFiveGeneration] = useState(0);
-  const [GensetOneRhrs, setGensetOneRhrs] = useState(0);
-  const [GensetTwoRhrs, setGensetTwoRhrs] = useState(0);
-  const [GensetThreeRhrs, setGensetThreeRhrs] = useState(0);
-  const [GensetFourRhrs, setGensetFourRhrs] = useState(0);
-  const [GensetFiveRhrs, setGensetFiveRhrs] = useState(0);
-
-  useEffect(() => {
-    if (lastDoc) {
-      setGensetOneGeneration(
-        lastDoc.readings[0]?.kwh - secondLastDoc.readings[0]?.kwh || 0
-      );
-      setGensetTwoGeneration(
-        lastDoc.readings[1]?.kwh - secondLastDoc.readings[1]?.kwh || 0
-      );
-      setGensetThreeGeneration(
-        lastDoc.readings[2]?.kwh - secondLastDoc.readings[2]?.kwh || 0
-      );
-      setGensetFourGeneration(
-        lastDoc.readings[3]?.kwh - secondLastDoc.readings[3]?.kwh || 0
-      );
-      setGensetFiveGeneration(
-        lastDoc.readings[4]?.kwh - secondLastDoc.readings[4]?.kwh || 0
-      );
-    }
-  }, [lastDoc]);
-  useEffect(() => {
-    if (lastDoc) {
-      setGensetOneRhrs(
-        lastDoc.readings[0]?.rhrs || 0 - secondLastDoc.readings[0]?.rhrs || 0
-      );
-      setGensetTwoRhrs(
-        lastDoc.readings[1]?.rhrs || 0 - secondLastDoc.readings[1]?.rhrs || 0
-      );
-      setGensetThreeRhrs(
-        lastDoc.readings[2]?.rhrs || 0 - secondLastDoc.readings[2]?.rhrs || 0
-      );
-      setGensetFourRhrs(
-        lastDoc.readings[3]?.rhrs || 0 - secondLastDoc.readings[3]?.rhrs || 0
-      );
-      setGensetFiveRhrs(
-        lastDoc.readings[4]?.rhrs || 0 - secondLastDoc.readings[4]?.rhrs || 0
-      );
-    }
-  }, [lastDoc]);
-
-  console.log("GensetOneGeneration:", GensetOneGeneration);
-  console.log("GensetOneRhrs:", GensetOneRhrs);
-
-  const totalGeneration =
-    GensetOneGeneration +
-    GensetTwoGeneration +
-    GensetThreeGeneration +
-    GensetFourGeneration +
-    GensetFiveGeneration;
+  // ✅ Totals from generation array
+  const totalKWH =
+    lastReading?.generation.reduce((sum, g) => sum + g.kwh, 0) || 0;
   const totalRhrs =
-    GensetOneRhrs +
-    GensetTwoRhrs +
-    GensetThreeRhrs +
-    GensetFourRhrs +
-    GensetFiveRhrs;
+    lastReading?.generation.reduce((sum, g) => sum + g.rhrs, 0) || 0;
 
-  // currently we assuming total capacity is 9500 KW
+  // Assume total capacity is 9500 kW
   const totalCapacity = 9500;
-
-  const averageOutputMW = totalRhrs
-    ? (totalGeneration / totalRhrs).toFixed(2)
-    : 0;
+  const averageOutputMW = totalRhrs ? totalKWH / totalRhrs : 0;
   const averageOutputPercentage = (averageOutputMW / totalCapacity) * 100;
+
+  // ✅ Trend calculation
+  const yesterdayKWH =
+    secondLastReading?.generation.reduce((sum, g) => sum + g.kwh, 0) || 0;
+
+  let trendPercent = null;
+  let trendDirection = null;
+
+  if (yesterdayKWH > 0) {
+    trendPercent = ((totalKWH - yesterdayKWH) / yesterdayKWH) * 100;
+    trendDirection = trendPercent >= 0 ? "increase" : "decrease";
+  }
 
   return (
     <div className="card">
       <div className="card-content">
-        <h2 className="card-title">Power Generation Overview</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {lastDoc?.readings.map((engine, index) => (
-            <div key={index} className="p-4 rounded-lg bg-gray-100">
-              <h3 className="text-lg font-semibold mb-2">Engine {index + 1}</h3>
-              <p>KWh: {engine.kwh}</p>
-              <p>Rhrs: {engine.rhrs}</p>
-              <p>Yesterday KWh: {secondLastDoc?.readings[index]?.kwh || 0}</p>
-              <p>Yesterday Rhrs: {secondLastDoc?.readings[index]?.rhrs || 0}</p>
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="card-title">Power Generation Overview</h2>
+          <div className="text-sm text-secondary">
+            <span>Updated: </span>
+            <span>
+              {lastReading?.timestamp
+                ? lastReading.timestamp.toDate().toLocaleString()
+                : "Loading..."}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Average Output */}
-          <div className="p-4 rounded-lg bg-gray-100">
+          {/* Average Output (percentage of capacity) */}
+          <div
+            className="p-4 rounded-lg"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+          >
             <div className="flex items-center mb-2">
               <FaBolt
                 size={20}
@@ -153,15 +101,34 @@ const ImportReadings = () => {
                 </span>
                 <span className="text-lg ml-1">%</span>
               </div>
-              <div className="flex items-center text-green">
-                <IoIosTrendingUp size={18} />
-                <span className="ml-1 text-sm font-medium">+2.4%</span>
-              </div>
+              {trendPercent !== null ? (
+                <div
+                  className={`flex items-center ${
+                    trendDirection === "increase" ? "text-green" : "text-red"
+                  }`}
+                >
+                  {trendDirection === "increase" ? (
+                    <IoIosTrendingUp size={18} />
+                  ) : (
+                    <IoMdTrendingDown size={18} />
+                  )}
+                  <span className="ml-1 text-sm font-medium">
+                    {trendPercent.toFixed(1)}%
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center text-secondary">
+                  <span className="ml-1 text-sm font-medium">N/A</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Daily Production */}
-          <div className="p-4 rounded-lg bg-gray-100">
+          <div
+            className="p-4 rounded-lg"
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+          >
             <div className="flex items-center mb-2">
               <FaBatteryFull
                 size={20}
@@ -173,20 +140,32 @@ const ImportReadings = () => {
             </div>
             <div className="flex items-end justify-between">
               <div>
-                <span className="text-3xl font-bold">{totalGeneration}</span>
+                <span className="text-3xl font-bold">{totalKWH}</span>
                 <span className="text-lg ml-1">KWh</span>
               </div>
-              <div className="flex items-center text-red">
-                <IoMdTrendingDown size={18} />
-                <span className="ml-1 text-sm font-medium">
-                  {totalGeneration}
-                </span>
-              </div>
+              {trendPercent !== null ? (
+                <div
+                  className={`flex items-center ${
+                    trendDirection === "increase" ? "text-green" : "text-red"
+                  }`}
+                >
+                  {trendDirection === "increase" ? (
+                    <IoIosTrendingUp size={18} />
+                  ) : (
+                    <IoMdTrendingDown size={18} />
+                  )}
+                  <span className="ml-1 text-sm font-medium">
+                    {trendPercent.toFixed(1)}%
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center text-secondary">
+                  <span className="ml-1 text-sm font-medium">N/A</span>
+                </div>
+              )}
             </div>
             <div className="mt-2 text-xs text-secondary">
-              Yesterday:{" "}
-              {secondLastDoc?.readings.reduce((sum, r) => sum + r.kwh, 0) || 0}{" "}
-              KWh
+              Yesterday: {yesterdayKWH} KWh
             </div>
           </div>
         </div>

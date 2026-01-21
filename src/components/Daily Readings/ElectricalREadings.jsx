@@ -1,38 +1,104 @@
 import React, { useState } from "react";
 import { FaBolt, FaClock } from "react-icons/fa";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
-const ControlRoomReadings = () => {
-  const [readings, setReadings] = useState(
-    Array.from({ length: 5 }, () => ({ kwh: "", rhrs: "" }))
-  );
+const EngineReadingsEntry = () => {
+  const todayDefault = new Date().toISOString().split("T")[0]; // default to today
   const [operatorName, setOperatorName] = useState("");
+  const [entryDate, setEntryDate] = useState(todayDefault);
+  const [readings, setReadings] = useState(
+    Array(5).fill({ kwh: "", rhrs: "" }), // 5 engines
+  );
+  const [errors, setErrors] = useState(
+    Array(5).fill({ kwh: false, rhrs: false }), // track invalid inputs separately
+  );
 
+  // Handle input change
   const handleChange = (index, field, value) => {
     const newReadings = [...readings];
-    newReadings[index][field] = value;
+    newReadings[index] = { ...newReadings[index], [field]: Number(value) };
     setReadings(newReadings);
+
+    // Reset error for that specific field when user edits
+    const newErrors = [...errors];
+    newErrors[index] = { ...newErrors[index], [field]: false };
+    setErrors(newErrors);
   };
 
+  // Submit readings
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Submitted Readings:", readings);
+
+    if (!entryDate) {
+      alert("Please select a date for these readings.");
+      return;
+    }
+
+    // Yesterday = entryDate - 1 day
+    const yesterdayDate = new Date(entryDate);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
 
     try {
-      // Add a new document with a generated ID to the "engineReadings" collection
-      const docRef = await addDoc(collection(db, "engineReadings"), {
-        operator: operatorName || "Safar Abbas",
-        readings: readings, // array of 5 engines (kwh + rhrs)
-        timestamp: serverTimestamp(), // ✅ one submission timestamp
+      // 1. Fetch yesterday’s readings
+      let yesterdayData = [];
+      const yesterdayDoc = await getDoc(
+        doc(db, "engineReadings", yesterdayKey),
+      );
+      if (yesterdayDoc.exists()) {
+        yesterdayData = yesterdayDoc.data().readings;
+      }
+
+      let hasError = false;
+      let newErrors = [...errors];
+
+      // 2. Compute generation + validate
+      const generation = readings.map((engine, index) => {
+        const yesterdayEngine = yesterdayData[index] || { kwh: 0, rhrs: 0 };
+        const diffKwh = engine.kwh - yesterdayEngine.kwh;
+        const diffRhrs = engine.rhrs - yesterdayEngine.rhrs;
+
+        // ✅ Validation for kWh
+        if (diffKwh < 0 || diffKwh > 200000) {
+          hasError = true;
+          newErrors[index] = { ...newErrors[index], kwh: true };
+        }
+
+        // ✅ Validation for Running Hours
+        if (diffRhrs < 0 || diffRhrs > 24) {
+          hasError = true;
+          newErrors[index] = { ...newErrors[index], rhrs: true };
+        }
+
+        return { kwh: diffKwh, rhrs: diffRhrs };
       });
-      console.log("Document written with ID: ", docRef.id);
-      alert("Readings submitted successfully!");
+
+      // ✅ Update errors once after the loop
+      setErrors(newErrors);
+
+      // Stop if invalid
+      if (hasError) {
+        alert("Some readings are invalid. Please correct highlighted fields.");
+        return;
+      }
+
+      // 3. Save readings under chosen date
+      await setDoc(doc(db, "engineReadings", entryDate), {
+        operatorName,
+        date: entryDate,
+        readings,
+        generation,
+      });
+
+      alert("Readings saved successfully!");
+      // ✅ Reset all fields after successful save
       setOperatorName("");
-      setReadings(Array.from({ length: 5 }, () => ({ kwh: "", rhrs: "" })));
+      setEntryDate(todayDefault);
+      setReadings(Array(5).fill({ kwh: "", rhrs: "" }));
+      setErrors(Array(5).fill({ kwh: false, rhrs: false }));
     } catch (error) {
-      console.error("Error adding document: ", error);
-      alert("Error submitting readings. Please try again.");
+      console.error("Error saving readings: ", error);
     }
   };
 
@@ -44,6 +110,7 @@ const ControlRoomReadings = () => {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
+          {/* Operator Name */}
           <div className="col-span-full">
             <label className="text-secondary font-medium mb-2 block">
               Operator Name
@@ -58,6 +125,21 @@ const ControlRoomReadings = () => {
             />
           </div>
 
+          {/* Date Picker */}
+          <div className="col-span-full">
+            <label className="text-secondary font-medium mb-2 block">
+              Reading Date
+            </label>
+            <input
+              type="date"
+              className="w-full p-2 border rounded mb-4"
+              required
+              value={entryDate}
+              onChange={(e) => setEntryDate(e.target.value)}
+            />
+          </div>
+
+          {/* Engine Inputs */}
           {readings.map((engine, index) => (
             <div key={index} className="p-4 rounded-lg bg-gray-100">
               <h3 className="text-lg font-semibold mb-4">Engine {index + 1}</h3>
@@ -73,7 +155,12 @@ const ControlRoomReadings = () => {
                   type="number"
                   value={engine.kwh}
                   onChange={(e) => handleChange(index, "kwh", e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={
+                    errors[index].kwh
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
                   required
                 />
               </div>
@@ -89,13 +176,19 @@ const ControlRoomReadings = () => {
                   type="number"
                   value={engine.rhrs}
                   onChange={(e) => handleChange(index, "rhrs", e.target.value)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={
+                    errors[index].rhrs
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
                   required
                 />
               </div>
             </div>
           ))}
 
+          {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
             <button
               type="submit"
@@ -110,4 +203,4 @@ const ControlRoomReadings = () => {
   );
 };
 
-export default ControlRoomReadings;
+export default EngineReadingsEntry;
