@@ -12,10 +12,12 @@ import Reports from "./pages/Reports";
 import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import ControlRoomReadings from "./components/Daily Readings/ElectricalREadings.jsx";
+import FuelReadingsEntry from "./components/Daily Readings/Fuel Readings/FuelReadingsEntry.jsx";
 
 import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 import FeedersTripping from "./pages/Feeders Tripping.jsx";
 import { FeedersTrippingProvider } from "./context/Feeders Tripping Data.jsx";
+import SOPsComponent from "./components/SOP/SOP's.jsx";
 function App() {
   return (
     <ThemeProvider>
@@ -36,7 +38,11 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 {/* readings starting from here */}
                 <Route path="/readings" element={<ControlRoomReadings />} />
+                {/* fuel-readings */}
+                <Route path="/fuel-readings" element={<FuelReadingsEntry />} />
                 <Route path="/feeders" element={<FeedersTripping />} />
+                {/* all sops */}
+                <Route path="/sop" element={<SOPsComponent />} />
               </Routes>
             </Layout>
           </Router>

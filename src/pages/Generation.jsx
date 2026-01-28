@@ -1,84 +1,66 @@
-import React, { useState } from "react";
-import { useData } from "../context/DataContext";
+import React, { useState, useEffect } from "react";
 import { FaBolt, FaPlay, FaPause, FaSync, FaCog } from "react-icons/fa";
 import { FaArrowTrendUp, FaArrowTrendDown } from "react-icons/fa6";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { db } from "../components/FIrestore/firebase";
 
 const Generation = () => {
-  const { generators, updateGenerator, addAlert } = useData();
   const [selectedGenerator, setSelectedGenerator] = useState(null);
+  const [engineReadings, setEngineReadings] = useState([]);
+  const [fuelReadings, setFuelReadings] = useState([]);
 
-  const handleGeneratorAction = (id, action) => {
-    const generator = generators.find((g) => g.id === id);
-    if (!generator) return;
+  // 🔧 Fetch Firestore data
+  useEffect(() => {
+    const qEngine = query(
+      collection(db, "engineReadings"),
+      orderBy("date", "desc"),
+    );
+    const unsubscribeEngine = onSnapshot(qEngine, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        generation: doc.data().generation || [],
+        date: doc.data().date,
+      }));
+      setEngineReadings(docs);
+    });
 
-    switch (action) {
-      case "start":
-        if (generator.status === "offline") {
-          updateGenerator(id, {
-            status: "online",
-            output: generator.capacity * 0.7,
-            temperature: 80,
-          });
-          addAlert({
-            type: "success",
-            message: `${generator.name} started successfully`,
-            time: "Now",
-            acknowledged: false,
-            generator: generator.name,
-          });
-        }
-        break;
-      case "stop":
-        if (generator.status === "online") {
-          updateGenerator(id, {
-            status: "offline",
-            output: 0,
-            temperature: 25,
-          });
-          addAlert({
-            type: "info",
-            message: `${generator.name} stopped`,
-            time: "Now",
-            acknowledged: false,
-            generator: generator.name,
-          });
-        }
-        break;
-      case "maintenance":
-        updateGenerator(id, {
-          status: "maintenance",
-          output: 0,
-          temperature: 25,
-        });
-        addAlert({
-          type: "info",
-          message: `${generator.name} entered maintenance mode`,
-          time: "Now",
-          acknowledged: false,
-          generator: generator.name,
-        });
-        break;
-      default:
-        console.warn(`Unhandled action type: ${action}`);
-        break;
-    }
-  };
+    const qFuel = query(
+      collection(db, "fuelReadings"),
+      orderBy("date", "desc"),
+    );
+    const unsubscribeFuel = onSnapshot(qFuel, (snapshot) => {
+      const docs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        consumption: doc.data().consumption || [],
+        date: doc.data().date,
+      }));
+      setFuelReadings(docs);
+    });
 
-  const getStatusClass = (status) => {
-    console.log(selectedGenerator);
-    switch (status) {
-      case "online":
-        return "status-online";
-      case "offline":
-        return "status-offline";
-      case "maintenance":
-        return "status-maintenance";
-      case "warning":
-        return "status-warning";
-      default:
-        return "status-offline";
-    }
-  };
+    return () => {
+      unsubscribeEngine();
+      unsubscribeFuel();
+    };
+  }, []);
+
+  // 🔧 Helper: Get latest readings
+  const latestEngineData = engineReadings[0]?.generation || [];
+  const latestFuelData = fuelReadings[0]?.consumption || [];
+
+  // 🔧 Overview metrics
+  const activeGenerators = latestEngineData.filter(
+    (e) => e.rhrs >= 24 && e.kwh > 0,
+  ).length;
+  const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
+  const totalCapacity = latestFuelData.reduce(
+    (sum, f) => sum + (f.capacity || 9780),
+    0,
+  );
+  const capacityUtilization =
+    totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(1) : 0;
+  const maintenanceDue = latestFuelData.filter(
+    (f) => parseInt(f.nextMaintenance) <= 7,
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -88,22 +70,20 @@ const Generation = () => {
           <div className="text-sm text-secondary">
             Total Output:{" "}
             <span className="font-semibold text-lg">
-              {generators.reduce((sum, g) => sum + g.output, 0).toFixed(1)} MW
+              {totalKWh.toFixed(1)} KWh
             </span>
           </div>
         </div>
       </div>
 
-      {/* Generation Overview Cards */}
+      {/* 🔧 Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card">
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Active Generators</p>
-                <p className="text-2xl font-bold">
-                  {generators.filter((g) => g.status === "online").length}
-                </p>
+                <p className="text-2xl font-bold">{activeGenerators}</p>
               </div>
               <div
                 className="p-3 rounded-full"
@@ -117,7 +97,7 @@ const Generation = () => {
                 size={16}
                 style={{ color: "#10b981", marginRight: "0.25rem" }}
               />
-              <span style={{ color: "#10b981" }}>+2 from yesterday</span>
+              <span style={{ color: "#10b981" }}>Compared to yesterday</span>
             </div>
           </div>
         </div>
@@ -127,14 +107,7 @@ const Generation = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Capacity Utilization</p>
-                <p className="text-2xl font-bold">
-                  {(
-                    (generators.reduce((sum, g) => sum + g.output, 0) /
-                      generators.reduce((sum, g) => sum + g.capacity, 0)) *
-                    100
-                  ).toFixed(1)}
-                  %
-                </p>
+                <p className="text-2xl font-bold">{capacityUtilization}%</p>
               </div>
               <div
                 className="p-3 rounded-full"
@@ -148,7 +121,7 @@ const Generation = () => {
                 size={16}
                 style={{ color: "#ef4444", marginRight: "0.25rem" }}
               />
-              <span style={{ color: "#ef4444" }}>-1.2% from last hour</span>
+              <span style={{ color: "#ef4444" }}>Change from last hour</span>
             </div>
           </div>
         </div>
@@ -158,12 +131,7 @@ const Generation = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Maintenance Due</p>
-                <p className="text-2xl font-bold">
-                  {
-                    generators.filter((g) => parseInt(g.nextMaintenance) <= 7)
-                      .length
-                  }
-                </p>
+                <p className="text-2xl font-bold">{maintenanceDue}</p>
               </div>
               <div
                 className="p-3 rounded-full"
@@ -179,105 +147,121 @@ const Generation = () => {
         </div>
       </div>
 
-      {/* Generator Control Grid */}
+      {/* 🔧 Per-Engine Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {generators.map((generator) => (
-          <div key={generator.id} className="card">
-            <div className="card-content">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">{generator.name}</h3>
-                <span
-                  className={`status-badge ${getStatusClass(generator.status)}`}
-                >
-                  {generator.status.charAt(0).toUpperCase() +
-                    generator.status.slice(1)}
-                </span>
-              </div>
+        {latestEngineData.map((engine, idx) => {
+          const fuel = latestFuelData[idx] || {};
+          const isRunning = engine.rhrs >= 24 && engine.kwh > 0;
 
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-secondary">Output</span>
-                  <span className="font-semibold">{generator.output} MW</span>
-                </div>
-
-                <div className="progress-bar">
-                  <div
-                    className="progress-fill"
-                    style={{
-                      width: `${
-                        (generator.output / generator.capacity) * 100
-                      }%`,
-                    }}
-                  ></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-secondary">Temperature</span>
-                    <p className="font-semibold">{generator.temperature}°C</p>
-                  </div>
-                  <div>
-                    <span className="text-secondary">Efficiency</span>
-                    <p className="font-semibold">{generator.efficiency}%</p>
-                  </div>
-                  <div>
-                    <span className="text-secondary">Uptime</span>
-                    <p className="font-semibold">{generator.uptime}</p>
-                  </div>
-                  <div>
-                    <span className="text-secondary">Next Service</span>
-                    <p className="font-semibold">{generator.nextMaintenance}</p>
-                  </div>
-                </div>
-
-                <div className="flex space-x-2 pt-4 border-t">
-                  {generator.status === "offline" && (
-                    <button
-                      onClick={() =>
-                        handleGeneratorAction(generator.id, "start")
-                      }
-                      className="flex-1 btn btn-success"
-                    >
-                      <FaPlay size={16} className="btn-icon" />
-                      Start
-                    </button>
-                  )}
-
-                  {generator.status === "online" && (
-                    <button
-                      onClick={() =>
-                        handleGeneratorAction(generator.id, "stop")
-                      }
-                      className="flex-1 btn btn-danger"
-                    >
-                      <FaPause size={16} className="btn-icon" />
-                      Stop
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() =>
-                      handleGeneratorAction(generator.id, "maintenance")
-                    }
-                    className="flex-1 btn btn-primary"
+          return (
+            <div key={idx} className="card">
+              <div className="card-content">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Engine {idx + 1}</h3>
+                  <span
+                    className={`status-badge ${isRunning ? "status-online" : "status-offline"}`}
                   >
-                    <FaSync size={16} className="btn-icon" />
-                    Maintain
-                  </button>
+                    {isRunning ? "Running" : "Stopped"}
+                  </span>
+                </div>
 
-                  <button
-                    onClick={() => setSelectedGenerator(generator.id)}
-                    className="btn"
-                    style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                  >
-                    <FaCog size={16} />
-                  </button>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-secondary">Output</span>
+                    <span className="font-semibold">
+                      {(
+                        (engine.kwh / ((fuel.capacity || 9780) * 24)) *
+                        100
+                      ).toFixed(2)}
+                      %
+                    </span>
+                  </div>
+
+                  <div className="progress-bar">
+                    <div
+                      className="progress-fill"
+                      style={{
+                        width: `${
+                          (engine.kwh / ((fuel.capacity || 9780) * 24)) * 100
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-secondary">Running Hours</span>
+                      <p className="font-semibold">{engine.rhrs}</p>
+                    </div>
+                    <div>
+                      <span className="text-secondary">Generation</span>
+                      <p className="font-semibold">{engine.kwh} KWH</p>
+                    </div>
+                    <div>
+                      <span className="text-secondary">Fuel Used</span>
+                      <p className="font-semibold">
+                        {(fuel.hfo || 0) + (fuel.lfo || 0) + (fuel.gas || 0)}{" "}
+                        Total
+                      </p>
+                      <div className="text-xs text-secondary mt-1">
+                        HFO: {fuel.hfo || 0} | LFO: {fuel.lfo || 0} | Gas:{" "}
+                        {fuel.gas || 0}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-secondary">Status</span>
+                      <p
+                        className={`font-semibold ${
+                          isRunning ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {isRunning ? "Active" : "Stopped"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-2 pt-4 border-t">
+                    {isRunning ? (
+                      <button className="flex-1 btn btn-danger">
+                        <FaPause size={16} className="btn-icon" /> Stop
+                      </button>
+                    ) : (
+                      <button className="flex-1 btn btn-success">
+                        <FaPlay size={16} className="btn-icon" /> Start
+                      </button>
+                    )}
+
+                    <button className="flex-1 btn btn-primary">
+                      <FaSync size={16} className="btn-icon" /> Maintain
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedGenerator(idx)}
+                      className="btn"
+                      style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
+                    >
+                      <FaCog size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
+      {/* 🔧 Selected Generator Details */}
+      {selectedGenerator !== null && (
+        <div className="card mt-6">
+          <div className="card-content">
+            <h3 className="text-lg font-semibold">
+              Engine {selectedGenerator + 1} Settings
+            </h3>
+            <p className="text-secondary">
+              Here you can show extra details or controls…
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

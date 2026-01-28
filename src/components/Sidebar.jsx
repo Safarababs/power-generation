@@ -2,21 +2,22 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   FaHome,
-  // FaChartLine,
   FaCog,
   FaExclamationTriangle,
-  FaChartBar,
+  FaChartLine,
   FaFileAlt,
   FaUsers,
   FaBolt,
-  FaChartLine,
+  FaTachometerAlt,
+  FaClipboardList,
+  FaGasPump,
 } from "react-icons/fa";
 import { FaSliders } from "react-icons/fa6";
+
 const Sidebar = ({ collapsed }) => {
   const location = useLocation();
 
   const navItems = [
-    // { icon: <FaHome size={20} />, label: "Moharram", path: "/Moharram" },
     { icon: <FaHome size={20} />, label: "Dashboard", path: "/" },
     {
       icon: <FaChartLine size={20} />,
@@ -24,14 +25,9 @@ const Sidebar = ({ collapsed }) => {
       path: "/feeders",
     },
     { icon: <FaBolt size={20} />, label: "Generation", path: "/generation" },
-    // Live monitoring removed
-    // {
-    //   icon: <FaChartLine size={20} />,
-    //   label: "Monitoring",
-    //   path: "/monitoring",
-    // },
     { icon: <FaSliders size={20} />, label: "Controls", path: "/controls" },
-    { icon: <FaChartBar size={20} />, label: "Analytics", path: "/analytics" },
+    { icon: <FaClipboardList size={20} />, label: "SOP's", path: "/sop" }, // ✅ checklist for procedures
+    { icon: <FaChartLine size={20} />, label: "Analytics", path: "/analytics" }, // ✅ line chart for trends
     {
       icon: <FaExclamationTriangle size={20} />,
       label: "Alerts",
@@ -39,8 +35,16 @@ const Sidebar = ({ collapsed }) => {
     },
     { icon: <FaFileAlt size={20} />, label: "Reports", path: "/reports" },
     { icon: <FaUsers size={20} />, label: "Team", path: "/team" },
-    { icon: <FaUsers size={20} />, label: "Readings", path: "/readings" },
-
+    {
+      icon: <FaTachometerAlt size={20} />,
+      label: "Readings",
+      path: "/readings",
+    }, // ✅ gauge for readings
+    {
+      icon: <FaGasPump size={20} />,
+      label: "Fuel Reading",
+      path: "/fuel-readings",
+    }, // ✅ gas pump for fuel
     { icon: <FaCog size={20} />, label: "Settings", path: "/settings" },
   ];
 

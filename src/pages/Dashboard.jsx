@@ -5,15 +5,11 @@ import EfficiencyMetrics from "../components/dashboard/EfficiencyMetrics";
 import PowerGenerationChart from "../components/dashboard/PowerGenerationChart";
 import GeneratorStatus from "../components/dashboard/GeneratorStatus";
 import QuickActions from "../components/dashboard/QuickActions";
-import ImportReadings from "../components/Daily Readings/Import Readings/ImportReadings";
 
 const Dashboard = () => {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <ImportReadings />
-        </div>
         <div className="lg:col-span-2">
           <PowerGenerationOverview />
         </div>
