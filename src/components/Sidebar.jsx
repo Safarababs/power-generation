@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import { FaSliders } from "react-icons/fa6";
 
-const Sidebar = ({ collapsed }) => {
+const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
   const location = useLocation();
 
   const navItems = [
@@ -49,7 +49,9 @@ const Sidebar = ({ collapsed }) => {
   ];
 
   return (
-    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+    <aside
+      className={`sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}
+    >
       <div className="sidebar-header">
         <div className="sidebar-logo">
           <div className="sidebar-logo-icon">
@@ -69,9 +71,8 @@ const Sidebar = ({ collapsed }) => {
               <li key={index}>
                 <Link
                   to={item.path}
-                  className={`${isActive ? "active" : ""} ${
-                    collapsed ? "justify-center" : ""
-                  }`}
+                  onClick={closeSidebar} // Close sidebar on mobile after navigation
+                  className={`${isActive ? "active" : ""} ${collapsed ? "justify-center" : ""}`}
                 >
                   <span>{item.icon}</span>
                   {!collapsed && <span>{item.label}</span>}
