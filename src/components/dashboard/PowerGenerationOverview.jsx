@@ -16,8 +16,30 @@ const ImportReadings = () => {
   const [lastFuelReading, setLastFuelReading] = useState(null); // fuelReadings
   const today = new Date().toISOString().split("T")[0];
 
-  const [selectedDate, setSelectedDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState("");
   const [minDate, setMinDate] = useState(today);
+
+  useEffect(() => {
+    const qLatest = query(
+      collection(db, "engineReadings"),
+      orderBy("date", "desc"),
+      limit(1),
+    );
+
+    const unsubscribe = onSnapshot(qLatest, (snapshot) => {
+      if (!snapshot.empty) {
+        const latestDoc = snapshot.docs[0].data();
+        if (latestDoc.date) {
+          const firestoreDate = new Date(latestDoc.date)
+            .toISOString()
+            .split("T")[0];
+          setSelectedDate(firestoreDate); // ✅ set default to latest date
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // ✅ Fetch minimum date from Firestore (oldest record)
   useEffect(() => {

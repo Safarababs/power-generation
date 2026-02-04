@@ -7,7 +7,14 @@ const FuelReadingsEntry = () => {
   const [entryDate, setEntryDate] = useState(todayDefault);
   const [operatorName, setOperatorName] = useState("");
   const [fuelReadings, setFuelReadings] = useState(
-    Array(5).fill({ hfo: "", lfo: "", gas: "" }),
+    Array(5).fill({
+      hfoKg: "",
+      hfoLtr: "",
+      lfoKg: "",
+      lfoLtr: "",
+      gasNm3: "",
+      gasKg: "",
+    }),
   );
   const [yesterdayData, setYesterdayData] = useState([]);
 
@@ -33,7 +40,7 @@ const FuelReadingsEntry = () => {
     const newFuelReadings = [...fuelReadings];
     newFuelReadings[index] = {
       ...newFuelReadings[index],
-      [field]: Number(value),
+      [field]: value === "" ? "" : Number(value),
     };
     setFuelReadings(newFuelReadings);
   };
@@ -46,22 +53,37 @@ const FuelReadingsEntry = () => {
       // Calculate consumption + capacity
       const consumption = fuelReadings.map((engine, index) => {
         const yesterdayEngine = yesterdayData[index] || {
-          hfo: 0,
-          lfo: 0,
-          gas: 0,
+          hfoKg: 0,
+          hfoLtr: 0,
+          lfoKg: 0,
+          lfoLtr: 0,
+          gasNm3: 0,
+          gasKg: 0,
         };
-        const diffHfo = engine.hfo - yesterdayEngine.hfo;
-        const diffLfo = engine.lfo - yesterdayEngine.lfo;
-        const diffGas = engine.gas - yesterdayEngine.gas;
+
+        const diffHfoKg = (engine.hfoKg || 0) - (yesterdayEngine.hfoKg || 0);
+        const diffHfoLtr = (engine.hfoLtr || 0) - (yesterdayEngine.hfoLtr || 0);
+        const diffLfoKg = (engine.lfoKg || 0) - (yesterdayEngine.lfoKg || 0);
+        const diffLfoLtr = (engine.lfoLtr || 0) - (yesterdayEngine.lfoLtr || 0);
+        const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
+        const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
         // Capacity logic
         let capacity = 9780;
         if (index >= 3) {
           // Engines 4 & 5 are DF
-          capacity = diffGas > 0 ? 8998 : 9780;
+          capacity = diffGasNm3 > 0 || diffGasKg > 0 ? 8998 : 9780;
         }
 
-        return { hfo: diffHfo, lfo: diffLfo, gas: diffGas, capacity };
+        return {
+          hfoKg: diffHfoKg,
+          hfoLtr: diffHfoLtr,
+          lfoKg: diffLfoKg,
+          lfoLtr: diffLfoLtr,
+          gasNm3: diffGasNm3,
+          gasKg: diffGasKg,
+          capacity,
+        };
       });
 
       // Save to Firestore
@@ -77,7 +99,16 @@ const FuelReadingsEntry = () => {
       // Reset form
       setOperatorName("");
       setEntryDate(todayDefault);
-      setFuelReadings(Array(5).fill({ hfo: "", lfo: "", gas: "" }));
+      setFuelReadings(
+        Array(5).fill({
+          hfoKg: "",
+          hfoLtr: "",
+          lfoKg: "",
+          lfoLtr: "",
+          gasNm3: "",
+          gasKg: "",
+        }),
+      );
     } catch (error) {
       console.error("Error saving fuel readings: ", error);
     }
@@ -128,65 +159,102 @@ const FuelReadingsEntry = () => {
               {/* HFO */}
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
-                  HFO Reading
+                  HFO Reading (Kg)
                 </label>
                 <input
                   type="number"
-                  value={engine.hfo}
-                  placeholder={
-                    yesterdayData[index]?.hfo
-                      ? yesterdayData[index].hfo
-                      : "Enter HFO"
-                  }
+                  value={engine.hfoKg}
+                  placeholder={yesterdayData[index]?.hfoKg || "Enter HFO Kg"}
                   onChange={(e) =>
-                    handleFuelChange(index, "hfo", e.target.value)
+                    handleFuelChange(index, "hfoKg", e.target.value)
                   }
                   className="w-full p-2 border rounded"
                   required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="text-secondary font-medium mb-2 block">
+                  HFO Reading (Liters)
+                </label>
+                <input
+                  type="number"
+                  value={engine.hfoLtr}
+                  placeholder={yesterdayData[index]?.hfoLtr || "Enter HFO Ltr"}
+                  onChange={(e) =>
+                    handleFuelChange(index, "hfoLtr", e.target.value)
+                  }
+                  className="w-full p-2 border rounded"
                 />
               </div>
 
               {/* LFO */}
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
-                  LFO Reading
+                  LFO Reading (Kg)
                 </label>
                 <input
                   type="number"
-                  value={engine.lfo}
-                  placeholder={
-                    yesterdayData[index]?.lfo
-                      ? yesterdayData[index].lfo
-                      : "Enter LFO"
-                  }
+                  value={engine.lfoKg}
+                  placeholder={yesterdayData[index]?.lfoKg || "Enter LFO Kg"}
                   onChange={(e) =>
-                    handleFuelChange(index, "lfo", e.target.value)
+                    handleFuelChange(index, "lfoKg", e.target.value)
                   }
                   className="w-full p-2 border rounded"
                   required
                 />
               </div>
+              <div className="mb-4">
+                <label className="text-secondary font-medium mb-2 block">
+                  LFO Reading (Liters)
+                </label>
+                <input
+                  type="number"
+                  value={engine.lfoLtr}
+                  placeholder={yesterdayData[index]?.lfoLtr || "Enter LFO Ltr"}
+                  onChange={(e) =>
+                    handleFuelChange(index, "lfoLtr", e.target.value)
+                  }
+                  className="w-full p-2 border rounded"
+                />
+              </div>
 
               {/* Gas (only for engines 4 & 5) */}
               {index >= 3 && (
-                <div>
-                  <label className="text-secondary font-medium mb-2 block">
-                    Gas Reading
-                  </label>
-                  <input
-                    type="number"
-                    value={engine.gas}
-                    placeholder={
-                      yesterdayData[index]?.gas
-                        ? yesterdayData[index].gas
-                        : "Enter Gas"
-                    }
-                    onChange={(e) =>
-                      handleFuelChange(index, "gas", e.target.value)
-                    }
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
+                <>
+                  <div className="mb-4">
+                    <label className="text-secondary font-medium mb-2 block">
+                      Gas Reading (Nm³)
+                    </label>
+                    <input
+                      type="number"
+                      value={engine.gasNm3}
+                      placeholder={
+                        yesterdayData[index]?.gasNm3 || "Enter Gas Nm³"
+                      }
+                      onChange={(e) =>
+                        handleFuelChange(index, "gasNm3", e.target.value)
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="text-secondary font-medium mb-2 block">
+                      Gas Reading (Kg)
+                    </label>
+                    <input
+                      type="number"
+                      value={engine.gasKg}
+                      placeholder={
+                        yesterdayData[index]?.gasKg || "Enter Gas Kg"
+                      }
+                      onChange={(e) =>
+                        handleFuelChange(index, "gasKg", e.target.value)
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                </>
               )}
             </div>
           ))}

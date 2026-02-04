@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaBolt, FaClock } from "react-icons/fa";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
@@ -12,6 +12,9 @@ const EngineReadingsEntry = () => {
   );
   const [errors, setErrors] = useState(
     Array(5).fill({ kwh: false, rhrs: false }), // track invalid inputs separately
+  );
+  const [previousReadings, setPreviousReadings] = useState(
+    Array(5).fill({ kwh: "", rhrs: "" }),
   );
 
   // Handle input change
@@ -61,12 +64,14 @@ const EngineReadingsEntry = () => {
 
         // ✅ Validation for kWh
         if (diffKwh < 0 || diffKwh > 200000) {
+          console.warn(`Engine ${index + 1} invalid kWh diff: ${diffKwh}`);
           hasError = true;
           newErrors[index] = { ...newErrors[index], kwh: true };
         }
 
         // ✅ Validation for Running Hours
         if (diffRhrs < 0 || diffRhrs > 24) {
+          console.warn(`Engine ${index + 1} invalid Rhrs diff: ${diffRhrs}`);
           hasError = true;
           newErrors[index] = { ...newErrors[index], rhrs: true };
         }
@@ -79,6 +84,7 @@ const EngineReadingsEntry = () => {
 
       // Stop if invalid
       if (hasError) {
+        console.log("Validation errors:", newErrors);
         alert("Some readings are invalid. Please correct highlighted fields.");
         return;
       }
@@ -101,6 +107,23 @@ const EngineReadingsEntry = () => {
       console.error("Error saving readings: ", error);
     }
   };
+
+  useEffect(() => {
+    const fetchPrevious = async () => {
+      const yesterdayDate = new Date(entryDate);
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
+
+      const yesterdayDoc = await getDoc(
+        doc(db, "engineReadings", yesterdayKey),
+      );
+      if (yesterdayDoc.exists()) {
+        setPreviousReadings(yesterdayDoc.data().readings || []);
+      }
+    };
+
+    fetchPrevious();
+  }, [entryDate]); // runs whenever entryDate changes
 
   return (
     <div className="card">
@@ -145,27 +168,6 @@ const EngineReadingsEntry = () => {
               <h3 className="text-lg font-semibold mb-4">Engine {index + 1}</h3>
               <div className="mb-4">
                 <label className="flex items-center text-secondary font-medium mb-2">
-                  <FaBolt
-                    size={18}
-                    style={{ color: "#f59e0b", marginRight: "0.5rem" }}
-                  />
-                  KWH Reading
-                </label>
-                <input
-                  type="number"
-                  value={engine.kwh}
-                  onChange={(e) => handleChange(index, "kwh", e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={
-                    errors[index].kwh
-                      ? { borderColor: "red", borderWidth: "2px" }
-                      : {}
-                  }
-                  required
-                />
-              </div>
-              <div>
-                <label className="flex items-center text-secondary font-medium mb-2">
                   <FaClock
                     size={18}
                     style={{ color: "#3b82f6", marginRight: "0.5rem" }}
@@ -174,11 +176,37 @@ const EngineReadingsEntry = () => {
                 </label>
                 <input
                   type="number"
+                  step="any"
                   value={engine.rhrs}
                   onChange={(e) => handleChange(index, "rhrs", e.target.value)}
+                  placeholder={previousReadings[index]?.rhrs || "Enter Rhrs"}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   style={
                     errors[index].rhrs
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
+                  required
+                />
+              </div>
+              <div>
+                <label className="flex items-center text-secondary font-medium mb-2">
+                  <FaBolt
+                    size={18}
+                    style={{ color: "#f59e0b", marginRight: "0.5rem" }}
+                  />
+                  KWH Reading
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={engine.kwh}
+                  placeholder={previousReadings[index]?.kwh || "Enter KWH"}
+                  onChange={(e) => handleChange(index, "kwh", e.target.value)}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={
+                    errors[index].kwh
                       ? { borderColor: "red", borderWidth: "2px" }
                       : {}
                   }
