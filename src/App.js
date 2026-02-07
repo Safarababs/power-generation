@@ -13,6 +13,7 @@ import Team from "./pages/Team";
 import Settings from "./pages/Settings";
 import ControlRoomReadings from "./components/Daily Readings/ElectricalREadings.jsx";
 import FuelReadingsEntry from "./components/Daily Readings/Fuel Readings/FuelReadingsEntry.jsx";
+import WashLogForm from "./components/Daily Readings/Washing/Washing.jsx";
 
 import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 import FeedersTripping from "./pages/Feeders Tripping.jsx";
@@ -38,9 +39,10 @@ function App() {
                 <Route path="/settings" element={<Settings />} />
                 {/* readings starting from here */}
                 <Route path="/readings" element={<ControlRoomReadings />} />
-                {/* fuel-readings */}
+                {/*readings */}
                 <Route path="/fuel-readings" element={<FuelReadingsEntry />} />
                 <Route path="/feeders" element={<FeedersTripping />} />
+                <Route path="/wash-logs" element={<WashLogForm />} />
                 {/* all sops */}
                 <Route path="/sop" element={<SOPsComponent />} />
               </Routes>

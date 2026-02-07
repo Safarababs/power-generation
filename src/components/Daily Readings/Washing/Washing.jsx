@@ -1,43 +1,38 @@
 import React, { useState, useEffect } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
-import { doc, collection, getDocs, setDoc } from "firebase/firestore";
 
 const WashLogForm = () => {
+  const todayDefault = new Date().toISOString().split("T")[0];
+  const [entryDate, setEntryDate] = useState(todayDefault);
+  const [operatorName, setOperatorName] = useState("");
   const [engine, setEngine] = useState("");
-  const [fuelMode, setFuelMode] = useState("");
+  const [fuelMode, setFuelMode] = useState(""); // auto-detected
   const [totalHours, setTotalHours] = useState("");
   const [hfoHours, setHfoHours] = useState("");
   const [gasHours, setGasHours] = useState("");
 
-  // Fetch latest fuel reading doc
+  // Fetch fuel mode from today's fuelReadings doc
   useEffect(() => {
-    const fetchLatestFuelMode = async () => {
+    const fetchFuelMode = async () => {
       try {
-        // Get all docs in fuelReadings collection
-        const snapshot = await getDocs(collection(db, "fuelReadings"));
-        if (!snapshot.empty) {
-          // Find the latest by date field
-          const docs = snapshot.docs.map((d) => d.data());
-          const latest = docs.sort(
-            (a, b) => new Date(b.date) - new Date(a.date),
-          )[0];
+        const fuelDoc = await getDoc(doc(db, "fuelReadings", entryDate));
+        if (fuelDoc.exists()) {
+          const data = fuelDoc.data();
+          const consumption = data.consumption || [];
+          const engineIndex = engine ? Number(engine) - 1 : 0;
+          const cap = consumption[engineIndex]?.capacity;
 
-          if (latest && latest.consumption) {
-            // Example: check engine 4 (index 3) capacity
-            const engineIndex = engine ? Number(engine) - 1 : 0;
-            const cap = latest.consumption[engineIndex]?.capacity;
-
-            if (cap === 8998) setFuelMode("GAS");
-            else if (cap === 9780) setFuelMode("HFO/LFO");
-          }
+          if (cap === 8998) setFuelMode("GAS");
+          else if (cap === 9780) setFuelMode("HFO/LFO");
         }
       } catch (err) {
         console.error("Error fetching fuel mode:", err);
       }
     };
 
-    fetchLatestFuelMode();
-  }, [engine]);
+    if (engine) fetchFuelMode();
+  }, [entryDate, engine]);
 
   const calculateHours = () => {
     let lfo = null;
@@ -69,7 +64,9 @@ const WashLogForm = () => {
     const { total, hfo, lfo, gas } = calculateHours();
     const intervals = getNextWashInterval();
 
-    await setDoc(doc(db, "washLogs", new Date().toISOString()), {
+    await setDoc(doc(db, "washLogs", entryDate), {
+      operatorName,
+      date: entryDate,
       engine,
       fuelMode,
       totalHours: total,
@@ -82,15 +79,38 @@ const WashLogForm = () => {
     });
 
     alert("Wash log submitted!");
+    setOperatorName("");
+    setEngine("");
+    setFuelMode("");
+    setTotalHours("");
+    setHfoHours("");
+    setGasHours("");
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      <label>Operator Name:</label>
+      <input
+        type="text"
+        value={operatorName}
+        onChange={(e) => setOperatorName(e.target.value)}
+        required
+      />
+
+      <label>Reading Date:</label>
+      <input
+        type="date"
+        value={entryDate}
+        onChange={(e) => setEntryDate(e.target.value)}
+        required
+      />
+
       <label>Engine Number:</label>
       <input
         type="number"
         value={engine}
         onChange={(e) => setEngine(Number(e.target.value))}
+        required
       />
 
       <p>
@@ -102,6 +122,7 @@ const WashLogForm = () => {
         type="number"
         value={totalHours}
         onChange={(e) => setTotalHours(e.target.value)}
+        required
       />
 
       <label>HFO Hours (optional):</label>

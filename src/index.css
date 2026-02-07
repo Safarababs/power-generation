@@ -145,22 +145,24 @@ body {
   transition: var(--transition);
 }
 
+/* === Sidebar Container === */
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
-  height: 100vh; /* full screen height */
-  width: 16rem; /* consistent width */
+  height: 100vh;
+  width: 16rem;
   background-color: var(--surface-color);
   border-right: 1px solid var(--border-color);
   transition: var(--transition);
-  z-index: 1000; /* ensure it overlays content */
+  z-index: 1000;
 }
 
 .sidebar.collapsed {
   width: 5rem;
 }
 
+/* === Header === */
 .sidebar-header {
   display: flex;
   align-items: center;
@@ -183,9 +185,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #fff;
 }
 
+.sidebar.collapsed .sidebar-logo span {
+  display: none;
+}
+
+/* === Navigation === */
 .sidebar-nav {
   margin-top: 1.5rem;
 }
@@ -199,20 +206,62 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.sidebar-nav a {
+/* === Group Headers === */
+.sidebar-group .group-toggle {
   display: flex;
   align-items: center;
+  width: 100%;
   padding: 0.75rem;
+  background: transparent;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 600;
+  color: whitesmoke;
+}
+
+.sidebar-group .group-toggle:hover {
+  background: var(--hover-color, #f3f4f6);
+  color: var(--primary-color);
+}
+
+.sidebar-group .group-icon {
+  margin-right: 0.5rem;
+  color: var(--primary-color);
+}
+
+.sidebar-group .group-toggle span:last-child {
+  margin-left: auto; /* chevron alignment */
+}
+
+/* === Submenu === */
+.sidebar-group .submenu {
+  margin-left: 1.25rem;
+  margin-top: 0.25rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--border-color);
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease;
+  overflow: hidden;
+}
+
+.sidebar-group .submenu li a {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
   border-radius: var(--border-radius);
   text-decoration: none;
   color: var(--text-primary);
   transition: var(--transition);
 }
 
-.sidebar-nav a:hover {
-  background-color: var(--border-color);
+.sidebar-group .submenu li a:hover {
+  background: var(--hover-color, #f3f4f6);
+  color: var(--primary-color);
 }
 
+/* === Active Link === */
 .sidebar-nav a.active {
   background-color: rgba(59, 130, 246, 0.1);
   color: var(--primary-color);
@@ -223,10 +272,6 @@ body {
 }
 
 .sidebar.collapsed .sidebar-nav a span {
-  display: none;
-}
-
-.sidebar.collapsed .sidebar-logo span {
   display: none;
 }
 
