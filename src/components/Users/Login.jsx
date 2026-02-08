@@ -1,91 +1,88 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../FIrestore/firebase";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
 
-const LoginForm = () => {
+const LoginForm = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [dateTime, setDateTime] = useState(new Date());
 
-  // Email/Password Login
+  useEffect(() => {
+    const timer = setInterval(() => setDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
-      console.log("User logged in:", userCredential.user);
-      alert("Login successful!");
+      onLogin(userCredential.user);
     } catch (error) {
-      console.error("Error logging in:", error.message);
-      alert(error.message);
-    }
-  };
-
-  // Google Login
-  const handleGoogleLogin = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log("Google user logged in:", result.user);
-      alert("Google login successful!");
-    } catch (error) {
-      console.error("Error with Google login:", error.message);
-      alert(error.message);
+      alert("Login failed: " + error.message);
     }
   };
 
   return (
-    <div className="card">
-      <div className="card-content">
-        <h2 className="card-title mb-4">Login</h2>
-        <form onSubmit={handleLogin} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="p-4 rounded-lg border border-gray-300 dark:border-gray-600 
-             bg-gray-50 dark:bg-gray-700 
-             text-gray-900 dark:text-gray-100 
-             focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="p-4 rounded-lg border border-gray-300 dark:border-gray-600 
-             bg-gray-50 dark:bg-gray-700 
-             text-gray-900 dark:text-gray-100 
-             focus:ring-2 focus:ring-indigo-400 focus:outline-none"
-          />
-          <button
-            type="submit"
-            className="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
-             text-white font-semibold rounded-lg 
-             hover:opacity-90 transition duration-300"
-          >
-            Login
-          </button>
-        </form>
+    <div className="login-portal">
+      <div className="login-overlay"></div>
 
-        <div className="mt-4">
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 
-             text-white font-semibold rounded-lg 
-             hover:opacity-90 transition duration-300"
-          >
-            Login with Google
-          </button>
+      {/* Branding + Date & Time */}
+      <div className="login-date">
+        <h1 className="org-title">NAS Power Generation</h1>
+
+        <div className="time">
+          {dateTime.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+        <div className="date">
+          {dateTime.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
+        </div>
+      </div>
+
+      {/* Login Card */}
+      <div className="login-form-wrapper">
+        <div className="login-card">
+          <h2 className="card-title text-center">Login here</h2>
+          <form onSubmit={handleLogin} className="space-y-6">
+            {/* Email */}
+            <div className="form-group">
+              <label className="text-secondary">Email</label>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="form-input"
+              />
+            </div>
+            {/* Password */}
+            <div className="form-group">
+              <label className="text-secondary">Password</label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="form-input"
+              />
+            </div>
+            {/* Submit */}
+            <button type="submit" className="btn btn-primary w-full">
+              Login
+            </button>
+          </form>
         </div>
       </div>
     </div>

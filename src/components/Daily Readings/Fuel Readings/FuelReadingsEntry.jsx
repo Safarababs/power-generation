@@ -1,126 +1,262 @@
 import React, { useState, useEffect } from "react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
-import { doc, collection, getDocs, setDoc } from "firebase/firestore";
 
-const WashLogForm = () => {
-  const [engine, setEngine] = useState("");
-  const [fuelMode, setFuelMode] = useState("");
-  const [totalHours, setTotalHours] = useState("");
-  const [hfoHours, setHfoHours] = useState("");
-  const [gasHours, setGasHours] = useState("");
-
-  // Fetch latest fuel reading doc
+const FuelReadingsEntry = () => {
+  const todayDefault = new Date().toISOString().split("T")[0];
+  const [entryDate, setEntryDate] = useState(todayDefault);
+  const [operatorName, setOperatorName] = useState("");
+  const [fuelReadings, setFuelReadings] = useState(
+    Array(5)
+      .fill(null)
+      .map(() => ({
+        hfoKg: "",
+        hfoLtr: "",
+        lfoKg: "",
+        lfoLtr: "",
+        gasNm3: "",
+        gasKg: "",
+      })),
+  );
+  const [yesterdayData, setYesterdayData] = useState([]);
+  // Fetch yesterday’s readings for placeholders
   useEffect(() => {
-    const fetchLatestFuelMode = async () => {
-      try {
-        // Get all docs in fuelReadings collection
-        const snapshot = await getDocs(collection(db, "fuelReadings"));
-        if (!snapshot.empty) {
-          // Find the latest by date field
-          const docs = snapshot.docs.map((d) => d.data());
-          const latest = docs.sort(
-            (a, b) => new Date(b.date) - new Date(a.date),
-          )[0];
-
-          if (latest && latest.consumption) {
-            // Example: check engine 4 (index 3) capacity
-            const engineIndex = engine ? Number(engine) - 1 : 0;
-            const cap = latest.consumption[engineIndex]?.capacity;
-
-            if (cap === 8998) setFuelMode("GAS");
-            else if (cap === 9780) setFuelMode("HFO/LFO");
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching fuel mode:", err);
+    const fetchYesterday = async () => {
+      const yesterdayDate = new Date(entryDate);
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
+      const yesterdayDoc = await getDoc(doc(db, "fuelReadings", yesterdayKey));
+      if (yesterdayDoc.exists()) {
+        setYesterdayData(yesterdayDoc.data().fuelReadings || []);
+      } else {
+        setYesterdayData([]);
       }
     };
-
-    fetchLatestFuelMode();
-  }, [engine]);
-
-  const calculateHours = () => {
-    let lfo = null;
-    let hfo = hfoHours ? Number(hfoHours) : null;
-    let gas = gasHours ? Number(gasHours) : null;
-    let total = Number(totalHours);
-
-    if (engine <= 3) {
-      if (hfo !== null) lfo = total - hfo;
-    } else {
-      if (hfo !== null) gas = total - hfo;
-      else if (gas !== null) hfo = total - gas;
-    }
-    return { total, hfo, lfo, gas };
+    fetchYesterday();
+  }, [entryDate]);
+  // Handle input change
+  const handleFuelChange = (index, field, value) => {
+    const newFuelReadings = [...fuelReadings];
+    newFuelReadings[index] = {
+      ...newFuelReadings[index],
+      [field]: value === "" ? "" : Number(value),
+    };
+    setFuelReadings(newFuelReadings);
   };
-
-  const getNextWashInterval = () => {
-    if (engine <= 3) return { turbine: 100, compressor: 50 };
-    if (engine >= 4) {
-      return {
-        turbine: fuelMode === "GAS" ? 200 : 72,
-        compressor: 50,
-      };
-    }
-  };
-
+  // Submit readings
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { total, hfo, lfo, gas } = calculateHours();
-    const intervals = getNextWashInterval();
+    try {
+      // Calculate consumption + capacity
+      const consumption = fuelReadings.map((engine, index) => {
+        const yesterdayEngine = yesterdayData[index] || {
+          hfoKg: 0,
+          hfoLtr: 0,
+          lfoKg: 0,
+          lfoLtr: 0,
+          gasNm3: 0,
+          gasKg: 0,
+        };
 
-    await setDoc(doc(db, "washLogs", new Date().toISOString()), {
-      engine,
-      fuelMode,
-      totalHours: total,
-      hfoHours: hfo,
-      lfoHours: lfo,
-      gasHours: gas,
-      turbineInterval: intervals.turbine,
-      compressorInterval: intervals.compressor,
-      timestamp: new Date(),
-    });
+        const diffHfoKg = (engine.hfoKg || 0) - (yesterdayEngine.hfoKg || 0);
+        const diffHfoLtr = (engine.hfoLtr || 0) - (yesterdayEngine.hfoLtr || 0);
+        const diffLfoKg = (engine.lfoKg || 0) - (yesterdayEngine.lfoKg || 0);
+        const diffLfoLtr = (engine.lfoLtr || 0) - (yesterdayEngine.lfoLtr || 0);
+        const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
+        const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
-    alert("Wash log submitted!");
+        // Capacity logic
+        let capacity = 9780;
+        if (index >= 3) {
+          // Engines 4 & 5 are DF
+          capacity = diffGasNm3 > 0 || diffGasKg > 0 ? 8998 : 9780;
+        }
+
+        return {
+          hfoKg: diffHfoKg,
+          hfoLtr: diffHfoLtr,
+          lfoKg: diffLfoKg,
+          lfoLtr: diffLfoLtr,
+          gasNm3: diffGasNm3,
+          gasKg: diffGasKg,
+          capacity,
+        };
+      });
+
+      // Save to Firestore
+      await setDoc(doc(db, "fuelReadings", entryDate), {
+        operatorName,
+        date: entryDate,
+        fuelReadings,
+        consumption,
+      });
+
+      alert("Fuel readings saved successfully!");
+
+      // Reset form
+      setOperatorName("");
+      setEntryDate(todayDefault);
+      setFuelReadings(
+        Array(5)
+          .fill(null)
+          .map(() => ({
+            hfoKg: "",
+            hfoLtr: "",
+            lfoKg: "",
+            lfoLtr: "",
+            gasNm3: "",
+            gasKg: "",
+          })),
+      );
+    } catch (error) {
+      console.error("Error saving fuel readings: ", error);
+    }
   };
-
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Engine Number:</label>
-      <input
-        type="number"
-        value={engine}
-        onChange={(e) => setEngine(Number(e.target.value))}
-      />
+    <div className="card">
+      {" "}
+      <div className="card-content">
+        {" "}
+        <h2 className="card-title mb-6">Fuel Readings Entry</h2>{" "}
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {" "}
+          {/* Operator Name */}{" "}
+          <div className="col-span-full">
+            {" "}
+            <label className="text-secondary font-medium mb-2 block">
+              {" "}
+              Operator Name{" "}
+            </label>{" "}
+            <input
+              type="text"
+              placeholder="Enter Your name"
+              className="w-full p-2 border rounded mb-4"
+              required
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+            />{" "}
+          </div>
+          {/* Date Picker */}
+          <div className="col-span-full">
+            <label className="text-secondary font-medium mb-2 block">
+              Reading Date
+            </label>
+            <input
+              type="date"
+              className="w-full p-2 border rounded mb-4"
+              required
+              value={entryDate}
+              onChange={(e) => setEntryDate(e.target.value)}
+            />
+          </div>
+          {/* Engine Inputs */}
+          {fuelReadings.map((engine, index) => (
+            <div key={index} className="p-4 rounded-lg bg-gray-100">
+              <h3 className="text-lg font-semibold mb-4">Engine {index + 1}</h3>
 
-      <p>
-        <strong>Detected Fuel Mode:</strong> {fuelMode || "Loading..."}
-      </p>
+              {/* HFO */}
+              <div className="mb-4">
+                <label className="text-secondary font-medium mb-2 block">
+                  HFO Reading (Kg)
+                </label>
+                <input
+                  type="number"
+                  value={engine.hfoKg}
+                  placeholder={yesterdayData[index]?.hfoKg || "Enter HFO Kg"}
+                  onChange={(e) =>
+                    handleFuelChange(index, "hfoKg", e.target.value)
+                  }
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="text-secondary font-medium mb-2 block">
+                  HFO Reading (Liters)
+                </label>
+                <input
+                  type="number"
+                  value={engine.hfoLtr}
+                  placeholder={yesterdayData[index]?.hfoLtr || "Enter HFO Ltr"}
+                  onChange={(e) =>
+                    handleFuelChange(index, "hfoLtr", e.target.value)
+                  }
+                  className="w-full p-2 border rounded"
+                />
+              </div>
 
-      <label>Total Running Hours:</label>
-      <input
-        type="number"
-        value={totalHours}
-        onChange={(e) => setTotalHours(e.target.value)}
-      />
+              {/* LFO */}
 
-      <label>HFO Hours (optional):</label>
-      <input
-        type="number"
-        value={hfoHours}
-        onChange={(e) => setHfoHours(e.target.value)}
-      />
+              <div className="mb-4">
+                <label className="text-secondary font-medium mb-2 block">
+                  LFO Reading (Liters)
+                </label>
+                <input
+                  type="number"
+                  value={engine.lfoLtr}
+                  placeholder={yesterdayData[index]?.lfoLtr || "Enter LFO Ltr"}
+                  onChange={(e) =>
+                    handleFuelChange(index, "lfoLtr", e.target.value)
+                  }
+                  className="w-full p-2 border rounded"
+                />
+              </div>
 
-      <label>Gas Hours (optional for DF engines):</label>
-      <input
-        type="number"
-        value={gasHours}
-        onChange={(e) => setGasHours(e.target.value)}
-      />
+              {/* Gas (only for engines 4 & 5) */}
+              {index >= 3 && (
+                <>
+                  <div className="mb-4">
+                    <label className="text-secondary font-medium mb-2 block">
+                      Gas Reading (Nm³)
+                    </label>
+                    <input
+                      type="number"
+                      value={engine.gasNm3}
+                      placeholder={
+                        yesterdayData[index]?.gasNm3 || "Enter Gas Nm³"
+                      }
+                      onChange={(e) =>
+                        handleFuelChange(index, "gasNm3", e.target.value)
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
 
-      <button type="submit">Submit Wash Log</button>
-    </form>
+                  <div className="mb-4">
+                    <label className="text-secondary font-medium mb-2 block">
+                      Gas Reading (Kg)
+                    </label>
+                    <input
+                      type="number"
+                      value={engine.gasKg}
+                      placeholder={
+                        yesterdayData[index]?.gasKg || "Enter Gas Kg"
+                      }
+                      onChange={(e) =>
+                        handleFuelChange(index, "gasKg", e.target.value)
+                      }
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+          {/* Submit */}
+          <div className="col-span-full flex justify-end mt-4">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded"
+            >
+              Submit Fuel Readings
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };
-
-export default WashLogForm;
+export default FuelReadingsEntry;

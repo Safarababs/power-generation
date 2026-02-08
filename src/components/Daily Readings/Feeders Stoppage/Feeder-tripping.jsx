@@ -1,0 +1,100 @@
+import React, { useState } from "react";
+import { db } from "../../FIrestore/firebase";
+import { collection, addDoc, Timestamp } from "firebase/firestore";
+import { useTheme } from "../../ThemeContext";
+
+const MillRecordForm = () => {
+  const { darkMode } = useTheme();
+  const [mill, setMill] = useState("");
+  const [stopTime, setStopTime] = useState("");
+  const [startTime, setStartTime] = useState("");
+
+  const mills = [
+    "Cement Mill 1",
+    "Cement Mill 2",
+    "Cement Mill 3",
+    "Raw Mill 1",
+    "Raw Mill 2",
+    "Kiln 1",
+    "Kiln 2",
+  ];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, "millRecords"), {
+        mill,
+        stopTime: Timestamp.fromDate(new Date(stopTime)),
+        startTime: Timestamp.fromDate(new Date(startTime)),
+        createdAt: Timestamp.now(),
+      });
+      alert("Record saved successfully!");
+      setMill("");
+      setStopTime("");
+      setStartTime("");
+    } catch (error) {
+      console.error("Error saving record: ", error);
+    }
+  };
+
+  return (
+    <div
+      className={`container space-y-6 p-6 rounded-lg shadow-md ${
+        darkMode
+          ? "bg-[var(--surface-color)] text-[var(--text-primary)]"
+          : "bg-[var(--surface-color)] text-[var(--text-primary)]"
+      }`}
+    >
+      <h2 className="text-2xl font-semibold">Mill Stoppage Record</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Mill</label>
+          <select
+            value={mill}
+            onChange={(e) => setMill(e.target.value)}
+            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            required
+          >
+            <option value="">Select Mill</option>
+            {mills.map((m, idx) => (
+              <option key={idx} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Stop Time</label>
+          <input
+            type="datetime-local"
+            value={stopTime}
+            onChange={(e) => setStopTime(e.target.value)}
+            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            required
+          />
+        </div>
+
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Start Time</label>
+          <input
+            type="datetime-local"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="px-4 py-2 rounded-md bg-[var(--primary-color)] text-white hover:bg-[var(--primary-hover)] transition"
+        >
+          Save Record
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default MillRecordForm;

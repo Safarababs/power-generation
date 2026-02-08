@@ -54,6 +54,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
         },
         {
           icon: <FaGasPump size={20} />,
+          label: "Mills Tripping Record",
+          path: "/mills-tripping-record",
+        },
+        {
+          icon: <FaGasPump size={20} />,
           label: "Wash Log",
           path: "/wash-logs",
         },
