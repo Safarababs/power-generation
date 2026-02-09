@@ -26,6 +26,9 @@ import SOPsComponent from "./components/SOP/SOP's.jsx";
 // New Login Component
 import LoginForm from "./components/Users/Login.jsx";
 import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
+import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
+import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
+import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
 
 function App() {
   const auth = getAuth();
@@ -61,7 +64,19 @@ function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
+
                   {/* readings */}
+                  <Route
+                    path="/DashboardLayout"
+                    element={<DashboardLayout />}
+                  />
+                  {/* egnien start/stop */}
+                  <Route path="/start-stop-logs" element={<EngineLogForm />} />
+                  {/* previous start stop entry */}
+                  <Route
+                    path="/monthly-starts-stops"
+                    element={<MonthlyStartsStopsEntry />}
+                  />
                   <Route path="/readings" element={<ControlRoomReadings />} />
                   <Route
                     path="/fuel-readings"

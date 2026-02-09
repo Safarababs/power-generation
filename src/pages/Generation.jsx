@@ -8,6 +8,25 @@ const Generation = () => {
   const [selectedGenerator, setSelectedGenerator] = useState(null);
   const [engineReadings, setEngineReadings] = useState([]);
   const [fuelReadings, setFuelReadings] = useState([]);
+  const [engines, setEngines] = useState([]);
+
+  // lets track real-time engine status for the top tiles
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "engineStatus"), (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setEngines(data);
+    });
+
+    return () => unsub();
+  }, []);
+
+  // Add a derived value that counts how many engines have currentStatus === "running":
+  const runningGenerators = engines.filter(
+    (engine) => engine.currentStatus === "running",
+  ).length;
 
   // 🔧 Fetch Firestore data
   useEffect(() => {
@@ -47,10 +66,6 @@ const Generation = () => {
   const latestEngineData = engineReadings[0]?.generation || [];
   const latestFuelData = fuelReadings[0]?.consumption || [];
 
-  // 🔧 Overview metrics
-  const activeGenerators = latestEngineData.filter(
-    (e) => e.rhrs >= 24 && e.kwh > 0,
-  ).length;
   const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
   const totalCapacity = latestFuelData.reduce(
     (sum, f) => sum + (f.capacity || 9780),
@@ -83,7 +98,7 @@ const Generation = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-secondary">Active Generators</p>
-                <p className="text-2xl font-bold">{activeGenerators}</p>
+                <p className="text-2xl font-bold">{runningGenerators}</p>
               </div>
               <div
                 className="p-3 rounded-full"
@@ -151,7 +166,9 @@ const Generation = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {latestEngineData.map((engine, idx) => {
           const fuel = latestFuelData[idx] || {};
-          const isRunning = engine.rhrs >= 24 && engine.kwh > 0;
+          const isRunning =
+            engines.find((e) => e.engineId === `E${idx + 1}`)?.currentStatus ===
+            "running";
 
           return (
             <div key={idx} className="card">
@@ -191,7 +208,7 @@ const Generation = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-secondary">Running Hours</span>
-                      <p className="font-semibold">{engine.rhrs}</p>
+                      <p className="font-semibold">{engine.rhrs.toFixed(1)}</p>
                     </div>
                     <div>
                       <span className="text-secondary">Generation</span>
@@ -212,11 +229,19 @@ const Generation = () => {
                       <span className="text-secondary">Status</span>
                       <p
                         className={`font-semibold ${
-                          isRunning ? "text-green-600" : "text-red-600"
+                          engine.currentStatus === "running"
+                            ? "text-green-600"
+                            : "text-red-600"
                         }`}
                       >
-                        {isRunning ? "Active" : "Stopped"}
+                        {engine.currentStatus === "running"
+                          ? "Active"
+                          : "Stopped"}
                       </p>
+                      <div className="text-xs text-secondary mt-1">
+                        Last {engine.lastEventType} at{" "}
+                        {engine.lastEventTime?.toDate().toLocaleString()}
+                      </div>
                     </div>
                   </div>
 

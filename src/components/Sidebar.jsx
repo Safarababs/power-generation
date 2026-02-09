@@ -35,6 +35,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
           label: "Generation",
           path: "/generation",
         },
+        {
+          icon: <FaTachometerAlt size={20} />,
+          label: "Monitoring",
+          path: "/DashboardLayout",
+        },
         { icon: <FaSliders size={20} />, label: "Controls", path: "/controls" },
       ],
     },
@@ -42,6 +47,17 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
       group: "Data Input",
       icon: <FaGasPump size={16} />,
       items: [
+        // engine start stop need to be added here
+        {
+          icon: <FaTachometerAlt size={20} />,
+          label: "Start/Stop Logs",
+          path: "/start-stop-logs",
+        },
+        {
+          icon: <FaTachometerAlt size={20} />,
+          label: "Start/Stop Logs",
+          path: "/monthly-starts-stops",
+        },
         {
           icon: <FaTachometerAlt size={20} />,
           label: "Readings",
