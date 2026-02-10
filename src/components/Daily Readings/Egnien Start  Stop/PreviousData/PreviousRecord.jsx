@@ -20,11 +20,8 @@ export default function MonthlyPreviousRecord() {
     setLoading(true);
 
     try {
-      // Convert "2026-01" → "2026_01"
       const monthKey = month.replace("-", "_");
 
-      // Save directly into engine_start_stop collection
-      // Each monthKey is a document, each engine is a field
       await setDoc(
         doc(db, "engine_start_stop", monthKey),
         {
@@ -37,7 +34,6 @@ export default function MonthlyPreviousRecord() {
       );
 
       alert("Data saved ✅");
-
       setStarts("");
       setStops("");
     } catch (err) {
@@ -49,27 +45,34 @@ export default function MonthlyPreviousRecord() {
   };
 
   return (
-    <div style={styles.card}>
-      <h2>Monthly Previous Starts / Stops Entry</h2>
+    <div
+      className="container max-w-md mx-auto p-6 rounded-lg shadow-md 
+                    bg-[var(--surface-color)] text-[var(--text-primary)] space-y-6"
+    >
+      <h2 className="text-xl font-bold border-b border-[var(--border-color)] pb-2">
+        Monthly Previous Starts / Stops Entry
+      </h2>
 
-      <form onSubmit={handleSubmit} style={styles.form}>
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Month */}
-        <div>
-          <label>Month</label>
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Month</label>
           <input
             type="month"
             value={month}
             onChange={(e) => setMonth(e.target.value)}
             required
+            className="form-select"
           />
         </div>
 
         {/* Engine */}
-        <div>
-          <label>Engine</label>
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Engine</label>
           <select
             value={engineId}
             onChange={(e) => setEngineId(e.target.value)}
+            className="form-select"
           >
             {engines.map((e) => (
               <option key={e}>{e}</option>
@@ -78,47 +81,47 @@ export default function MonthlyPreviousRecord() {
         </div>
 
         {/* Starts */}
-        <div>
-          <label>Total Starts</label>
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Total Starts</label>
           <input
             type="number"
             value={starts}
             onChange={(e) => setStarts(e.target.value)}
             required
+            className="form-select"
           />
         </div>
 
         {/* Stops */}
-        <div>
-          <label>Total Stops</label>
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Total Stops</label>
           <input
             type="number"
             value={stops}
             onChange={(e) => setStops(e.target.value)}
             required
+            className="form-select"
           />
         </div>
 
-        <button type="submit" disabled={loading}>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="btn-primary"
+          style={
+            loading
+              ? {
+                  color: "white",
+                  backgroundColor: "gray",
+                  cursor: "not-allowed",
+                }
+              : { color: "white", backgroundColor: "var(--primary-color)" }
+          }
+        >
           {loading ? "Saving..." : "Save Record"}
         </button>
       </form>
     </div>
   );
 }
-
-const styles = {
-  card: {
-    maxWidth: "500px",
-    margin: "20px auto",
-    padding: "20px",
-    border: "1px solid #ccc",
-    borderRadius: "10px",
-    background: "black",
-    color: "white",
-  },
-  form: {
-    display: "grid",
-    gap: "15px",
-  },
-};

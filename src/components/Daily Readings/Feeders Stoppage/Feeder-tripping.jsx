@@ -52,7 +52,7 @@ const MillRecordForm = () => {
           <select
             value={mill}
             onChange={(e) => setMill(e.target.value)}
-            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            className="form-select"
             required
           >
             <option value="">Select Mill</option>
@@ -70,7 +70,7 @@ const MillRecordForm = () => {
             type="datetime-local"
             value={stopTime}
             onChange={(e) => setStopTime(e.target.value)}
-            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            className="form-select"
             required
           />
         </div>
@@ -81,15 +81,12 @@ const MillRecordForm = () => {
             type="datetime-local"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]"
+            className="form-input"
             required
           />
         </div>
 
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-md bg-[var(--primary-color)] text-white hover:bg-[var(--primary-hover)] transition"
-        >
+        <button type="submit" className="btn-primary">
           Save Record
         </button>
       </form>

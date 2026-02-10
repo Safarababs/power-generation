@@ -21,7 +21,6 @@ export default function EngineLogForm() {
   const [eventTime, setEventTime] = useState("");
   const [reason, setReason] = useState("");
 
-  // Fetch last engine status
   const fetchStatus = async (id) => {
     const q = query(
       collection(db, "engineLogs"),
@@ -29,14 +28,11 @@ export default function EngineLogForm() {
       orderBy("eventDateTime", "desc"),
       limit(1),
     );
-
     const snap = await getDocs(q);
-
     if (snap.empty) {
       setStatus("stopped");
       return;
     }
-
     const lastEvent = snap.docs[0].data().eventType;
     setStatus(lastEvent === "start" ? "running" : "stopped");
   };
@@ -45,7 +41,6 @@ export default function EngineLogForm() {
     fetchStatus(engineId);
   }, [engineId]);
 
-  // Update engineStatus collection
   const updateEngineStatus = async (engineId, eventType, eventTime) => {
     await setDoc(doc(db, "engineStatus", engineId), {
       engineId,
@@ -56,10 +51,8 @@ export default function EngineLogForm() {
     });
   };
 
-  // Submit Log
   const handleSubmit = async () => {
     if (!eventTime) return alert("Enter event time");
-
     const eventType = status === "running" ? "stop" : "start";
 
     await addDoc(collection(db, "engineLogs"), {
@@ -78,39 +71,77 @@ export default function EngineLogForm() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Engine Log Entry</h2>
+    <div
+      className="container max-w-lg mx-auto p-6 rounded-lg shadow-md 
+                  bg-[var(--surface-color)] text-[var(--text-primary)] space-y-6"
+    >
+      <h2 className="text-2xl font-bold border-b border-[var(--border-color)] pb-2">
+        Engine Log Entry
+      </h2>
 
-      <select value={engineId} onChange={(e) => setEngineId(e.target.value)}>
-        {engines.map((e) => (
-          <option key={e}>{e}</option>
-        ))}
-      </select>
+      {/* Engine Selector */}
+      <div className="flex flex-col space-y-2">
+        <label className="font-medium">Select Engine</label>
+        <select
+          value={engineId}
+          onChange={(e) => setEngineId(e.target.value)}
+          className="form-input"
+        >
+          {engines.map((e) => (
+            <option key={e}>{e}</option>
+          ))}
+        </select>
+      </div>
 
-      <p>
-        Current Status:{" "}
-        <b style={{ color: status === "running" ? "green" : "red" }}>
+      {/* Current Status */}
+      <div className="flex items-center space-x-2">
+        <span className="font-medium">Current Status:</span>
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-bold ${
+            status === "running"
+              ? "bg-green-500 text-green"
+              : "bg-red-500 text-red"
+          }`}
+        >
           {status.toUpperCase()}
-        </b>
-      </p>
+        </span>
+      </div>
 
-      <input
-        type="datetime-local"
-        value={eventTime}
-        onChange={(e) => setEventTime(e.target.value)}
-      />
-
-      {status === "running" && (
+      {/* Event Time */}
+      <div className="flex flex-col space-y-2">
+        <label className="font-medium">Event Time</label>
         <input
-          placeholder="Reason for Stop"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
+          type="datetime-local"
+          value={eventTime}
+          onChange={(e) => setEventTime(e.target.value)}
+          className="form-input"
         />
+      </div>
+
+      {/* Reason for Stop */}
+      {status === "running" && (
+        <div className="flex flex-col space-y-2">
+          <label className="font-medium">Reason for Stop</label>
+          <input
+            placeholder="Enter reason"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="form-input"
+          />
+        </div>
       )}
 
-      <br />
-      <button onClick={handleSubmit}>
-        Submit {status === "running" ? "STOP" : "START"}
+      {/* Submit Button */}
+      <button
+        onClick={handleSubmit}
+        className="btn-primary"
+        style={
+          status === "running"
+            ? { color: "white", backgroundColor: "green" }
+            : { color: "white", backgroundColor: "red" }
+        }
+      >
+        {status === "running" ? "STOP NOW" : "START NOW"}
       </button>
     </div>
   );

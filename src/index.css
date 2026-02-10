@@ -231,7 +231,7 @@ body {
 /* Buttons */
 .btn-primary {
   background-color: var(--primary-color);
-  color: #fff;
+  color: red;
   border: none;
   padding: 0.75rem;
   border-radius: var(--border-radius);
@@ -242,7 +242,7 @@ body {
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
-  box-shadow: 0 0 12px var(--primary-color);
+  box-shadow: 0 0 5px var(--primary-color);
 }
 
 /* Responsive */

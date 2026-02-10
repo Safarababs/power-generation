@@ -133,7 +133,7 @@ const FuelReadingsEntry = () => {
             <input
               type="text"
               placeholder="Enter Your name"
-              className="w-full p-2 border rounded mb-4"
+              className="form-input"
               required
               value={operatorName}
               onChange={(e) => setOperatorName(e.target.value)}
@@ -146,7 +146,7 @@ const FuelReadingsEntry = () => {
             </label>
             <input
               type="date"
-              className="w-full p-2 border rounded mb-4"
+              className="form-input"
               required
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
@@ -169,7 +169,7 @@ const FuelReadingsEntry = () => {
                   onChange={(e) =>
                     handleFuelChange(index, "hfoKg", e.target.value)
                   }
-                  className="w-full p-2 border rounded"
+                  className="form-input"
                   required
                 />
               </div>
@@ -184,7 +184,7 @@ const FuelReadingsEntry = () => {
                   onChange={(e) =>
                     handleFuelChange(index, "hfoLtr", e.target.value)
                   }
-                  className="w-full p-2 border rounded"
+                  className="form-input"
                 />
               </div>
 
@@ -201,7 +201,7 @@ const FuelReadingsEntry = () => {
                   onChange={(e) =>
                     handleFuelChange(index, "lfoLtr", e.target.value)
                   }
-                  className="w-full p-2 border rounded"
+                  className="form-input"
                 />
               </div>
 
@@ -221,7 +221,7 @@ const FuelReadingsEntry = () => {
                       onChange={(e) =>
                         handleFuelChange(index, "gasNm3", e.target.value)
                       }
-                      className="w-full p-2 border rounded"
+                      className="form-input"
                     />
                   </div>
 
@@ -238,7 +238,7 @@ const FuelReadingsEntry = () => {
                       onChange={(e) =>
                         handleFuelChange(index, "gasKg", e.target.value)
                       }
-                      className="w-full p-2 border rounded"
+                      className="form-input"
                     />
                   </div>
                 </>
@@ -247,10 +247,7 @@ const FuelReadingsEntry = () => {
           ))}
           {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded"
-            >
+            <button type="submit" className="btn-primary">
               Submit Fuel Readings
             </button>
           </div>

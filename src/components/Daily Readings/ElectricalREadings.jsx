@@ -141,7 +141,7 @@ const EngineReadingsEntry = () => {
             <input
               type="text"
               placeholder="Enter Your name"
-              className="w-full p-2 border rounded mb-4"
+              className="form-input"
               required
               value={operatorName}
               onChange={(e) => setOperatorName(e.target.value)}
@@ -155,7 +155,7 @@ const EngineReadingsEntry = () => {
             </label>
             <input
               type="date"
-              className="w-full p-2 border rounded mb-4"
+              className="form-input"
               required
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
@@ -180,7 +180,7 @@ const EngineReadingsEntry = () => {
                   value={engine.rhrs}
                   onChange={(e) => handleChange(index, "rhrs", e.target.value)}
                   placeholder={previousReadings[index]?.rhrs || "Enter Rhrs"}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="form-input"
                   style={
                     errors[index].rhrs
                       ? { borderColor: "red", borderWidth: "2px" }
@@ -204,7 +204,7 @@ const EngineReadingsEntry = () => {
                   value={engine.kwh}
                   placeholder={previousReadings[index]?.kwh || "Enter KWH"}
                   onChange={(e) => handleChange(index, "kwh", e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="form-input"
                   style={
                     errors[index].kwh
                       ? { borderColor: "red", borderWidth: "2px" }
@@ -218,10 +218,7 @@ const EngineReadingsEntry = () => {
 
           {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded"
-            >
+            <button type="submit" className="btn-primary">
               Submit Readings
             </button>
           </div>

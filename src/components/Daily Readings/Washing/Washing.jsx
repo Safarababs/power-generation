@@ -88,59 +88,99 @@ const WashLogForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>Operator Name:</label>
-      <input
-        type="text"
-        value={operatorName}
-        onChange={(e) => setOperatorName(e.target.value)}
-        required
-      />
+    <div className="card">
+      <div className="card-content">
+        <h2 className="card-title mb-6">Engine Wash Log Entry</h2>
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          <div className="col-span-full">
+            <label className="text-secondary font-medium mb-2 block">
+              Operator Name
+            </label>
+            <input
+              type="text"
+              value={operatorName}
+              onChange={(e) => setOperatorName(e.target.value)}
+              required
+              className="form-input"
+            />
+          </div>
 
-      <label>Reading Date:</label>
-      <input
-        type="date"
-        value={entryDate}
-        onChange={(e) => setEntryDate(e.target.value)}
-        required
-      />
+          <label className="text-secondary font-medium mb-2 block">
+            Reading Date:
+          </label>
+          <input
+            type="date"
+            value={entryDate}
+            onChange={(e) => setEntryDate(e.target.value)}
+            required
+            className="form-input"
+          />
 
-      <label>Engine Number:</label>
-      <input
-        type="number"
-        value={engine}
-        onChange={(e) => setEngine(Number(e.target.value))}
-        required
-      />
+          <label className="text-secondary font-medium mb-2 block">
+            Engine Number:
+          </label>
+          <input
+            type="number"
+            value={engine}
+            onChange={(e) => setEngine(Number(e.target.value))}
+            required
+            className="form-input"
+          />
+          {/* here we will add color logic of ternary operator if gas then yellow if hfo/lfo then red if loading tehn white  */}
 
-      <p>
-        <strong>Detected Fuel Mode:</strong> {fuelMode || "Loading..."}
-      </p>
+          <p
+            style={{
+              color:
+                fuelMode === "GAS"
+                  ? "yellow"
+                  : fuelMode === "HFO/LFO"
+                    ? "red"
+                    : "white",
+            }}
+          >
+            <strong>Detected Fuel Mode:</strong> {fuelMode || "Loading..."}
+          </p>
 
-      <label>Total Running Hours:</label>
-      <input
-        type="number"
-        value={totalHours}
-        onChange={(e) => setTotalHours(e.target.value)}
-        required
-      />
+          <label className="text-secondary font-medium mb-2 block">
+            Total Running Hours:
+          </label>
+          <input
+            type="number"
+            value={totalHours}
+            onChange={(e) => setTotalHours(e.target.value)}
+            required
+            className="form-input"
+          />
 
-      <label>HFO Hours (optional):</label>
-      <input
-        type="number"
-        value={hfoHours}
-        onChange={(e) => setHfoHours(e.target.value)}
-      />
+          <label className="text-secondary font-medium mb-2 block">
+            HFO Hours (optional):
+          </label>
+          <input
+            type="number"
+            value={hfoHours}
+            onChange={(e) => setHfoHours(e.target.value)}
+            className="form-input"
+          />
 
-      <label>Gas Hours (optional for DF engines):</label>
-      <input
-        type="number"
-        value={gasHours}
-        onChange={(e) => setGasHours(e.target.value)}
-      />
+          <label className="text-secondary font-medium mb-2 block">
+            Gas Hours (optional for DF engines):
+          </label>
+          <input
+            type="number"
+            value={gasHours}
+            onChange={(e) => setGasHours(e.target.value)}
+            className="form-input"
+          />
 
-      <button type="submit">Submit Wash Log</button>
-    </form>
+          <button type="submit" className="btn-primary">
+            Submit Wash Log
+          </button>
+        </form>
+      </div>
+    </div>
   );
 };
 
