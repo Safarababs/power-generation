@@ -1,125 +1,178 @@
-import React, { useState } from "react";
-import { FaCalendarAlt } from "react-icons/fa";
+import React, { useState, useEffect } from "react";
+import { db } from "../FIrestore/firebase";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  getDocs,
+  where,
+} from "firebase/firestore";
+
+// Helper to format Firestore date field (string or Timestamp)
+const formatDate = (date) => {
+  if (!date) return "";
+  if (typeof date === "string") return date; // already YYYY-MM-DD
+  if (date.toDate) return date.toDate().toISOString().split("T")[0]; // Firestore Timestamp
+  return new Date(date).toISOString().split("T")[0];
+};
 
 const PowerGenerationChart = () => {
-  const [activeTab, setActiveTab] = useState("day");
+  const [data, setData] = useState([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Simulated hourly data for the day view
-  // const hourlyData = [
-  //   250, 245, 260, 285, 310, 340, 375, 410, 430, 450, 465, 460, 455, 445, 460,
-  //   470, 465, 440, 420, 390, 350, 320, 290, 265,
-  // ];
-  const hourlyData = [
-    61250, 59800, 62000, 60500, 61000, 58000, 53000, 56000, 58000, 60000, 62000,
-    64000, 63000, 61500, 60000, 59000, 58000, 57000, 56000, 55000, 54000, 53000,
-    52000, 51000, 50000,
-  ];
+  const today = new Date().toISOString().split("T")[0];
 
-  // Find max value for scaling
-  const maxValue = Math.max(...hourlyData);
+  // Fetch last 7 docs to set default range
+  useEffect(() => {
+    const fetchDefaults = async () => {
+      try {
+        const q = query(
+          collection(db, "engineReadings"),
+          orderBy("date", "desc"),
+          limit(7),
+        );
+        const snapshot = await getDocs(q);
+        const docs = snapshot.docs.map((doc) => doc.data());
+
+        if (docs.length > 0) {
+          // last item = newest date
+          const newest = formatDate(docs[0].date);
+          const oldest = formatDate(docs[docs.length - 1].date);
+          setToDate(newest);
+          setFromDate(oldest);
+        }
+      } catch (err) {
+        console.error("Error fetching default dates:", err);
+      }
+    };
+    fetchDefaults();
+  }, []);
+
+  // Fetch data based on range
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!fromDate || !toDate) return;
+      setLoading(true);
+      try {
+        let q = query(
+          collection(db, "engineReadings"),
+          where("date", ">=", fromDate),
+          where("date", "<=", toDate),
+          orderBy("date", "asc"),
+        );
+
+        const snapshot = await getDocs(q);
+        const docs = snapshot.docs.map((doc) => doc.data());
+        setData(docs);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [fromDate, toDate]);
+
+  const sumGeneration = (generation) =>
+    generation ? generation.reduce((sum, g) => sum + (g.kwh || 0), 0) : 0;
+
+  const chartData = data.map((doc) => ({
+    date: formatDate(doc.date),
+    value: sumGeneration(doc.generation),
+  }));
+
+  const maxValue = chartData.length
+    ? Math.max(...chartData.map((d) => d.value))
+    : 0;
 
   return (
     <div className="card">
-      <div className="card-header">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h2 className="card-title">Power Generation Trends</h2>
-
-          <div className="flex items-center">
-            <div
-              className="flex rounded-lg p-1 text-sm mr-2"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-            >
-              <button
-                className={`px-3 py-1 rounded-md ${
-                  activeTab === "day" ? "btn-primary" : "text-secondary"
-                }`}
-                onClick={() => setActiveTab("day")}
-              >
-                Day
-              </button>
-              <button
-                className={`px-3 py-1 rounded-md ${
-                  activeTab === "week" ? "btn-primary" : "text-secondary"
-                }`}
-                onClick={() => setActiveTab("week")}
-              >
-                Week
-              </button>
-              <button
-                className={`px-3 py-1 rounded-md ${
-                  activeTab === "month" ? "btn-primary" : "text-secondary"
-                }`}
-                onClick={() => setActiveTab("month")}
-              >
-                Month
-              </button>
-            </div>
-
-            <button className="flex items-center text-sm text-secondary hover:text-primary">
-              <FaCalendarAlt size={16} className="mr-1" />
-              <span>
-                {new Date().toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            </button>
-          </div>
+      <div className="card-header flex justify-between">
+        <h2 className="card-title">Power Generation Trends</h2>
+        <div className="flex gap-2">
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="form-select"
+            style={{ marginRight: "1rem" }}
+            max={today}
+          />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="form-input"
+            max={today}
+          />
         </div>
       </div>
 
       <div className="card-content">
-        <div className="chart-container">
-          {/* Chart Container */}
-          <div className="relative h-full">
-            {/* Y-axis labels */}
-            <div className="chart-y-axis">
-              <div>{Math.round(maxValue)}KWH</div>
-              <div>{Math.round(maxValue * 0.75)}KWH</div>
-              <div>{Math.round(maxValue * 0.5)}KWH</div>
-              <div>{Math.round(maxValue * 0.25)}KWH</div>
-              <div>0KWH</div>
-            </div>
+        {loading ? (
+          <div className="p-4 text-center text-secondary">Loading data...</div>
+        ) : chartData.length === 0 ? (
+          <div className="p-4 text-center text-secondary">
+            No data available
+          </div>
+        ) : (
+          <>
+            <div className="chart-container">
+              {/* Y-axis */}
+              <div className="chart-y-axis">
+                <div>{maxValue} KWH</div>
+                <div>{Math.round(maxValue * 0.75)} KWH</div>
+                <div>{Math.round(maxValue * 0.5)} KWH</div>
+                <div>{Math.round(maxValue * 0.25)} KWH</div>
+                <div>0 KWH</div>
+              </div>
 
-            {/* Chart Grid */}
-            <div className="chart-grid">
-              {[0, 1, 2, 3, 4].map((index) => (
-                <div
-                  key={index}
-                  className="chart-grid-line"
-                  style={{ top: `${index * 25}%` }}
-                ></div>
-              ))}
+              {/* Grid */}
+              <div className="chart-grid">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="chart-grid-line"
+                    style={{ top: `${i * 25}%` }}
+                  ></div>
+                ))}
 
-              {/* Chart Bars */}
-              <div className="chart-bars">
-                {hourlyData.map((value, index) => {
-                  const height = (value / maxValue) * 100;
-                  return (
-                    <div
-                      key={index}
-                      className="chart-bar"
-                      style={{ height: `${height}%` }}
-                    >
-                      {/* Here at the end of this line need to add date from database */}
-                      <div className="chart-tooltip">{value} MW</div>
-                    </div>
-                  );
-                })}
+                {/* Bars */}
+                <div className="chart-bars">
+                  {chartData.map((entry, index) => {
+                    const height = maxValue
+                      ? (entry.value / maxValue) * 100
+                      : 0;
+                    return (
+                      <div
+                        key={index}
+                        className="chart-bar"
+                        style={{ height: `${height}%` }}
+                      >
+                        <div className="chart-tooltip">
+                          {entry.value} KWH
+                          <br />
+                          {entry.date}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* X-axis labels */}
-          <div className="chart-x-axis">
-            <div>12 AM</div>
-            <div>6 AM</div>
-            <div>12 PM</div>
-            <div>6 PM</div>
-            <div>12 AM</div>
-          </div>
-        </div>
+            {/* X-axis labels BELOW the chart */}
+            <div className="chart-x-axis">
+              {chartData.map((entry, index) => (
+                <div key={index}>{entry.date}</div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
