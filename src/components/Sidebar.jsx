@@ -102,6 +102,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
       group: "Team & Settings",
       icon: <FaUsers size={16} />,
       items: [
+        {
+          icon: <FaUsers size={20} />,
+          label: "Attendance",
+          path: "/attendance",
+        },
         { icon: <FaUsers size={20} />, label: "Team", path: "/team" },
         { icon: <FaCog size={20} />, label: "Settings", path: "/settings" },
       ],

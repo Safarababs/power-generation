@@ -29,6 +29,7 @@ import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-
 import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
+import MarkAttendance from "./components/Attandance/pages/MarkAttendance.jsx";
 
 function App() {
   const auth = getAuth();
@@ -90,6 +91,8 @@ function App() {
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
+                  {/* Attandance */}
+                  <Route path="/attendance" element={<MarkAttendance />} />
                 </Routes>
               </Layout>
             )}

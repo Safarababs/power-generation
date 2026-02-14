@@ -9,6 +9,7 @@ import {
   limit,
 } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
+import PowerGenerationOverviewtest from "./PowerGenerationOverviewtest";
 
 const ImportReadings = () => {
   const [lastReading, setLastReading] = useState(null); // engineReadings
@@ -174,127 +175,132 @@ const ImportReadings = () => {
   }
 
   return (
-    <div className="card">
-      <div className="card-content">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="card-title">Power Generation Overview</h2>
-          <div className="text-sm text-secondary">
-            {/* Date Picker */}
-            <div className="mb-4">
-              <input
-                type="date"
-                className="w-full p-2 border rounded"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                max={today}
-                min={minDate}
-              />
-            </div>
-            <span>Updated: </span>
-            <span>
-              {lastReading?.date
-                ? new Date(lastReading.date).toLocaleDateString()
-                : "Verify Date again..."}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Average Output (percentage of capacity) */}
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
-          >
-            <div className="flex items-center mb-2">
-              <FaBolt
-                size={20}
-                style={{ color: "#f59e0b", marginRight: "0.5rem" }}
-              />
-              <span className="text-secondary font-medium">Average Output</span>
-            </div>
-            <div className="flex items-end justify-between">
-              <div>
-                <span className="text-3xl font-bold">
-                  {averageOutputPercentage.toFixed(2)}
-                </span>
-                <span className="text-lg ml-1">%</span>
+    <>
+      <PowerGenerationOverviewtest /> {/* Placeholder for testing */}
+      <div className="card">
+        <div className="card-content">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="card-title">Power Generation Overview</h2>
+            <div className="text-sm text-secondary">
+              {/* Date Picker */}
+              <div className="mb-4">
+                <input
+                  type="date"
+                  className="w-full p-2 border rounded"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  max={today}
+                  min={minDate}
+                />
               </div>
-              {trendPercent !== null ? (
-                <div
-                  className={`flex items-center ${
-                    trendDirection === "increase" ? "text-green" : "text-red"
-                  }`}
-                >
-                  {trendDirection === "increase" ? (
-                    <IoIosTrendingUp size={18} />
-                  ) : (
-                    <IoMdTrendingDown size={18} />
-                  )}
-                  <span className="ml-1 text-sm font-medium">
-                    {trendPercent.toFixed(1)}%
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-center text-secondary">
-                  <span className="ml-1 text-sm font-medium">
-                    No previous day data
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Daily Production */}
-          <div
-            className="p-4 rounded-lg"
-            style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
-          >
-            <div className="flex items-center mb-2">
-              <FaBatteryFull
-                size={20}
-                style={{ color: "#3b82f6", marginRight: "0.5rem" }}
-              />
-              <span className="text-secondary font-medium">
-                Daily Production
+              <span>Updated: </span>
+              <span>
+                {lastReading?.date
+                  ? new Date(lastReading.date).toLocaleDateString()
+                  : "Verify Date again..."}
               </span>
             </div>
-            <div className="flex items-end justify-between">
-              <div>
-                <span className="text-3xl font-bold">{totalKWH}</span>
-                <span className="text-lg ml-1">KWh</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Average Output (percentage of capacity) */}
+            <div
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+            >
+              <div className="flex items-center mb-2">
+                <FaBolt
+                  size={20}
+                  style={{ color: "#f59e0b", marginRight: "0.5rem" }}
+                />
+                <span className="text-secondary font-medium">
+                  Average Output
+                </span>
               </div>
-              {trendPercent !== null ? (
-                <div
-                  className={`flex items-center ${
-                    trendDirection === "increase" ? "text-green" : "text-red"
-                  }`}
-                >
-                  {trendDirection === "increase" ? (
-                    <IoIosTrendingUp size={18} />
-                  ) : (
-                    <IoMdTrendingDown size={18} />
-                  )}
-                  <span className="ml-1 text-sm font-medium">
-                    {trendPercent.toFixed(1)}%
+              <div className="flex items-end justify-between">
+                <div>
+                  <span className="text-3xl font-bold">
+                    {averageOutputPercentage.toFixed(2)}
                   </span>
+                  <span className="text-lg ml-1">%</span>
                 </div>
-              ) : (
-                <div className="flex items-center text-secondary">
-                  <span className="ml-1 text-sm font-medium">
-                    No previous day data
-                  </span>
-                </div>
-              )}
+                {trendPercent !== null ? (
+                  <div
+                    className={`flex items-center ${
+                      trendDirection === "increase" ? "text-green" : "text-red"
+                    }`}
+                  >
+                    {trendDirection === "increase" ? (
+                      <IoIosTrendingUp size={18} />
+                    ) : (
+                      <IoMdTrendingDown size={18} />
+                    )}
+                    <span className="ml-1 text-sm font-medium">
+                      {trendPercent.toFixed(1)}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-secondary">
+                    <span className="ml-1 text-sm font-medium">
+                      No previous day data
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="mt-2 text-xs text-secondary">
-              {secondLastReading
-                ? `Yesterday: ${yesterdayKWH} KWh`
-                : "No previous day data found"}
+
+            {/* Daily Production */}
+            <div
+              className="p-4 rounded-lg"
+              style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+            >
+              <div className="flex items-center mb-2">
+                <FaBatteryFull
+                  size={20}
+                  style={{ color: "#3b82f6", marginRight: "0.5rem" }}
+                />
+                <span className="text-secondary font-medium">
+                  Daily Production
+                </span>
+              </div>
+              <div className="flex items-end justify-between">
+                <div>
+                  <span className="text-3xl font-bold">{totalKWH}</span>
+                  <span className="text-lg ml-1">KWh</span>
+                </div>
+                {trendPercent !== null ? (
+                  <div
+                    className={`flex items-center ${
+                      trendDirection === "increase" ? "text-green" : "text-red"
+                    }`}
+                  >
+                    {trendDirection === "increase" ? (
+                      <IoIosTrendingUp size={18} />
+                    ) : (
+                      <IoMdTrendingDown size={18} />
+                    )}
+                    <span className="ml-1 text-sm font-medium">
+                      {trendPercent.toFixed(1)}%
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-secondary">
+                    <span className="ml-1 text-sm font-medium">
+                      No previous day data
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 text-xs text-secondary">
+                {secondLastReading
+                  ? `Yesterday: ${yesterdayKWH} KWh`
+                  : "No previous day data found"}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </div>{" "}
+    </>
   );
 };
 

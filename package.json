@@ -5,6 +5,7 @@
   "dependencies": {
     "@coreui/coreui": "^5.4.0",
     "@coreui/react": "^5.7.0",
+    "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",

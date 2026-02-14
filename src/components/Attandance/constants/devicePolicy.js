@@ -1,0 +1,3 @@
+export const DEVICE_POLICY = {
+  MAX_DEVICES_PER_EMPLOYEE: 2,
+};

@@ -32,7 +32,9 @@ const LoginForm = ({ onLogin }) => {
 
       {/* Branding + Date & Time */}
       <div className="login-date">
-        <h1 className="org-title">NAS Power Generation</h1>
+        <h1 className="org-title">
+          Welcome To<br></br> NAS Power Generation
+        </h1>
 
         <div className="time">
           {dateTime.toLocaleTimeString([], {
