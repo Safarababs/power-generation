@@ -9,7 +9,6 @@ import {
   limit,
 } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
-import PowerGenerationOverviewtest from "./PowerGenerationOverviewtest";
 
 const ImportReadings = () => {
   const [lastReading, setLastReading] = useState(null); // engineReadings
@@ -176,7 +175,6 @@ const ImportReadings = () => {
 
   return (
     <>
-      <PowerGenerationOverviewtest /> {/* Placeholder for testing */}
       <div className="card">
         <div className="card-content">
           <div className="flex items-center justify-between mb-6">
