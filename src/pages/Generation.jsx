@@ -67,12 +67,20 @@ const Generation = () => {
   const latestFuelData = fuelReadings[0]?.consumption || [];
 
   const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
-  const totalCapacity = latestFuelData.reduce(
-    (sum, f) => sum + (f.capacity || 9780),
+  // total capacit is, in latest engine data there are rhrs and kwh, so the the total capacity will rhrs * 9780 (assuming 9780 is the capacity per engine per day)
+
+  const totalCapacity = latestEngineData.reduce(
+    (sum, e) => sum + (e.rhrs || 0) * 9780,
     0,
   );
+  // now we can calculate individual engine capacity by rhrs * 9780
+  const individualCapacities = latestEngineData.map((e) => ({
+    engineId: e.engineId,
+    capacity: (e.rhrs || 0) * 9780,
+  }));
+
   const capacityUtilization =
-    totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(1) : 0;
+    totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(2) : 0;
   const maintenanceDue = latestFuelData.filter(
     (f) => parseInt(f.nextMaintenance) <= 7,
   ).length;
@@ -187,7 +195,8 @@ const Generation = () => {
                     <span className="text-sm text-secondary">Output</span>
                     <span className="font-semibold">
                       {(
-                        (engine.kwh / ((fuel.capacity || 9780) * 24)) *
+                        (engine.kwh /
+                          (individualCapacities[idx]?.capacity || 9780)) *
                         100
                       ).toFixed(2)}
                       %
@@ -199,7 +208,9 @@ const Generation = () => {
                       className="progress-fill"
                       style={{
                         width: `${
-                          (engine.kwh / ((fuel.capacity || 9780) * 24)) * 100
+                          (engine.kwh /
+                            (individualCapacities[idx]?.capacity || 9780)) *
+                          100
                         }%`,
                       }}
                     ></div>

@@ -85,6 +85,17 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
       icon: <FaClipboardList size={16} />,
       items: [
         { icon: <FaClipboardList size={20} />, label: "SOP's", path: "/sop" },
+        {
+          icon: <FaFileAlt size={20} />,
+          label: "Protections",
+          path: "/engines-safety",
+        },
+      ],
+    },
+    {
+      group: "Miscellaneous",
+      icon: <FaClipboardList size={16} />,
+      items: [
         { icon: <FaFileAlt size={20} />, label: "Reports", path: "/reports" },
         {
           icon: <FaChartLine size={20} />,

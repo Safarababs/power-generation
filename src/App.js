@@ -30,6 +30,7 @@ import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
 import MarkAttendance from "./components/Attandance/pages/MarkAttendance.jsx";
+import ProtectionsSafety from "./components/Knowledge Hub/ProtectionSafety.jsx";
 
 function App() {
   const auth = getAuth();
@@ -91,6 +92,11 @@ function App() {
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
+                  {/* engines-safety */}
+                  <Route
+                    path="/engines-safety"
+                    element={<ProtectionsSafety />}
+                  />
                   {/* Attandance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
                 </Routes>
