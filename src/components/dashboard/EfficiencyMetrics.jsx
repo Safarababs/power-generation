@@ -122,7 +122,7 @@ const EfficiencyMetrics = () => {
           <div className="space-y-4">
             {/* HFO */}
             <div>
-              <p>HFO: {totalHFO} Kg</p>
+              <p>HFO: {totalHFO} Ltr</p>
               <div className="progress-bar" style={{ height: "12px" }}>
                 <div
                   className="progress-fill"
@@ -137,7 +137,7 @@ const EfficiencyMetrics = () => {
 
             {/* LFO */}
             <div>
-              <p>LFO: {totalLFO} Kg</p>
+              <p>LFO: {totalLFO} Ltr</p>
               <div className="progress-bar" style={{ height: "12px" }}>
                 <div
                   className="progress-fill"

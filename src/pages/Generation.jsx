@@ -17,6 +17,7 @@ const Generation = () => {
         id: doc.id,
         ...doc.data(),
       }));
+
       setEngines(data);
     });
 
@@ -67,16 +68,16 @@ const Generation = () => {
   const latestFuelData = fuelReadings[0]?.consumption || [];
 
   const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
-  // total capacit is, in latest engine data there are rhrs and kwh, so the the total capacity will rhrs * 9780 (assuming 9780 is the capacity per engine per day)
+  // total capacit is, in latest engine data there are rhrs and kwh, so the the total capacity will rhrs * 9700 (assuming 9700 is the capacity per engine per day)
 
   const totalCapacity = latestEngineData.reduce(
-    (sum, e) => sum + (e.rhrs || 0) * 9780,
+    (sum, e) => sum + (e.rhrs || 0) * 9700,
     0,
   );
-  // now we can calculate individual engine capacity by rhrs * 9780
+  // now we can calculate individual engine capacity by rhrs * 9700
   const individualCapacities = latestEngineData.map((e) => ({
     engineId: e.engineId,
-    capacity: (e.rhrs || 0) * 9780,
+    capacity: (e.rhrs || 0) * 9700,
   }));
 
   const capacityUtilization =
@@ -84,6 +85,19 @@ const Generation = () => {
   const maintenanceDue = latestFuelData.filter(
     (f) => parseInt(f.nextMaintenance) <= 7,
   ).length;
+
+  const calculateSFC = (engineReading, fuelReading) => {
+    if (!engineReading || !fuelReading) return 0;
+
+    const fuelLiters = fuelReading.hfoLtr || 0; // you can add lfoLtr if needed
+    const fuelKg = fuelLiters * 0.98; // convert liters to kg
+
+    const kWh = engineReading.kwh || 0;
+
+    if (kWh === 0) return 0;
+
+    return (fuelKg / kWh).toFixed(3); // kg/kWh
+  };
 
   return (
     <div className="space-y-6">
@@ -196,7 +210,7 @@ const Generation = () => {
                     <span className="font-semibold">
                       {(
                         (engine.kwh /
-                          (individualCapacities[idx]?.capacity || 9780)) *
+                          (individualCapacities[idx]?.capacity || 9700)) *
                         100
                       ).toFixed(2)}
                       %
@@ -209,7 +223,7 @@ const Generation = () => {
                       style={{
                         width: `${
                           (engine.kwh /
-                            (individualCapacities[idx]?.capacity || 9780)) *
+                            (individualCapacities[idx]?.capacity || 9700)) *
                           100
                         }%`,
                       }}
@@ -228,30 +242,25 @@ const Generation = () => {
                     <div>
                       <span className="text-secondary">Fuel Used</span>
                       <p className="font-semibold">
-                        {(fuel.hfo || 0) + (fuel.lfo || 0) + (fuel.gas || 0)}{" "}
+                        {(fuel.hfoLtr || 0) +
+                          (fuel.lfoLtr || 0) +
+                          (fuel.gasNm3 || 0)}{" "}
                         Total
                       </p>
                       <div className="text-xs text-secondary mt-1">
-                        HFO: {fuel.hfo || 0} | LFO: {fuel.lfo || 0} | Gas:{" "}
-                        {fuel.gas || 0}
+                        HFO: {fuel.hfoKg || 0} | LFO: {fuel.lfoLtr || 0} | Gas:{" "}
+                        {fuel.gasNm3 || 0}
                       </div>
                     </div>
+                    {/* sfc */}
                     <div>
-                      <span className="text-secondary">Status</span>
-                      <p
-                        className={`font-semibold ${
-                          engine.currentStatus === "running"
-                            ? "text-green-600"
-                            : "text-red-600"
-                        }`}
-                      >
-                        {engine.currentStatus === "running"
-                          ? "Active"
-                          : "Stopped"}
+                      <span className="text-secondary">SFC</span>
+                      <p className="font-semibold text-blue-600">
+                        {calculateSFC(engine, fuel)} kg/kWh
                       </p>
                       <div className="text-xs text-secondary mt-1">
-                        Last {engine.lastEventType} at{" "}
-                        {engine.lastEventTime?.toDate().toLocaleString()}
+                        Fuel: {fuel.hfoLtr || 0} L | Generation: {engine.kwh}{" "}
+                        kWh
                       </div>
                     </div>
                   </div>
