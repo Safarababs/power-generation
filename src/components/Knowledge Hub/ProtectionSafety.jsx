@@ -133,7 +133,7 @@ export default function ProtectionsSafety() {
               className="font-urdu"
               style={{ fontSize: "0.95rem", marginBottom: "0.3rem" }}
             >
-              <strong>تعریف=></strong> {item.definition_ur}
+              <strong>تعریف={">"}</strong> {item.definition_ur}
             </p>
             <p
               style={{

@@ -1,11 +1,11 @@
 import React from "react";
+import RealTimeStatus from "../components/Daily Readings/Egnien Start  Stop/RealTimeStatus";
 import PowerGenerationOverview from "../components/dashboard/PowerGenerationOverview";
 import AlertsPanel from "../components/dashboard/AlertsPanel";
 import EfficiencyMetrics from "../components/dashboard/EfficiencyMetrics";
 import PowerGenerationChart from "../components/dashboard/PowerGenerationChart";
 import GeneratorStatus from "../components/dashboard/GeneratorStatus";
 import QuickActions from "../components/dashboard/QuickActions";
-import RealTimeStatus from "../components/Daily Readings/Egnien Start  Stop/RealTimeStatus";
 
 const Dashboard = () => {
   return (

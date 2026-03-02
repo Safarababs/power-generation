@@ -678,7 +678,7 @@ body {
 
 /* for laptop screens */
 .input-date {
-  width: 180px !important;
+  width: 180px;
 }
 
 .form-checkbox {
@@ -767,7 +767,7 @@ body {
 .chart-x-axis {
   margin-top: 0.5rem;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   padding-left: 3rem;
   font-size: 0.75rem;
   color: var(--text-secondary);

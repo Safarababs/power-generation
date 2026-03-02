@@ -32,7 +32,8 @@ const PowerGenerationChart = () => {
         const q = query(
           collection(db, "engineReadings"),
           orderBy("date", "desc"),
-          limit(7),
+          // if on mobile screen we can reduce this to 7 to speed up loading
+          window.innerWidth < 768 ? limit(7) : limit(30),
         );
         const snapshot = await getDocs(q);
         const docs = snapshot.docs.map((doc) => doc.data());
@@ -91,24 +92,30 @@ const PowerGenerationChart = () => {
 
   return (
     <div className="card">
-      <div className="card-header flex justify-between">
-        <h2 className="card-title">Power Generation Trends</h2>
-        <div className="flex gap-2">
-          <input
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            className="form-select"
-            style={{ marginRight: "1rem" }}
-            max={today}
-          />
-          <input
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            className="form-input"
-            max={today}
-          />
+      <div className="card-header flex space-around">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4 w-full">
+          {/* Title */}
+          <h2 className="card-title text-center sm:text-left">
+            Power Generation Trends
+          </h2>
+
+          {/* Date inputs in one row */}
+          <div className="flex flex-row gap-4 justify-center sm:justify-end">
+            <input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="form-input input-date"
+              max={today}
+            />
+            <input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="form-input input-date"
+              max={today}
+            />
+          </div>
         </div>
       </div>
 
@@ -164,15 +171,17 @@ const PowerGenerationChart = () => {
                 </div>
               </div>
             </div>
-
-            {/* X-axis labels BELOW the chart */}
-            <div className="chart-x-axis">
-              {chartData.map((entry, index) => (
-                <div key={index}>{entry.date}</div>
-              ))}
-            </div>
           </>
         )}
+
+        {/* X-axis labels BELOW the chart */}
+        {/* X-axis labels BELOW the chart */}
+        <div className="chart-x-axis flex justify-center">
+          <p className="text-center text-secondary text-sm mt-2">
+            Here we can view the last 30 days generation data (to view the
+            values please hover over the bars)
+          </p>
+        </div>
       </div>
     </div>
   );

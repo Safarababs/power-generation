@@ -66,10 +66,10 @@ const FuelReadingsEntry = () => {
         const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
         // Capacity logic
-        let capacity = 9780;
+        let capacity = 9700; // Default for engines 1-3
         if (index >= 3) {
           // Engines 4 & 5 are DF
-          capacity = diffGasNm3 > 0 || diffGasKg > 0 ? 8998 : 9780;
+          capacity = diffGasNm3 > 0 || diffGasKg > 0 ? 8900 : 9700;
         }
 
         return {

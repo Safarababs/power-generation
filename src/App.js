@@ -72,7 +72,7 @@ function App() {
                     path="/DashboardLayout"
                     element={<DashboardLayout />}
                   />
-                  {/* egnien start/stop */}
+                  {/* egnine start/stop */}
                   <Route path="/start-stop-logs" element={<EngineLogForm />} />
                   {/* previous start stop entry */}
                   <Route

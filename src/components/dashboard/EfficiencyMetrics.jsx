@@ -43,19 +43,21 @@ const EfficiencyMetrics = () => {
   // ✅ Latest data
   const latestEngineData = engineReadings[0]?.generation || [];
   const latestFuelData = fuelReadings[0]?.consumption || [];
+  console.log("Latest Engine Data:", latestEngineData);
+  console.log("Latest Fuel Data:", latestFuelData);
 
   // ✅ Total kWh generated
   const totalKWH = latestEngineData.reduce((sum, g) => sum + g.kwh, 0);
 
   // ✅ Fuel consumption breakdown
-  const totalHFO = latestFuelData.reduce((sum, f) => sum + (f.hfo || 0), 0);
-  const totalLFO = latestFuelData.reduce((sum, f) => sum + (f.lfo || 0), 0);
-  const totalGas = latestFuelData.reduce((sum, f) => sum + (f.gas || 0), 0);
+  const totalHFO = latestFuelData.reduce((sum, f) => sum + (f.hfoLtr || 0), 0);
+  const totalLFO = latestFuelData.reduce((sum, f) => sum + (f.lfoLtr || 0), 0);
+  const totalGas = latestFuelData.reduce((sum, f) => sum + (f.gasNm3 || 0), 0);
   const totalFuel = totalHFO + totalLFO + totalGas;
 
   // ✅ Capacity (average across engines)
   const totalCapacity = latestFuelData.reduce(
-    (sum, f) => sum + (f.capacity || 9780),
+    (sum, f) => sum + (f.capacity || 9700),
     0,
   );
 
