@@ -30,9 +30,9 @@ export default function RealTimeStatus() {
       {engines.map((engine) => {
         const cardStyle = {
           flex: "1 1 160px",
-          maxWidth: "200px",
-          minWidth: "140px",
-          height: "160px",
+          maxWidth: window.innerWidth < 768 ? "40px" : "200px",
+          minWidth: window.innerWidth < 768 ? "40px" : "140px",
+          height: window.innerWidth < 768 ? "40px" : "160px",
           borderRadius: "10px",
           backgroundColor:
             engine.currentStatus === "running" ? "#4caf50" : "#f44336",
@@ -44,8 +44,8 @@ export default function RealTimeStatus() {
           textAlign: "center",
           boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
           transition: "transform 0.2s ease-in-out",
-          marginBottom: "15px", // space below each card
-          padding: "10px",
+          marginBottom: window.innerWidth < 768 ? "5px" : "15px", // space below each card
+          padding: window.innerWidth < 768 ? "5px" : "10px",
         };
 
         return (
@@ -60,44 +60,59 @@ export default function RealTimeStatus() {
             {/* Engine ID */}
             <h3
               style={{
-                fontSize: "16px",
+                fontSize: window.innerWidth < 768 ? "16px" : "26px",
                 fontWeight: "bold",
-                marginBottom: "6px",
+                marginBottom: window.innerWidth < 768 ? "2px" : "6px",
               }}
             >
               {engine.engineId}
             </h3>
 
             {/* Status */}
-            <p
-              style={{
-                fontWeight: "600",
-                fontSize: "14px",
-                marginBottom: "6px",
-              }}
-            >
-              {engine.currentStatus.toUpperCase()}
-            </p>
+            {/* if on mobile then display without details */}
+            {window.innerWidth >= 768 ? (
+              <p
+                style={{
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  marginBottom: "6px",
+                }}
+              >
+                {engine.currentStatus.toUpperCase()}
+              </p>
+            ) : null}
 
             {/* Since running or last stop */}
-            {engine.currentStatus === "running" ? (
-              <small
-                style={{ fontSize: "12px", opacity: 0.9, marginBottom: "4px" }}
-              >
-                Since: {engine.lastEventTime?.toDate().toLocaleDateString()}
-              </small>
-            ) : (
-              <small
-                style={{ fontSize: "12px", opacity: 0.9, marginBottom: "4px" }}
-              >
-                Since: {engine.lastEventTime?.toDate().toLocaleDateString()}
-              </small>
-            )}
+            {window.innerWidth >= 768 ? (
+              engine.currentStatus === "running" ? (
+                <small
+                  style={{
+                    fontSize: "12px",
+                    opacity: 0.9,
+                    marginBottom: "4px",
+                  }}
+                >
+                  Since: {engine.lastEventTime?.toDate().toLocaleDateString()}
+                </small>
+              ) : (
+                <small
+                  style={{
+                    fontSize: "12px",
+                    opacity: 0.9,
+                    marginBottom: "4px",
+                  }}
+                >
+                  Since: {engine.lastEventTime?.toDate().toLocaleDateString()}
+                </small>
+              )
+            ) : null}
 
             {/* Start/Stop time on next line */}
-            <small style={{ fontSize: "12px", opacity: 0.8 }}>
-              {engine.lastEventTime?.toDate().toLocaleTimeString()}
-            </small>
+            {window.innerWidth >= 768 ? (
+              <small style={{ fontSize: "12px", opacity: 0.8 }}>
+                {engine.lastEventTime?.toDate().toLocaleTimeString()}
+              </small>
+            ) : null}
           </div>
         );
       })}

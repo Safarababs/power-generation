@@ -6,41 +6,12 @@ import StoppageReports from "../components/Daily Readings/Egnien Start  Stop/Sto
 
 export default function DashboardLayout() {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateRows: "auto 1fr 1fr",
-        gap: "20px",
-        padding: "20px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      {/* Top Row: Real-Time Engine Status Tiles */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-        }}
-      >
+    <div className="container space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <RealTimeStatus />
-      </div>
-
-      {/* Middle Row: Performance Table + Stoppage Reports */}
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "400px" }}>
-          <EnginePerformance />
-        </div>
-        <div style={{ flex: 1, minWidth: "400px" }}>
-          <StoppageReports />
-        </div>
-      </div>
-
-      {/* Bottom Row: Graph Charts + Log Form */}
-      <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "400px" }}>
-          <PerformanceDashboard />
-        </div>
+        <EnginePerformance />
+        <StoppageReports />
+        <PerformanceDashboard />
       </div>
     </div>
   );

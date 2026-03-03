@@ -54,9 +54,13 @@ export default function AvailabilityChart() {
   if (!chartData) return <p>Loading…</p>;
 
   return (
-    <div style={{ width: "700px", marginTop: 20 }}>
-      <h3>Engine Availability %</h3>
-      <Bar data={chartData} />
+    <div className="card">
+      <div className="card-header">
+        <h3 className="card-title">Engine Availability %</h3>
+      </div>
+      <div className="card-content">
+        <Bar data={chartData} />
+      </div>
     </div>
   );
 }

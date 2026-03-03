@@ -40,6 +40,7 @@ const LoginForm = ({ onLogin }) => {
           {dateTime.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
+            second: "2-digit",
           })}
         </div>
         <div className="date">

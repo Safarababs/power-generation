@@ -214,28 +214,34 @@ export default function RunningHoursHybridChart() {
   }, []);
 
   return (
-    <div>
-      <h3>Plant Performance Dashboard</h3>
-      {Object.keys(engineData).length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Engine</th>
-              <th>Total Hours</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.entries(engineData).map(([id, data]) => (
-              <tr key={id}>
-                <td>{id}</td>
-                <td>{data.total.toFixed(1)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        "Loading dashboard..."
-      )}
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">Running Hours Dashboard</h2>
+      </div>
+      <div className="card-content">
+        <div className="overflow-x-auto">
+          {Object.keys(engineData).length > 0 ? (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Engine</th>
+                  <th>Total Hours</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(engineData).map(([id, data]) => (
+                  <tr key={id}>
+                    <td>{id}</td>
+                    <td>{data.total.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            "Loading dashboard..."
+          )}
+        </div>
+      </div>
     </div>
   );
 }
