@@ -3,7 +3,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useTheme } from "./ThemeContext";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, currentUser }) => {
   const { darkMode } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,6 +25,7 @@ const Layout = ({ children }) => {
         collapsed={sidebarCollapsed}
         mobileOpen={sidebarOpen}
         closeSidebar={() => setSidebarOpen(false)}
+        currentUser={currentUser}
       />
       <div
         className={`main-content ${

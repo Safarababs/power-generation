@@ -1,103 +1,118 @@
 import React, { useState } from "react";
 import { auth, db } from "../FIrestore/firebase";
-import {
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-} from "firebase/auth";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
-const SignUpForm = () => {
+const SignUpForm = ({ onSwitchToLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [empNumber, setEmpNumber] = useState("");
+  const [department, setDepartment] = useState("operation");
 
-  // Email/Password Sign Up
   const handleSignUp = async (e) => {
     e.preventDefault();
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
       const user = userCredential.user;
 
       // Save user info in Firestore
       await setDoc(doc(db, "teamMembers", user.uid), {
         email: user.email,
-        designation: "Operator", // default for now
+        name,
+        designation,
+        empNumber,
+        department,
+        approved: false, // default until developer approves
         createdAt: new Date(),
       });
 
-      console.log("User signed up:", user);
-      alert("Sign up successful!");
+      alert("Registration submitted! Awaiting developer approval.");
     } catch (error) {
-      console.error("Error signing up:", error.message);
-      alert(error.message);
-    }
-  };
-
-  // Google Sign Up
-  const handleGoogleSignUp = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Save user info in Firestore
-      await setDoc(doc(db, "teamMembers", user.uid), {
-        email: user.email,
-        designation: "Operator", // default for now
-        createdAt: new Date(),
-      });
-
-      console.log("Google user signed in:", user);
-      alert("Google sign in successful!");
-    } catch (error) {
-      console.error("Error with Google sign in:", error.message);
       alert(error.message);
     }
   };
 
   return (
-    <div className="card">
-      <div className="card-content">
-        <h2 className="card-title mb-4">Sign Up</h2>
-        <form onSubmit={handleSignUp} className="flex flex-col gap-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="p-2 border rounded"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="p-2 border rounded"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Sign Up
-          </button>
-        </form>
+    <form onSubmit={handleSignUp} className="space-y-4">
+      <input
+        type="text"
+        className="form-input"
+        placeholder="Full Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+      />
 
-        <div className="mt-4">
-          <button
-            onClick={handleGoogleSignUp}
-            className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Sign Up with Google
-          </button>
-        </div>
-      </div>
-    </div>
+      <input
+        type="text"
+        className="form-input"
+        placeholder="Designation"
+        value={designation}
+        onChange={(e) => setDesignation(e.target.value)}
+        required
+      />
+
+      <input
+        type="text"
+        className="form-input"
+        placeholder="Employee Number"
+        value={empNumber}
+        onChange={(e) => setEmpNumber(e.target.value)}
+        required
+      />
+
+      <select
+        className="form-input"
+        value={department}
+        onChange={(e) => setDepartment(e.target.value)}
+        required
+      >
+        <option value="operation">Operation</option>
+        <option value="E&i">E&I</option>
+        <option value="mechanical">Mechanical</option>
+        <option value="uty">UTY</option>
+        <option value="developer">Developer</option>
+      </select>
+
+      <input
+        type="email"
+        className="form-input"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      <input
+        type="password"
+        className="form-input"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+
+      <button type="submit" className="btn-primary w-full">
+        Sign Up
+      </button>
+
+      <p className="text-center text-sm text-secondary m-2">
+        Already have an account?{" "}
+      </p>
+      <button
+        type="button"
+        onClick={onSwitchToLogin}
+        className="btn-primary w-full text-blue hover:underline"
+      >
+        Login here
+      </button>
+    </form>
   );
 };
 

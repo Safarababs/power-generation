@@ -3,7 +3,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  text-transform: capitalize;
 }
 
 body {
@@ -163,14 +162,14 @@ body {
 }
 
 .login-date .org-title {
-  font-size: 2.8rem;
+  font-size: 4rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
   text-align: center;
 }
 
 .login-date .org-subtitle {
-  font-size: 1.2rem;
+  font-size: 2rem;
   opacity: 0.85;
   margin-bottom: 2rem;
   text-align: center;
@@ -220,7 +219,7 @@ body {
 .form-input {
   width: 100%;
   padding: 0.75rem;
-  text-transform: lowercase;
+
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   background-color: var(--surface-color);
@@ -232,7 +231,6 @@ body {
   border-color: var(--primary-color);
   box-shadow: 0 0 6px var(--primary-color);
   outline: none;
-  text-transform: lowercase;
 }
 
 /* Buttons */
@@ -262,11 +260,23 @@ body {
   .login-date {
     align-items: center;
     text-align: center;
-    padding: 2rem;
+    padding: 0.1rem;
   }
 
   .login-card {
-    margin: 2rem;
+    margin: 1.5rem;
+    margin-top: 0.1rem;
+  }
+
+  .login-date .org-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.1rem;
+    text-align: center;
+  }
+  .login-date .time {
+    font-size: 1.5rem;
+    display: none;
   }
 }
 
@@ -673,7 +683,6 @@ body {
   color: var(--text-primary);
   font-size: 0.875rem;
   transition: var(--transition);
-  text-transform: lowercase;
 }
 
 .form-input:focus,

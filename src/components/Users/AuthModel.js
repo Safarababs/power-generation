@@ -1,64 +1,54 @@
-import React, { useState } from "react";
-import SignUpForm from "./SignUp";
+import React, { useState, useEffect } from "react";
 import LoginForm from "./Login";
+import SignUpForm from "./SignUp";
 
-const AuthModal = ({ onClose }) => {
-  const [mode, setMode] = useState("login"); // "login" or "signup"
+const AuthPortal = ({ onLogin }) => {
+  const [mode, setMode] = useState("login");
+  const [dateTime, setDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setDateTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <div
-      style={{
-        marginTop: "2rem",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        height: "100%",
-        width: "90%",
-      }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-    >
-      {/* Main container stretched to 90% */}
-      <div className="w-[90%] max-w-5xl bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10">
-        {/* Close button */}
-        <div className="flex justify-end">
-          <button
-            onClick={onClose}
-            className="text-red-500 hover:text-red-700 font-bold text-lg"
-          >
-            ✕
-          </button>
+    <div className="login-portal">
+      {/* Left side: Branding + Date/Time */}
+      <div className="login-date fade-in">
+        <h1 className="org-title pulse">
+          Welcome To
+          <br /> NAS Power Generation
+        </h1>
+        <div className="time pulse">
+          {dateTime.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          })}
         </div>
-
-        {/* Title */}
-        <h2 className="text-3xl font-bold mb-8 text-center text-indigo-600 dark:text-indigo-400">
-          {mode === "login" ? "Login to Your Account" : "Employee Registration"}
-        </h2>
-
-        {/* Form area */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {mode === "login" ? <LoginForm /> : <SignUpForm />}
+        <div className="date pulse">
+          {dateTime.toLocaleDateString(undefined, {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+          })}
         </div>
+      </div>
 
-        {/* Switcher */}
-        <div className="mt-6 text-center">
+      {/* Right side: Form card */}
+      <div className="login-form-wrapper">
+        <div className="login-card fade-in">
+          <h2 className="card-title text-primary text-center mb-4">
+            {mode === "login" ? "Login here" : "Employee Registration"}
+          </h2>
+
           {mode === "login" ? (
-            <p className="text-gray-700 dark:text-gray-300">
-              Don’t have an account?{" "}
-              <button
-                onClick={() => setMode("signup")}
-                className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
-              >
-                Sign Up
-              </button>
-            </p>
+            <LoginForm
+              onLogin={onLogin}
+              onSwitchToRegister={() => setMode("signup")}
+            />
           ) : (
-            <p className="text-gray-700 dark:text-gray-300">
-              Already have an account?{" "}
-              <button
-                onClick={() => setMode("login")}
-                className="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline"
-              >
-                Login
-              </button>
-            </p>
+            <SignUpForm onSwitchToLogin={() => setMode("login")} />
           )}
         </div>
       </div>
@@ -66,4 +56,4 @@ const AuthModal = ({ onClose }) => {
   );
 };
 
-export default AuthModal;
+export default AuthPortal;

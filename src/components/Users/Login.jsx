@@ -1,16 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../FIrestore/firebase";
+import React, { useState } from "react";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "../FIrestore/firebase";
 
-const LoginForm = ({ onLogin }) => {
+const LoginForm = ({ onLogin, onSwitchToRegister }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [dateTime, setDateTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setDateTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,75 +15,67 @@ const LoginForm = ({ onLogin }) => {
         email,
         password,
       );
-      onLogin(userCredential.user);
+      const user = userCredential.user;
+
+      // Fetch Firestore profile
+      const docRef = doc(db, "teamMembers", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists() || !docSnap.data().approved) {
+        // Not approved → block login
+        await signOut(auth);
+        alert("Your account is pending approval by a developer.");
+        return;
+      }
+
+      // Approved → proceed
+      onLogin(user);
     } catch (error) {
       alert("Login failed: " + error.message);
     }
   };
 
   return (
-    <div className="login-portal">
-      <div className="login-overlay"></div>
-
-      {/* Branding + Date & Time */}
-      <div className="login-date">
-        <h1 className="org-title">
-          Welcome To<br></br> NAS Power Generation
-        </h1>
-
-        <div className="time">
-          {dateTime.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          })}
-        </div>
-        <div className="date">
-          {dateTime.toLocaleDateString(undefined, {
-            weekday: "long",
-            month: "long",
-            day: "numeric",
-          })}
-        </div>
+    <form onSubmit={handleLogin} className="space-y-4 fade-in">
+      <div className="form-group">
+        <label className="form-label">Email</label>
+        <input
+          type="email"
+          className="form-input"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
       </div>
 
-      {/* Login Card */}
-      <div className="login-form-wrapper">
-        <div className="login-card">
-          <h2 className="card-title text-center">Login here</h2>
-          <form onSubmit={handleLogin} className="space-y-6">
-            {/* Email */}
-            <div className="form-group">
-              <label className="text-secondary">Email</label>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="form-input"
-              />
-            </div>
-            {/* Password */}
-            <div className="form-group">
-              <label className="text-secondary">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="form-input"
-              />
-            </div>
-            {/* Submit */}
-            <button type="submit" className="btn btn-primary w-full">
-              Login
-            </button>
-          </form>
-        </div>
+      <div className="form-group">
+        <label className="form-label">Password</label>
+        <input
+          type="password"
+          className="form-input"
+          placeholder="Enter your password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
       </div>
-    </div>
+
+      <button type="submit" className="btn-primary w-full text-primary">
+        Login
+      </button>
+
+      <p className="text-center text-sm text-secondary m-2">
+        Don’t have an account?{" "}
+      </p>
+      <button
+        type="button"
+        onClick={onSwitchToRegister}
+        className="btn-primary w-full text-primary hover:underline"
+      >
+        Register here
+      </button>
+    </form>
   );
 };
 

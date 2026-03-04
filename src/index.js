@@ -1,4 +1,4 @@
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+// import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { createRoot } from "react-dom/client";
 import { ThemeProvider } from "react-ui";
 import { tokens, components } from "react-ui/themes/light";
@@ -12,4 +12,4 @@ createRoot(document.getElementById("root")).render(
   </ThemeProvider>,
 );
 
-serviceWorkerRegistration.register();
+// serviceWorkerRegistration.register();

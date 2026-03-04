@@ -16,7 +16,7 @@ import {
 } from "react-icons/fa";
 import { FaSliders } from "react-icons/fa6";
 
-const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
+const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   const location = useLocation();
   const [openGroups, setOpenGroups] = useState({});
 
@@ -24,6 +24,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
     setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
   };
 
+  // Base groups
   const groupedNavItems = [
     {
       group: "Operations Hub",
@@ -47,15 +48,20 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
       group: "Data Input",
       icon: <FaGasPump size={16} />,
       items: [
-        // engine start stop need to be added here
         {
           icon: <FaTachometerAlt size={20} />,
           label: "Start/Stop Logs",
           path: "/start-stop-logs",
         },
+        // alerts need approval only for manager and above
         {
           icon: <FaTachometerAlt size={20} />,
-          label: "Start/Stop Logs",
+          label: "Plant Alerts",
+          path: "/alerts",
+        },
+        {
+          icon: <FaTachometerAlt size={20} />,
+          label: "Monthly Start/Stop",
           path: "/monthly-starts-stops",
         },
         {
@@ -123,6 +129,34 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar }) => {
       ],
     },
   ];
+
+  // Add Developer Tools only if user is developer
+  if (currentUser?.department === "developer") {
+    groupedNavItems.push({
+      group: "Developer Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaCog size={20} />,
+          label: "Approval Dashboard",
+          path: "/approval-dashboard",
+        },
+      ],
+    });
+  }
+  if (currentUser?.department === "manager-operation") {
+    groupedNavItems.push({
+      group: "Manager Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaExclamationTriangle size={20} />,
+          label: "Alerts Approval",
+          path: "/alerts-approval",
+        },
+      ],
+    });
+  }
 
   return (
     <aside

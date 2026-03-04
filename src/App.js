@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "./components/FIrestore/firebase.js";
+
 import { ThemeProvider } from "./components/ThemeContext";
 import { DataProvider } from "./context/DataContext";
 import Layout from "./components/Layout";
@@ -24,22 +27,36 @@ import { FeedersTrippingProvider } from "./context/Feeders Tripping Data.jsx";
 import SOPsComponent from "./components/SOP/SOP's.jsx";
 
 // New Login Component
-import LoginForm from "./components/Users/Login.jsx";
 import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
 import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
 import MarkAttendance from "./components/Attandance/pages/MarkAttendance.jsx";
 import ProtectionsSafety from "./components/Knowledge Hub/ProtectionSafety.jsx";
+import AuthModal from "./components/Users/AuthModel.js";
+import ApprovalDashboard from "./components/Users/ApprovalDashboard.jsx";
+import AlertsApproval from "./components/Users/Manager Approval Dashboard/AlertsApproval.jsx";
+import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
 
+  const [userProfile, setUserProfile] = useState(null);
+
   // Track authentication state
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
+      if (currentUser) {
+        const docRef = doc(db, "teamMembers", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUserProfile(docSnap.data());
+        }
+      } else {
+        setUserProfile(null);
+      }
     });
     return () => unsubscribe();
   }, [auth]);
@@ -48,12 +65,13 @@ function App() {
     <ThemeProvider>
       <DataProvider>
         <FeedersTrippingProvider>
+          <NotificationSetup />
           <Router>
             {!user ? (
               // Show login form if not authenticated
-              <LoginForm onLogin={setUser} />
+              <AuthModal onClose={() => {}} />
             ) : (
-              <Layout>
+              <Layout currentUser={userProfile}>
                 {/* Protected routes */}
                 <Routes>
                   <Route path="/Moharram" element={<FullPixelInventory />} />
@@ -62,16 +80,19 @@ function App() {
                   <Route path="/monitoring" element={<Monitoring />} />
                   <Route path="/controls" element={<Controls />} />
                   <Route path="/analytics" element={<Analytics />} />
-                  <Route path="/alerts" element={<Alerts />} />
+                  <Route
+                    path="/alerts"
+                    element={<Alerts currentUser={userProfile} />}
+                  />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
-
                   {/* readings */}
                   <Route
                     path="/DashboardLayout"
                     element={<DashboardLayout />}
                   />
+
                   {/* egnine start/stop */}
                   <Route path="/start-stop-logs" element={<EngineLogForm />} />
                   {/* previous start stop entry */}
@@ -99,6 +120,28 @@ function App() {
                   />
                   {/* Attandance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
+                  {/* for developers */}
+                  <Route
+                    path="/approval-dashboard"
+                    element={
+                      userProfile?.department === "developer" ? (
+                        <ApprovalDashboard currentUser={userProfile} />
+                      ) : (
+                        <p>Access denied 🚫</p>
+                      )
+                    }
+                  />
+                  {/* Manager Operation */}
+                  <Route
+                    path="/alerts-approval"
+                    element={
+                      userProfile?.department === "manager-operation" ? (
+                        <AlertsApproval currentUser={userProfile} />
+                      ) : (
+                        <p>Access denied 🚫</p>
+                      )
+                    }
+                  />
                 </Routes>
               </Layout>
             )}
