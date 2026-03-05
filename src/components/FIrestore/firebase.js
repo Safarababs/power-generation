@@ -4,6 +4,7 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getMessaging } from "firebase/messaging";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -18,6 +19,12 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize App Check
+initializeAppCheck(app, {
+  provider: new ReCaptchaV3Provider("6LcaR4AsAAAAAA2zSlW21juuZwbslRFkyv5wU3_w"),
+  isTokenAutoRefreshEnabled: true,
+});
 
 // Initialize services
 export const db = getFirestore(app); // Firestore Database
