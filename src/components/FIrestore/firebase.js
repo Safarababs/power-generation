@@ -7,6 +7,8 @@ import { getMessaging } from "firebase/messaging";
 import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 // Your web app's Firebase configuration
+
+const debugToken = "843EB78D-FCB4-4B62-B3D7-F788431CF29C";
 const firebaseConfig = {
   apiKey: "AIzaSyDgYaWimpoK_TWC0tnMC3rqWT0KQr3uFxk",
   authDomain: "nas-pg.firebaseapp.com",
@@ -24,6 +26,7 @@ const app = initializeApp(firebaseConfig);
 initializeAppCheck(app, {
   provider: new ReCaptchaV3Provider("6LcaR4AsAAAAAA2zSlW21juuZwbslRFkyv5wU3_w"),
   isTokenAutoRefreshEnabled: true,
+  debug: debugToken,
 });
 
 // Initialize services
