@@ -131,7 +131,10 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   ];
 
   // Add Developer Tools only if user is developer
-  if (currentUser?.department === "developer") {
+  if (
+    currentUser?.department === "operation" &&
+    currentUser.designation === "developer"
+  ) {
     groupedNavItems.push({
       group: "Developer Tools",
       icon: <FaCog size={16} />,

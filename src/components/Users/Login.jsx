@@ -21,8 +21,14 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
       const docRef = doc(db, "teamMembers", user.uid);
       const docSnap = await getDoc(docRef);
 
-      if (!docSnap.exists() || !docSnap.data().approved) {
-        // Not approved → block login
+      if (!docSnap.exists()) {
+        await signOut(auth);
+        alert("Your account is pending approval by a developer.");
+        return;
+      }
+
+      const data = docSnap.data();
+      if (!data?.approved) {
         await signOut(auth);
         alert("Your account is pending approval by a developer.");
         return;
@@ -31,7 +37,8 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
       // Approved → proceed
       onLogin(user);
     } catch (error) {
-      alert("Login failed: " + error.message);
+      console.error("Login error:", error);
+      alert("Login failed: " + (error?.message || "Unknown error"));
     }
   };
 

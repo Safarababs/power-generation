@@ -43,8 +43,6 @@ const EfficiencyMetrics = () => {
   // ✅ Latest data
   const latestEngineData = engineReadings[0]?.generation || [];
   const latestFuelData = fuelReadings[0]?.consumption || [];
-  console.log("Latest Engine Data:", latestEngineData);
-  console.log("Latest Fuel Data:", latestFuelData);
 
   // ✅ Total kWh generated
   const totalKWH = latestEngineData.reduce((sum, g) => sum + g.kwh, 0);

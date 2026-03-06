@@ -14,7 +14,7 @@ const NotificationSetup = () => {
             vapidKey:
               "BEYA7MB2KjaX5P_5Tn3-kGpp5ML0YVaSEzf22rE5WiIi2C8huRMUKtSwGI_WcIwhcawWWIb_ngDNsz14D3mRwgU",
           });
-          console.log("FCM Token:", token);
+
           // Get current user UID
           const user = auth.currentUser;
           if (user && token) {

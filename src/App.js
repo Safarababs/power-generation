@@ -41,7 +41,6 @@ import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
-
   const [userProfile, setUserProfile] = useState(null);
 
   // Track authentication state
@@ -61,6 +60,16 @@ function App() {
     return () => unsubscribe();
   }, [auth]);
 
+  const handleLogin = (user) => {
+    setUser(user); // update App state with the logged-in user
+  };
+
+  // ✅ Helper: who can approve
+  const canApprove =
+    userProfile?.department === "operation" &&
+    (userProfile?.designation === "developer" ||
+      userProfile?.designation === "MO");
+
   return (
     <ThemeProvider>
       <DataProvider>
@@ -68,8 +77,7 @@ function App() {
           <NotificationSetup />
           <Router>
             {!user ? (
-              // Show login form if not authenticated
-              <AuthModal onClose={() => {}} />
+              <AuthModal onLogin={handleLogin} onClose={() => {}} />
             ) : (
               <Layout currentUser={userProfile}>
                 {/* Protected routes */}
@@ -120,22 +128,22 @@ function App() {
                   />
                   {/* Attandance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
-                  {/* for developers */}
+
+                  {/* Approval dashboards */}
                   <Route
                     path="/approval-dashboard"
                     element={
-                      userProfile?.department === "developer" ? (
+                      canApprove ? (
                         <ApprovalDashboard currentUser={userProfile} />
                       ) : (
                         <p>Access denied 🚫</p>
                       )
                     }
                   />
-                  {/* Manager Operation */}
                   <Route
                     path="/alerts-approval"
                     element={
-                      userProfile?.department === "manager-operation" ? (
+                      canApprove ? (
                         <AlertsApproval currentUser={userProfile} />
                       ) : (
                         <p>Access denied 🚫</p>

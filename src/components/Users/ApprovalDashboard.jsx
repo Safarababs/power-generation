@@ -5,6 +5,12 @@ import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 const ApprovalDashboard = ({ currentUser }) => {
   const [pendingUsers, setPendingUsers] = useState([]);
 
+  // ✅ Helper: who can approve
+  const canApprove =
+    currentUser?.department === "operation" &&
+    (currentUser?.designation === "developer" ||
+      currentUser?.designation === "MO");
+
   // Fetch all users with approved === false
   useEffect(() => {
     const fetchPendingUsers = async () => {
@@ -23,8 +29,8 @@ const ApprovalDashboard = ({ currentUser }) => {
 
   // Approve user
   const approveUser = async (userId) => {
-    if (currentUser?.department !== "developer") {
-      alert("Only developers can approve registrations.");
+    if (!canApprove) {
+      alert("Only Developer or Manager-Operation can approve registrations.");
       return;
     }
     await updateDoc(doc(db, "teamMembers", userId), { approved: true });
@@ -66,9 +72,13 @@ const ApprovalDashboard = ({ currentUser }) => {
                     <td>{user.email}</td>
                     <td>
                       <button
-                        className={`btn ${currentUser?.department === "developer" ? "btn-success" : "btn-danger opacity-50 cursor-not-allowed"}`}
+                        className={`btn ${
+                          canApprove
+                            ? "btn-success"
+                            : "btn-danger opacity-50 cursor-not-allowed"
+                        }`}
                         onClick={() => approveUser(user.id)}
-                        disabled={currentUser?.department !== "developer"}
+                        disabled={!canApprove}
                       >
                         Approve
                       </button>

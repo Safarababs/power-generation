@@ -17,6 +17,12 @@ const AlertsApproval = ({ currentUser }) => {
     type: "critical",
   });
 
+  // ✅ Helper: who can approve/edit/delete
+  const canApprove =
+    currentUser?.department === "operation" &&
+    (currentUser?.designation === "developer" ||
+      currentUser?.designation === "MO");
+
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "alerts"), (snapshot) => {
       const alerts = [];
@@ -29,13 +35,12 @@ const AlertsApproval = ({ currentUser }) => {
       setPendingAlerts(alerts);
     });
 
-    // Cleanup listener when component unmounts
     return () => unsubscribe();
   }, []);
 
   const approveAlert = async (alertId) => {
-    if (currentUser?.department !== "manager-operation") {
-      alert("Only Manager-Operation can approve alerts.");
+    if (!canApprove) {
+      alert("Only Developer or Manager-Operation can approve alerts.");
       return;
     }
 
@@ -54,8 +59,8 @@ const AlertsApproval = ({ currentUser }) => {
   };
 
   const saveEdit = async (alertId) => {
-    if (currentUser?.department !== "manager-operation") {
-      alert("Only Manager-Operation can edit alerts.");
+    if (!canApprove) {
+      alert("Only Developer or Manager-Operation can edit alerts.");
       return;
     }
 
@@ -76,8 +81,8 @@ const AlertsApproval = ({ currentUser }) => {
   };
 
   const deleteAlert = async (alertId) => {
-    if (currentUser?.department !== "manager-operation") {
-      alert("Only Manager-Operation can delete alerts.");
+    if (!canApprove) {
+      alert("Only Developer or Manager-Operation can delete alerts.");
       return;
     }
 
@@ -170,14 +175,16 @@ const AlertsApproval = ({ currentUser }) => {
                         ? alert.createdAt.toDate().toLocaleString()
                         : "—"}
                     </td>
-                    {alert.createdBy?.name || alert.createdBy?.email || "—"}
-
+                    <td>
+                      {alert.createdBy?.name || alert.createdBy?.email || "—"}
+                    </td>
                     <td>
                       {editingAlert === alert.id ? (
                         <>
                           <button
                             className="btn btn-primary"
                             onClick={() => saveEdit(alert.id)}
+                            disabled={!canApprove}
                           >
                             Save
                           </button>
@@ -191,37 +198,23 @@ const AlertsApproval = ({ currentUser }) => {
                       ) : (
                         <>
                           <button
-                            className="btn btn-warning m-1"
+                            className={`btn ${canApprove ? "btn-warning m-1" : "btn-disabled m-1"}`}
                             onClick={() => startEditing(alert)}
-                            disabled={
-                              currentUser?.department !== "manager-operation"
-                            }
+                            disabled={!canApprove}
                           >
                             Edit
                           </button>
                           <button
-                            className={`btn ${
-                              currentUser?.department === "manager-operation"
-                                ? "btn-success m-1"
-                                : "btn-disabled m-1"
-                            }`}
+                            className={`btn ${canApprove ? "btn-success m-1" : "btn-disabled m-1"}`}
                             onClick={() => approveAlert(alert.id)}
-                            disabled={
-                              currentUser?.department !== "manager-operation"
-                            }
+                            disabled={!canApprove}
                           >
                             Approve
                           </button>
                           <button
-                            className={`btn ${
-                              currentUser?.department === "manager-operation"
-                                ? "btn-danger m-1"
-                                : "btn-disabled m-1"
-                            }`}
+                            className={`btn ${canApprove ? "btn-danger m-1" : "btn-disabled m-1"}`}
                             onClick={() => deleteAlert(alert.id)}
-                            disabled={
-                              currentUser?.department !== "manager-operation"
-                            }
+                            disabled={!canApprove}
                           >
                             Delete
                           </button>
