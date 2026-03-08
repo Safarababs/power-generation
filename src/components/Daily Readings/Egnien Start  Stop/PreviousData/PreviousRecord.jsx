@@ -15,7 +15,11 @@ export default function MonthlyPreviousRecord() {
     e.preventDefault();
 
     if (!month) return alert("Select month");
-    if (stops > starts) return alert("Stops cannot be greater than Starts");
+    const diff1 = stops - starts;
+    const diff2 = starts - stops;
+    console.log(diff1, diff2);
+    if (diff1 > 1 || diff2 > 1)
+      return alert("Stops cannot be greater than Starts");
 
     setLoading(true);
 

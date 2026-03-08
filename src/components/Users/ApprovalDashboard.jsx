@@ -40,13 +40,15 @@ const ApprovalDashboard = ({ currentUser }) => {
 
   return (
     <div className="card">
-      <div className="card-header">
-        <h2 className="card-title">Approval Dashboard</h2>
-        <p className="text-sm text-secondary">
-          Review and approve pending user registrations.
-        </p>
-      </div>
+      {" "}
       <div className="card-content">
+        <div className="card-header">
+          <h2 className="card-title">Approval Dashboard</h2>
+          <p className="text-sm text-secondary">
+            Review and approve pending user registrations.
+          </p>
+        </div>
+
         <div className="overflow-x-auto">
           {pendingUsers.length === 0 ? (
             <p>No pending users 🎉</p>
