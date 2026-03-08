@@ -117,7 +117,7 @@ function App() {
                   <Route path="/wash-logs" element={<WashLogForm />} />
                   <Route
                     path="/mills-tripping-record"
-                    element={<MillRecordForm />}
+                    element={<MillRecordForm currentUser={userProfile} />}
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />

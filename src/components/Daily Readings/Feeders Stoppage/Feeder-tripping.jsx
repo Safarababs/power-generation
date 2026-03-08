@@ -3,7 +3,7 @@ import { db } from "../../FIrestore/firebase";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { useTheme } from "../../ThemeContext";
 
-const MillRecordForm = () => {
+const MillRecordForm = ({ currentUser }) => {
   const { darkMode } = useTheme();
   const [mill, setMill] = useState("");
   const [stopTime, setStopTime] = useState("");
@@ -27,6 +27,12 @@ const MillRecordForm = () => {
         stopTime: Timestamp.fromDate(new Date(stopTime)),
         startTime: Timestamp.fromDate(new Date(startTime)),
         createdAt: Timestamp.now(),
+        createdBy: {
+          name: currentUser?.name, // "Safar Abbas"
+          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+          department: currentUser?.department, // "developer"
+          empNumber: currentUser?.empNumber, // "058"
+        },
       });
       alert("Record saved successfully!");
       setMill("");
