@@ -19,7 +19,7 @@ export default function MonthlyPreviousRecord() {
     const diff2 = starts - stops;
     console.log(diff1, diff2);
     if (diff1 > 1 || diff2 > 1)
-      return alert("Stops cannot be greater than Starts");
+      return alert("Start and Stop difference can not greater that 1");
 
     setLoading(true);
 
