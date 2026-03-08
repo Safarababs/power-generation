@@ -15,7 +15,7 @@ import { db } from "../../FIrestore/firebase";
 
 const engines = ["E1", "E2", "E3", "E4", "E5"];
 
-export default function EngineLogForm() {
+export default function EngineLogForm({ currentUser }) {
   const [engineId, setEngineId] = useState("E1");
   const [status, setStatus] = useState("stopped");
   const [eventTime, setEventTime] = useState("");
@@ -48,6 +48,12 @@ export default function EngineLogForm() {
       lastEventType: eventType,
       lastEventTime: new Date(eventTime),
       updatedAt: new Date(),
+      createdBy: {
+        name: currentUser?.name, // "Safar Abbas"
+        email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+        department: currentUser?.department, // "developer"
+        empNumber: currentUser?.empNumber, // "058"
+      },
     });
   };
 
@@ -61,6 +67,12 @@ export default function EngineLogForm() {
       eventDateTime: new Date(eventTime),
       reason: eventType === "stop" ? reason : "",
       loggedAt: serverTimestamp(),
+      createdBy: {
+        name: currentUser?.name, // "Safar Abbas"
+        email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+        department: currentUser?.department, // "developer"
+        empNumber: currentUser?.empNumber, // "058"
+      },
     });
 
     await updateEngineStatus(engineId, eventType, eventTime);

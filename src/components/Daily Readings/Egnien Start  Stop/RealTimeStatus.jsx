@@ -29,13 +29,14 @@ export default function RealTimeStatus() {
       {engines.map((engine) => {
         const cardStyle = {
           flex: "1 1 160px",
-          maxWidth: window.innerWidth < 768 ? "40px" : "200px",
-          minWidth: window.innerWidth < 768 ? "40px" : "140px",
-          height: window.innerWidth < 768 ? "40px" : "160px",
+          maxWidth: window.innerWidth < 450 ? "40px" : "200px",
+          minWidth: window.innerWidth < 450 ? "40px" : "140px",
+          height: window.innerWidth < 450 ? "40px" : "160px",
           borderRadius: "10px",
           backgroundColor:
-            engine.currentStatus === "running" ? "#4caf50" : "#f44336",
-          color: "#fff",
+            engine.currentStatus === "running" ? "#4caf50" : "#ffffff",
+
+          color: engine.currentStatus === "running" ? "#fff" : "black",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -43,8 +44,8 @@ export default function RealTimeStatus() {
           textAlign: "center",
           boxShadow: "0 4px 6px rgba(0,0,0,0.2)",
           transition: "transform 0.2s ease-in-out",
-          marginBottom: window.innerWidth < 768 ? "5px" : "15px", // space below each card
-          padding: window.innerWidth < 768 ? "5px" : "10px",
+          marginBottom: window.innerWidth < 450 ? "5px" : "15px", // space below each card
+          padding: window.innerWidth < 450 ? "5px" : "10px",
         };
 
         return (
@@ -52,16 +53,16 @@ export default function RealTimeStatus() {
             key={engine.id}
             style={cardStyle}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
+              (e.currentTarget.style.transform = "scale(1.03)")
             }
             onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
             {/* Engine ID */}
             <h3
               style={{
-                fontSize: window.innerWidth < 768 ? "16px" : "26px",
+                fontSize: window.innerWidth < 450 ? "16px" : "26px",
                 fontWeight: "bold",
-                marginBottom: window.innerWidth < 768 ? "2px" : "6px",
+                marginBottom: window.innerWidth < 450 ? "2px" : "6px",
               }}
             >
               {engine.engineId}
@@ -69,7 +70,7 @@ export default function RealTimeStatus() {
 
             {/* Status */}
             {/* if on mobile then display without details */}
-            {window.innerWidth >= 768 ? (
+            {window.innerWidth >= 450 ? (
               <p
                 style={{
                   fontWeight: "600",
@@ -82,7 +83,7 @@ export default function RealTimeStatus() {
             ) : null}
 
             {/* Since running or last stop */}
-            {window.innerWidth >= 768 ? (
+            {window.innerWidth >= 450 ? (
               engine.currentStatus === "running" ? (
                 <small
                   style={{
@@ -107,7 +108,7 @@ export default function RealTimeStatus() {
             ) : null}
 
             {/* Start/Stop time on next line */}
-            {window.innerWidth >= 768 ? (
+            {window.innerWidth >= 450 ? (
               <small style={{ fontSize: "12px", opacity: 0.8 }}>
                 {engine.lastEventTime?.toDate().toLocaleTimeString()}
               </small>

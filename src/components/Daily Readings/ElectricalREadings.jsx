@@ -3,9 +3,8 @@ import { FaBolt, FaClock } from "react-icons/fa";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
-const EngineReadingsEntry = () => {
+const EngineReadingsEntry = ({ currentUser }) => {
   const todayDefault = new Date().toISOString().split("T")[0]; // default to today
-  const [operatorName, setOperatorName] = useState("");
   const [entryDate, setEntryDate] = useState(todayDefault);
   const [readings, setReadings] = useState(
     Array(5).fill({ kwh: "", rhrs: "" }), // 5 engines
@@ -91,15 +90,20 @@ const EngineReadingsEntry = () => {
 
       // 3. Save readings under chosen date
       await setDoc(doc(db, "engineReadings", entryDate), {
-        operatorName,
         date: entryDate,
         readings,
         generation,
+        createdBy: {
+          name: currentUser?.name, // "Safar Abbas"
+          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+          department: currentUser?.department, // "developer"
+          empNumber: currentUser?.empNumber, // "058"
+        },
       });
 
       alert("Readings saved successfully!");
       // ✅ Reset all fields after successful save
-      setOperatorName("");
+
       setEntryDate(todayDefault);
       setReadings(Array(5).fill({ kwh: "", rhrs: "" }));
       setErrors(Array(5).fill({ kwh: false, rhrs: false }));
@@ -133,21 +137,6 @@ const EngineReadingsEntry = () => {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {/* Operator Name */}
-          <div className="col-span-full">
-            <label className="text-secondary font-medium mb-2 block">
-              Operator Name
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Your name"
-              className="form-input"
-              required
-              value={operatorName}
-              onChange={(e) => setOperatorName(e.target.value)}
-            />
-          </div>
-
           {/* Date Picker */}
           <div className="col-span-full">
             <label className="text-secondary font-medium mb-2 block">

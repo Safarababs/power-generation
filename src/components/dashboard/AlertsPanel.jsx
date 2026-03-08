@@ -79,7 +79,7 @@ const AlertsPanel = () => {
               </div>
             </div>
             <button className="p-1 text-secondary hover:text-primary">
-              <FaTimes size={16} />
+              <FaTimes size={16} />{" "}
             </button>
           </div>
         ))}

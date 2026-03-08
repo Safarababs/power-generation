@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../../../FIrestore/firebase";
 
-export default function MonthlyPreviousRecord() {
+export default function MonthlyPreviousRecord({ currentUser }) {
   const [month, setMonth] = useState("");
   const [engineId, setEngineId] = useState("E1");
   const [starts, setStarts] = useState("");
@@ -32,6 +32,12 @@ export default function MonthlyPreviousRecord() {
           [engineId]: {
             starts: Number(starts),
             stops: Number(stops),
+            createdBy: {
+              name: currentUser?.name, // "Safar Abbas"
+              email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+              department: currentUser?.department, // "developer"
+              empNumber: currentUser?.empNumber, // "058"
+            },
           },
         },
         { merge: true },

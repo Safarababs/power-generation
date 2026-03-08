@@ -37,6 +37,7 @@ import AuthModal from "./components/Users/AuthModel.js";
 import ApprovalDashboard from "./components/Users/ApprovalDashboard.jsx";
 import AlertsApproval from "./components/Users/Manager Approval Dashboard/AlertsApproval.jsx";
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
+import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
 
 function App() {
   const auth = getAuth();
@@ -75,6 +76,7 @@ function App() {
       <DataProvider>
         <FeedersTrippingProvider>
           <NotificationSetup />
+
           <Router>
             {!user ? (
               <AuthModal onLogin={handleLogin} onClose={() => {}} />
@@ -82,6 +84,7 @@ function App() {
               <Layout currentUser={userProfile}>
                 {/* Protected routes */}
                 <Routes>
+                  <Route path="/summery" exact element={<SummaryViewer />} />
                   <Route path="/Moharram" element={<FullPixelInventory />} />
                   <Route path="/" exact element={<Dashboard />} />
                   <Route path="/generation" element={<Generation />} />
@@ -102,13 +105,21 @@ function App() {
                   />
 
                   {/* egnine start/stop */}
-                  <Route path="/start-stop-logs" element={<EngineLogForm />} />
+                  <Route
+                    path="/start-stop-logs"
+                    element={<EngineLogForm currentUser={userProfile} />}
+                  />
                   {/* previous start stop entry */}
                   <Route
                     path="/monthly-starts-stops"
-                    element={<MonthlyStartsStopsEntry />}
+                    element={
+                      <MonthlyStartsStopsEntry currentUser={userProfile} />
+                    }
                   />
-                  <Route path="/readings" element={<ControlRoomReadings />} />
+                  <Route
+                    path="/readings"
+                    element={<ControlRoomReadings currentUser={userProfile} />}
+                  />
                   <Route
                     path="/fuel-readings"
                     element={<FuelReadingsEntry />}

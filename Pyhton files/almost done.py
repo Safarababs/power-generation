@@ -1,11 +1,8 @@
-
-
 import os
 import pandas as pd
 
-folder = r"E:\Temporary Folder\data analyse\Today"
-output_detailed = r"E:\Temporary Folder\data analyse\detailed_output.csv"
-output_summary = r"E:\Temporary Folder\data analyse\summary_output.csv"
+folder = r"E:\Temporary Folder\data analyse\Yesterday"
+output_file = r"E:\Temporary Folder\data analyse\final_summary.csv"
 
 LOAD_CODE = "BAG041UP01PV"  # adjust to your actual load tag
 
@@ -25,9 +22,7 @@ if load_df is None:
     raise ValueError("No load file found in folder!")
 
 # --- Step 2: Process all other files ---
-all_filtered = []
 summaries = []
-
 for filename in os.listdir(folder):
     if filename.endswith(".csv"):
         file_path = os.path.join(folder, filename)
@@ -44,43 +39,32 @@ for filename in os.listdir(folder):
         # Apply condition: only rows where Load > 5000
         filtered = merged[merged["Load"] > 5000]
 
-        # --- Resample to 1-minute interval ---
-        filtered.set_index("Time", inplace=True)
-        resampled = filtered.resample("1min").mean().reset_index()
+        # Drop time and load columns
+        numeric_df = filtered.drop(columns=["Time", "Load"])
+
+        # Convert everything to numeric safely
+        numeric_df = numeric_df.apply(pd.to_numeric, errors="coerce")
+        numeric_df = numeric_df.dropna(axis=1, how="all")
 
 
-        # Format Time column in dd:mm:yyyy hh:mm:ss
-        resampled["Time"] = resampled["Time"].dt.strftime("%d:%m:%Y %H:%M:%S")
-
-        # Add metadata
-        parts = filename.split()
-        resampled["Engine"] = filename[3:6]
-        resampled["From"] = parts[0] + " " + parts[1]
-        resampled["To"] = parts[2] + " " + parts[3]
-
-        all_filtered.append(resampled)
-
-        # --- Compute summary stats for this file ---
-        numeric_df = resampled.drop(columns=["Time", "Load", "Engine", "From", "To"])
-        numeric_df = numeric_df.apply(pd.to_numeric, errors="coerce").dropna(axis=1, how="all")
-
+        # Now compute stats
         stats = pd.DataFrame({
             "Average": numeric_df.mean(),
             "Max": numeric_df.max(),
             "Min": numeric_df.min()
         })
 
-        stats["Engine"] = filename[3:6]
+
+        # Add metadata
+        parts = filename.split()
+        stats["Engine"] = filename[3:6]  # e.g., "041"
         stats["From"] = parts[0] + " " + parts[1]
         stats["To"] = parts[2] + " " + parts[3]
 
         summaries.append(stats)
 
-# --- Step 3: Save outputs ---
-final_detailed = pd.concat(all_filtered)
+# --- Step 3: Save final summary ---
 final_summary = pd.concat(summaries)
+final_summary.to_csv(output_file)
 
-final_detailed.to_csv(output_detailed, index=False)
-final_summary.to_csv(output_summary)
-
-print("Detailed (1-minute interval) and summary outputs saved.")
+print("Final conditional summary saved to:", output_file)

@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 
-const FuelReadingsEntry = () => {
+const FuelReadingsEntry = ({ currentUser }) => {
   const todayDefault = new Date().toISOString().split("T")[0];
   const [entryDate, setEntryDate] = useState(todayDefault);
-  const [operatorName, setOperatorName] = useState("");
+
   const [fuelReadings, setFuelReadings] = useState(
     Array(5)
       .fill(null)
@@ -85,16 +85,21 @@ const FuelReadingsEntry = () => {
 
       // Save to Firestore
       await setDoc(doc(db, "fuelReadings", entryDate), {
-        operatorName,
         date: entryDate,
         fuelReadings,
         consumption,
+        createdBy: {
+          name: currentUser?.name, // "Safar Abbas"
+          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+          department: currentUser?.department, // "developer"
+          empNumber: currentUser?.empNumber, // "058"
+        },
       });
 
       alert("Fuel readings saved successfully!");
 
       // Reset form
-      setOperatorName("");
+
       setEntryDate(todayDefault);
       setFuelReadings(
         Array(5)
@@ -123,22 +128,6 @@ const FuelReadingsEntry = () => {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {" "}
-          {/* Operator Name */}{" "}
-          <div className="col-span-full">
-            {" "}
-            <label className="text-secondary font-medium mb-2 block">
-              {" "}
-              Operator Name{" "}
-            </label>{" "}
-            <input
-              type="text"
-              placeholder="Enter Your name"
-              className="form-input"
-              required
-              value={operatorName}
-              onChange={(e) => setOperatorName(e.target.value)}
-            />{" "}
-          </div>
           {/* Date Picker */}
           <div className="col-span-full">
             <label className="text-secondary font-medium mb-2 block">
