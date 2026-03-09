@@ -122,7 +122,7 @@ function App() {
                   />
                   <Route
                     path="/fuel-readings"
-                    element={<FuelReadingsEntry />}
+                    element={<FuelReadingsEntry currentUser={userProfile} />}
                   />
                   <Route path="/feeders" element={<FeedersTripping />} />
                   <Route path="/wash-logs" element={<WashLogForm />} />

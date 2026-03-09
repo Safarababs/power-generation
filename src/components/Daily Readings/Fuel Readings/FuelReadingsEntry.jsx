@@ -114,7 +114,8 @@ const FuelReadingsEntry = ({ currentUser }) => {
           })),
       );
     } catch (error) {
-      console.error("Error saving fuel readings: ", error);
+      console.log("Error: ", error);
+      alert("Error saving fuel readings: ", error);
     }
   };
   return (

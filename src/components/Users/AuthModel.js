@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import LoginForm from "./Login";
 import SignUpForm from "./SignUp";
-import RealTimeStatus from "../Daily Readings/Egnien Start  Stop/RealTimeStatus";
 
 const AuthPortal = ({ onLogin }) => {
   const [mode, setMode] = useState("login");
@@ -15,7 +14,6 @@ const AuthPortal = ({ onLogin }) => {
   return (
     <>
       <div className="login-portal">
-        <RealTimeStatus />
         {/* Left side: Branding + Date/Time */}
         <div className="login-date fade-in">
           <h1 className="org-title pulse">
