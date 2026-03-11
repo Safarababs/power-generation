@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   FaShieldAlt,
   FaPowerOff,
@@ -9,11 +11,13 @@ import {
 } from "react-icons/fa";
 
 const QuickActions = () => {
+  const navigate = useNavigate();
   const actions = [
     {
       icon: <FaShieldAlt size={20} style={{ color: "#10b981" }} />,
       label: "System Check",
       description: "Run diagnostics",
+      path: "/summery",
     },
     {
       icon: <FaPowerOff size={20} style={{ color: "#ef4444" }} />,
@@ -55,6 +59,7 @@ const QuickActions = () => {
               key={index}
               className="flex flex-col items-center justify-center p-4 rounded-lg text-center"
               style={{ backgroundColor: "rgba(0, 0, 0, 0.02)" }}
+              onClick={() => navigate(action.path)}
             >
               <div className="mb-2">{action.icon}</div>
               <span className="text-sm font-medium">{action.label}</span>

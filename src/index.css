@@ -65,6 +65,26 @@ body {
   --border-color: #374151;
 }
 
+/* spinner */
+
+.spinner {
+  border: 4px solid var(--border-color); /* light border */
+  border-top-color: var(--primary-color); /* top colored for spin effect */
+  border-radius: 50%; /* round shape */
+  width: 2.5rem; /* size */
+  height: 2.5rem;
+  animation: spin 1s linear infinite; /* use your spin keyframes */
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 /* Utility classes */
 .container {
   max-width: 1200px;

@@ -1,0 +1,195 @@
+import React from "react";
+import {
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+  Image,
+} from "@react-pdf/renderer";
+
+const styles = StyleSheet.create({
+  page: { padding: 30, fontSize: 12, fontFamily: "Helvetica" },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    borderBottom: "2pt solid #3b82f6",
+    paddingBottom: 10,
+  },
+  logo: { width: 60, height: 60 },
+  title: { fontSize: 20, fontWeight: "bold", color: "#1e3a8a" },
+  summaryBox: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 6,
+  },
+  summaryText: { fontSize: 12, marginBottom: 4 },
+  section: { marginBottom: 20 },
+  table: {
+    display: "table",
+    width: "100%",
+    borderStyle: "solid",
+    borderWidth: 1,
+    borderColor: "#d1d5db",
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#d1d5db",
+  },
+  colHeader: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    backgroundColor: "#3b82f6",
+    color: "#fff",
+    padding: 4,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  col: {
+    borderStyle: "solid",
+    borderWidth: 1,
+    padding: 4,
+    fontSize: 10,
+  },
+  // Fixed widths
+  srNoCol: { width: "10%" },
+  descriptionCol: { width: "45%", wordWrap: "break-word" },
+  avgCol: { width: "10%" },
+  maxCol: { width: "10%" },
+  minCol: { width: "10%" },
+  alertCol: { width: "15%" },
+  zebraRow: { backgroundColor: "#f9fafb" },
+  alertOkCell: {
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  alertIssueCell: {
+    backgroundColor: "#fee2e2",
+    color: "#991b1b",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  footer: {
+    position: "absolute",
+    bottom: 20,
+    left: 30,
+    right: 30,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    fontSize: 10,
+    color: "#6b7280",
+  },
+});
+
+const SummaryPDF = ({ summary, dateKey, logoPath }) => {
+  let totalParams = 0;
+  let totalIssues = 0;
+  Object.values(summary).forEach((params) => {
+    totalParams += Object.keys(params).length;
+    totalIssues += Object.values(params).filter((v) => v.alert_flag).length;
+  });
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        {/* Header */}
+        <View style={styles.header}>
+          {logoPath && <Image src={logoPath} style={styles.logo} />}
+          <View style={{ flexDirection: "column", alignItems: "flex-end" }}>
+            <Text style={styles.title}>
+              Parameter Analysis Report - {dateKey}
+            </Text>
+            {/* Footer text moved into header */}
+            <Text style={{ fontSize: 10, color: "#6b7280" }}>
+              Generated on {new Date().toLocaleDateString()}
+            </Text>
+            <Text style={{ fontSize: 10, color: "#6b7280", marginTop: "4rem" }}>
+              Confidential Report
+            </Text>
+          </View>
+        </View>
+
+        {/* Summary Box */}
+        <View style={styles.summaryBox}>
+          <Text style={styles.summaryText}>
+            Total Parameters Checked: {totalParams}
+          </Text>
+          <Text style={styles.summaryText}>Issues Found: {totalIssues}</Text>
+          <Text style={styles.summaryText}>
+            Engines Affected: {Object.keys(summary).length}
+          </Text>
+        </View>
+
+        {/* Tables per engine */}
+        {Object.entries(summary).map(([engineNo, params]) => (
+          <View key={engineNo} style={styles.section}>
+            <Text
+              style={{
+                fontSize: 14,
+                marginBottom: 6,
+                fontWeight: "bold",
+                color: "#1e40af",
+              }}
+            >
+              Engine {engineNo} Summary
+            </Text>
+            <View style={styles.table}>
+              {/* Header Row */}
+              <View style={styles.row} fixed>
+                <Text style={[styles.colHeader, styles.srNoCol]}>Sr No.</Text>
+                <Text style={[styles.colHeader, styles.descriptionCol]}>
+                  Description
+                </Text>
+                <Text style={[styles.colHeader, styles.avgCol]}>Average</Text>
+                <Text style={[styles.colHeader, styles.maxCol]}>Max</Text>
+                <Text style={[styles.colHeader, styles.minCol]}>Min</Text>
+                <Text style={[styles.colHeader, styles.alertCol]}>Alert</Text>
+              </View>
+              {/* Data Rows */}
+              {Object.entries(params).map(([param, values], idx) => (
+                <View
+                  style={[styles.row, idx % 2 === 0 ? styles.zebraRow : null]}
+                  key={param}
+                  wrap={false}
+                >
+                  <Text style={[styles.col, styles.srNoCol]}>{idx + 1}</Text>
+                  <Text style={[styles.col, styles.descriptionCol]}>
+                    {values.description}
+                  </Text>
+                  <Text style={[styles.col, styles.avgCol]}>
+                    {values.avg_value?.toFixed(2)}
+                  </Text>
+                  <Text style={[styles.col, styles.maxCol]}>
+                    {values.max_value}
+                  </Text>
+                  <Text style={[styles.col, styles.minCol]}>
+                    {values.min_value}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.col,
+                      styles.alertCol,
+                      values.alert_flag
+                        ? styles.alertIssueCell
+                        : styles.alertOkCell,
+                    ]}
+                  >
+                    {values.alert_flag ? "⚠️ Issue" : "✓ OK"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+      </Page>
+    </Document>
+  );
+};
+
+export default SummaryPDF;
