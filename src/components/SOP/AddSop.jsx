@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
-const AddSOPForm = () => {
+const AddSOPForm = ({ currentUser }) => {
   const [title, setTitle] = useState("");
   const [steps, setSteps] = useState([""]);
 
@@ -26,6 +26,12 @@ const AddSOPForm = () => {
       await setDoc(sopRef, {
         title: title.trim(),
         steps: steps.filter((s) => s.trim() !== ""),
+        createdBy: {
+          name: currentUser?.name, // "Safar Abbas"
+          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
+          department: currentUser?.department, // "developer"
+          empNumber: currentUser?.empNumber, // "058"
+        },
       });
       alert("SOP saved successfully!");
       setTitle("");

@@ -270,6 +270,46 @@ body {
   box-shadow: 0 0 5px var(--primary-color);
 }
 
+/* sop content */
+/* Accordion animation */
+.sop-content {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.3s ease;
+  opacity: 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.sop-content.open {
+  max-height: 1000px; /* large enough to fit content */
+  opacity: 1;
+}
+
+/* Step list styling */
+.sop-steps li {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--primary-color);
+  margin-bottom: 0.5rem;
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.sop-steps li:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .login-portal {
@@ -297,6 +337,24 @@ body {
   .login-date .time {
     font-size: 1.5rem;
     display: none;
+  }
+
+  .sop-steps li {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+    line-height: 1.4;
+    text-transform: capitalize;
+  }
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .card-header button {
+    margin-top: 0.5rem;
+  }
+  .form-input {
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
   }
 }
 

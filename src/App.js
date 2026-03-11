@@ -133,7 +133,10 @@ function App() {
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
-                  <Route path="/addsop" element={<AddSOPForm />} />
+                  <Route
+                    path="/addsop"
+                    element={<AddSOPForm currentUser={userProfile} />}
+                  />
                   {/* engines-safety */}
                   <Route
                     path="/engines-safety"

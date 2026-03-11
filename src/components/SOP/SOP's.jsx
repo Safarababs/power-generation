@@ -1,10 +1,31 @@
-import React, { useState } from "react";
-import sops from "./All Sop Files/sops";
+import React, { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
 
 const SOPsComponent = () => {
-  const [openId, setOpenId] = useState(1); // first SOP open by default
+  const [sops, setSops] = useState([]);
+  const [openId, setOpenId] = useState(null); // no SOP open initially
   const [searchTerm, setSearchTerm] = useState("");
+
+  // ✅ Fetch SOPs from Firestore
+  useEffect(() => {
+    const fetchSops = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "sops"));
+        const sopList = snapshot.docs.map((doc, idx) => ({
+          id: doc.id, // document ID = SOP title
+          title: doc.data().title,
+          steps: doc.data().steps || [],
+        }));
+        setSops(sopList);
+        if (sopList.length > 0) setOpenId(sopList[0].id); // open first SOP by default
+      } catch (err) {
+        console.error("Error fetching SOPs:", err);
+      }
+    };
+    fetchSops();
+  }, []);
 
   // ✅ Filter SOPs based on search term
   const filteredSops = sops.filter((sop) =>
@@ -38,9 +59,15 @@ const SOPsComponent = () => {
               </button>
             </div>
 
-            {/* Show content only if this SOP is open */}
+            {/* Show steps only if this SOP is open */}
             {openId === sop.id && (
-              <div className="mt-2 text-sm text-secondary">{sop.content}</div>
+              <div className={`sop-content ${openId === sop.id ? "open" : ""}`}>
+                <ol className="sop-steps list-decimal ml-6 mt-2">
+                  {sop.steps.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ol>
+              </div>
             )}
           </div>
         ))}
