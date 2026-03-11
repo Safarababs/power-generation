@@ -35,7 +35,7 @@ const SOPsComponent = () => {
   return (
     <div className="card">
       <div className="card-header">
-        <h2 className="card-title">Standard Operating Procedures</h2>
+        <h2 className="card-title">Standard Operating Procedures's (SOP's)</h2>
         {/* Search Bar */}
         <input
           type="text"
@@ -61,12 +61,45 @@ const SOPsComponent = () => {
 
             {/* Show steps only if this SOP is open */}
             {openId === sop.id && (
-              <div className={`sop-content ${openId === sop.id ? "open" : ""}`}>
-                <ol className="sop-steps list-decimal ml-6 mt-2">
-                  {sop.steps.map((step, idx) => (
-                    <li key={idx}>{step}</li>
-                  ))}
-                </ol>
+              <div className="sop-content open">
+                {/* Objective */}
+                {sop.objective && (
+                  <p className="text-secondary mb-2">
+                    <strong>Objective:</strong> {sop.objective}
+                  </p>
+                )}
+
+                {/* Steps */}
+                {Array.isArray(sop.steps) && sop.steps.length > 0 && (
+                  <ol className="sop-steps list-decimal ml-6 mt-2">
+                    {sop.steps.map((step, idx) => (
+                      <li key={idx}>
+                        <strong>{step.heading}</strong>
+                        {Array.isArray(step.details) &&
+                          step.details.length > 0 && (
+                            <ul className="ml-4 list-disc">
+                              {step.details.map((d, dIdx) => (
+                                <li key={dIdx}>{d}</li>
+                              ))}
+                            </ul>
+                          )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                {/* Safety Notes */}
+                {Array.isArray(sop.safetyNotes) &&
+                  sop.safetyNotes.length > 0 && (
+                    <>
+                      <h4 className="mt-4 font-semibold">Safety Notes</h4>
+                      <ul className="ml-6 list-disc text-red">
+                        {sop.safetyNotes.map((note, idx) => (
+                          <li key={idx}>{note}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
               </div>
             )}
           </div>

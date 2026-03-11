@@ -4,14 +4,42 @@ import { db } from "../FIrestore/firebase";
 
 const AddSOPForm = ({ currentUser }) => {
   const [title, setTitle] = useState("");
-  const [steps, setSteps] = useState([""]);
+  const [objective, setObjective] = useState("");
+  const [steps, setSteps] = useState([{ heading: "", details: [""] }]);
+  const [safetyNotes, setSafetyNotes] = useState([""]);
 
-  const addStepField = () => setSteps([...steps, ""]);
+  // Add new step section
+  const addStepSection = () =>
+    setSteps([...steps, { heading: "", details: [""] }]);
 
-  const updateStep = (index, value) => {
+  // Update step heading
+  const updateStepHeading = (index, value) => {
     const newSteps = [...steps];
-    newSteps[index] = value;
+    newSteps[index].heading = value;
     setSteps(newSteps);
+  };
+
+  // Update step detail
+  const updateStepDetail = (stepIndex, detailIndex, value) => {
+    const newSteps = [...steps];
+    newSteps[stepIndex].details[detailIndex] = value;
+    setSteps(newSteps);
+  };
+
+  // Add detail line to a step
+  const addDetailLine = (stepIndex) => {
+    const newSteps = [...steps];
+    newSteps[stepIndex].details.push("");
+    setSteps(newSteps);
+  };
+
+  // Add safety note
+  const addSafetyNote = () => setSafetyNotes([...safetyNotes, ""]);
+
+  const updateSafetyNote = (index, value) => {
+    const newNotes = [...safetyNotes];
+    newNotes[index] = value;
+    setSafetyNotes(newNotes);
   };
 
   const saveSOP = async () => {
@@ -19,23 +47,28 @@ const AddSOPForm = ({ currentUser }) => {
       alert("Title is required!");
       return;
     }
-
     try {
-      // Use SOP title as document ID
       const sopRef = doc(db, "sops", title.trim());
       await setDoc(sopRef, {
         title: title.trim(),
-        steps: steps.filter((s) => s.trim() !== ""),
+        objective: objective.trim(),
+        steps: steps.map((s) => ({
+          heading: s.heading.trim(),
+          details: s.details.filter((d) => d.trim() !== ""),
+        })),
+        safetyNotes: safetyNotes.filter((n) => n.trim() !== ""),
         createdBy: {
-          name: currentUser?.name, // "Safar Abbas"
-          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-          department: currentUser?.department, // "developer"
-          empNumber: currentUser?.empNumber, // "058"
+          name: currentUser?.name,
+          email: currentUser?.email,
+          department: currentUser?.department,
+          empNumber: currentUser?.empNumber,
         },
       });
       alert("SOP saved successfully!");
       setTitle("");
-      setSteps([""]);
+      setObjective("");
+      setSteps([{ heading: "", details: [""] }]);
+      setSafetyNotes([""]);
     } catch (err) {
       console.error("Error saving SOP:", err);
       alert("Failed to save SOP");
@@ -54,25 +87,67 @@ const AddSOPForm = ({ currentUser }) => {
         className="form-input w-full"
       />
 
-      <div className="space-y-2">
-        {steps.map((step, idx) => (
+      <textarea
+        placeholder="Enter Objective"
+        value={objective}
+        onChange={(e) => setObjective(e.target.value)}
+        className="form-input w-full"
+      />
+
+      {steps.map((step, idx) => (
+        <div key={idx} className="space-y-2 border p-2 rounded">
           <input
-            key={idx}
             type="text"
-            placeholder={`Step ${idx + 1}`}
-            value={step}
-            onChange={(e) => updateStep(idx, e.target.value)}
+            placeholder={`Step ${idx + 1} Heading`}
+            value={step.heading}
+            onChange={(e) => updateStepHeading(idx, e.target.value)}
             className="form-input w-full"
           />
-        ))}
-        <button
-          type="button"
-          onClick={addStepField}
-          className="btn btn-secondary mt-2"
-        >
-          + Add Step
-        </button>
-      </div>
+          {step.details.map((detail, dIdx) => (
+            <input
+              key={dIdx}
+              type="text"
+              placeholder={`Detail ${dIdx + 1}`}
+              value={detail}
+              onChange={(e) => updateStepDetail(idx, dIdx, e.target.value)}
+              className="form-input w-full"
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => addDetailLine(idx)}
+            className="btn btn-secondary"
+          >
+            + Add Detail
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addStepSection}
+        className="btn btn-secondary"
+      >
+        + Add Step Section
+      </button>
+
+      <h3 className="card-title mt-4">Safety Notes</h3>
+      {safetyNotes.map((note, idx) => (
+        <input
+          key={idx}
+          type="text"
+          placeholder={`Safety Note ${idx + 1}`}
+          value={note}
+          onChange={(e) => updateSafetyNote(idx, e.target.value)}
+          className="form-input w-full"
+        />
+      ))}
+      <button
+        type="button"
+        onClick={addSafetyNote}
+        className="btn btn-secondary"
+      >
+        + Add Safety Note
+      </button>
 
       <button type="button" onClick={saveSOP} className="btn btn-primary mt-4">
         Save SOP
