@@ -38,6 +38,7 @@ import ApprovalDashboard from "./components/Users/ApprovalDashboard.jsx";
 import AlertsApproval from "./components/Users/Manager Approval Dashboard/AlertsApproval.jsx";
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
+import AddSOPForm from "./components/SOP/AddSop.jsx";
 
 function App() {
   const auth = getAuth();
@@ -132,6 +133,7 @@ function App() {
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
+                  <Route path="/addsop" element={<AddSOPForm />} />
                   {/* engines-safety */}
                   <Route
                     path="/engines-safety"

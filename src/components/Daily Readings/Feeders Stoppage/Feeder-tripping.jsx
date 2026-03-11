@@ -8,6 +8,7 @@ const MillRecordForm = ({ currentUser }) => {
   const [mill, setMill] = useState("");
   const [stopTime, setStopTime] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [Loading, setLoading] = useState(false);
 
   const mills = [
     "Cement Mill 1",
@@ -20,6 +21,7 @@ const MillRecordForm = ({ currentUser }) => {
   ];
 
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     try {
       await addDoc(collection(db, "millRecords"), {
@@ -41,6 +43,7 @@ const MillRecordForm = ({ currentUser }) => {
     } catch (error) {
       console.error("Error saving record: ", error);
     }
+    setLoading(false);
   };
 
   return (
@@ -92,8 +95,11 @@ const MillRecordForm = ({ currentUser }) => {
           />
         </div>
 
-        <button type="submit" className="btn-primary">
-          Save Record
+        <button
+          type="submit"
+          className={`btn ${Loading ? "btn-disabled m-1" : "btn-primary m-1"}`}
+        >
+          {Loading ? "Saving..." : "Save Record"}
         </button>
       </form>
     </div>

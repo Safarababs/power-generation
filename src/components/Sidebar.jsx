@@ -81,6 +81,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         },
         {
           icon: <FaGasPump size={20} />,
+          label: "Add Sop's",
+          path: "/addsop",
+        },
+        {
+          icon: <FaGasPump size={20} />,
           label: "Wash Log",
           path: "/wash-logs",
         },
