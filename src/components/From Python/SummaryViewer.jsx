@@ -34,25 +34,24 @@ const SummaryViewer = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    fetchLatest();
-  }, []);
-
-  const fetchLatest = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "engine_summary"));
-      if (!snapshot.empty) {
-        const keys = snapshot.docs.map((doc) => doc.id);
-        const latestKey = keys.sort().reverse()[0];
-        console.log("Latest key:", latestKey);
-        setDateKey(latestKey);
-        await fetchSummary(latestKey);
+    const fetchLatest = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, "engine_summary"));
+        if (!snapshot.empty) {
+          const keys = snapshot.docs.map((doc) => doc.id);
+          const latestKey = keys.sort().reverse()[0];
+          setDateKey(latestKey);
+          await fetchSummary(latestKey);
+        }
+      } catch (err) {
+        console.error("Error fetching latest summary:", err);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching latest summary:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchLatest();
+  }, []); // no missing deps now
 
   const fetchSummary = async (key) => {
     setLoading(true);
