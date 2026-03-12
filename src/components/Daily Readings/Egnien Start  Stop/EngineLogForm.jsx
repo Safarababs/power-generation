@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 
@@ -75,7 +76,38 @@ export default function EngineLogForm({ currentUser }) {
       },
     });
 
+    const updateMonthlyTotals = async (engineId, eventType, eventTime) => {
+      const [y, m] = eventTime.split("T")[0].split("-");
+      const monthKey = `${y}_${m}`; // e.g. "2026_03"
+      const monthDocRef = doc(db, "engine_start_stop", monthKey);
+      const monthSnap = await getDoc(monthDocRef);
+
+      let current = {};
+      if (monthSnap.exists()) {
+        current = monthSnap.data()[engineId] || { starts: 0, stops: 0 };
+      }
+
+      await setDoc(
+        monthDocRef,
+        {
+          [engineId]: {
+            starts: current.starts + (eventType === "start" ? 1 : 0),
+            stops: current.stops + (eventType === "stop" ? 1 : 0),
+            updatedAt: new Date(),
+            createdBy: {
+              name: currentUser?.name,
+              email: currentUser?.email,
+              department: currentUser?.department,
+              empNumber: currentUser?.empNumber,
+            },
+          },
+        },
+        { merge: true },
+      );
+    };
+
     await updateEngineStatus(engineId, eventType, eventTime);
+    await updateMonthlyTotals(engineId, eventType, eventTime);
 
     alert(`${eventType.toUpperCase()} logged`);
     setReason("");

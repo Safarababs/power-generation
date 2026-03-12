@@ -1,0 +1,399 @@
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  collection,
+  query,
+  orderBy,
+  getDocs,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../FIrestore/firebase";
+import {
+  BarChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+
+const engines = ["E1", "E2", "E3", "E4", "E5"];
+
+export default function EngineStartStopReport() {
+  const [filterType, setFilterType] = useState("monthly");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
+  const [engineId, setEngineId] = useState("all");
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    let results = [];
+
+    if (filterType === "monthly" && month) {
+      const [y, m] = month.split("-");
+      const selectedYear = parseInt(y, 10);
+      const selectedMonth = parseInt(m, 10);
+
+      // Case 1: use engine_start_stop for years <= 2025
+      if (selectedYear <= 2025) {
+        const monthKey = month.replace("-", "_");
+        const docSnap = await getDoc(doc(db, "engine_start_stop", monthKey));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (engineId === "all") {
+            results = engines.map((eng) => ({
+              engine: eng,
+              starts: data[eng]?.starts || 0,
+              stops: data[eng]?.stops || 0,
+            }));
+          } else if (data[engineId]) {
+            results.push({
+              engine: engineId,
+              starts: data[engineId].starts || 0,
+              stops: data[engineId].stops || 0,
+            });
+          }
+        }
+      }
+
+      // Case 2: use engineLogs for years >= 2026
+      else {
+        const q = query(
+          collection(db, "engineLogs"),
+          orderBy("eventDateTime", "asc"),
+        );
+        const snap = await getDocs(q);
+
+        const engineTotals = engines.map((eng) => ({
+          engine: eng,
+          starts: 0,
+          stops: 0,
+        }));
+
+        snap.forEach((doc) => {
+          const d = doc.data();
+          const eventDate = new Date(d.eventDateTime.seconds * 1000);
+          const eventYear = eventDate.getFullYear();
+          const eventMonth = eventDate.getMonth() + 1; // 1–12
+
+          if (eventYear === selectedYear && eventMonth === selectedMonth) {
+            const target = engineTotals.find((e) => e.engine === d.engineId);
+            if (target) {
+              if (d.eventType === "start") target.starts++;
+              if (d.eventType === "stop") target.stops++;
+            }
+          }
+        });
+
+        results =
+          engineId === "all"
+            ? engineTotals
+            : engineTotals.filter((e) => e.engine === engineId);
+      }
+    }
+
+    // --- Event logs ---
+    const q = query(
+      collection(db, "engineLogs"),
+      orderBy("eventDateTime", "asc"),
+    );
+    const snap = await getDocs(q);
+
+    // Yearly with specific year
+    if (filterType === "yearly" && year) {
+      const selectedYear = parseInt(year, 10);
+      const monthlyTotals = Array.from({ length: 12 }, (_, i) => ({
+        period: `${selectedYear}-${String(i + 1).padStart(2, "0")}`,
+        starts: 0,
+        stops: 0,
+      }));
+
+      // 1. From engineLogs
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const eventDate = new Date(d.eventDateTime.seconds * 1000);
+        const eventYear = eventDate.getFullYear();
+        const eventMonth = eventDate.getMonth();
+        const matchesEngine = engineId === "all" || d.engineId === engineId;
+
+        if (eventYear === selectedYear && matchesEngine) {
+          if (d.eventType === "start") monthlyTotals[eventMonth].starts++;
+          if (d.eventType === "stop") monthlyTotals[eventMonth].stops++;
+        }
+      });
+
+      // 2. From engine_start_stop
+      for (let m = 1; m <= 12; m++) {
+        const monthKey = `${selectedYear}_${String(m).padStart(2, "0")}`;
+        const docSnap = await getDoc(doc(db, "engine_start_stop", monthKey));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (engineId === "all") {
+            Object.values(data).forEach((eng) => {
+              monthlyTotals[m - 1].starts += eng.starts || 0;
+              monthlyTotals[m - 1].stops += eng.stops || 0;
+            });
+          } else if (data[engineId]) {
+            monthlyTotals[m - 1].starts += data[engineId].starts || 0;
+            monthlyTotals[m - 1].stops += data[engineId].stops || 0;
+          }
+        }
+      }
+
+      results = monthlyTotals;
+    }
+
+    // Yearly with no year entered → sum across all years engine-wise
+    if (filterType === "yearly" && !year) {
+      const engineTotals = engines.map((eng) => ({
+        engine: eng,
+        starts: 0,
+        stops: 0,
+      }));
+
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const target = engineTotals.find((e) => e.engine === d.engineId);
+        if (target) {
+          if (d.eventType === "start") target.starts++;
+          if (d.eventType === "stop") target.stops++;
+        }
+      });
+
+      results = engineTotals;
+    }
+
+    //   all time calculations
+    if (filterType === "all") {
+      // Initialize totals per engine
+      const engineTotals = engines.map((eng) => ({
+        engine: eng,
+        starts: 0,
+        stops: 0,
+      }));
+
+      // 1. From engineLogs (2026+)
+      snap.forEach((doc) => {
+        const d = doc.data();
+        const target = engineTotals.find((e) => e.engine === d.engineId);
+        if (target && (engineId === "all" || d.engineId === engineId)) {
+          if (d.eventType === "start") target.starts++;
+          if (d.eventType === "stop") target.stops++;
+        }
+      });
+
+      // 2. From engine_start_stop (<=2025)
+      for (let year = 2020; year <= 2025; year++) {
+        for (let m = 1; m <= 12; m++) {
+          const monthKey = `${year}_${String(m).padStart(2, "0")}`;
+          const docSnap = await getDoc(doc(db, "engine_start_stop", monthKey));
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (engineId === "all") {
+              engines.forEach((eng) => {
+                if (data[eng]) {
+                  const target = engineTotals.find((e) => e.engine === eng);
+                  target.starts += data[eng].starts || 0;
+                  target.stops += data[eng].stops || 0;
+                }
+              });
+            } else if (data[engineId]) {
+              const target = engineTotals.find((e) => e.engine === engineId);
+              target.starts += data[engineId].starts || 0;
+              target.stops += data[engineId].stops || 0;
+            }
+          }
+        }
+      }
+
+      // Final results: either all engines or just the selected one
+      results =
+        engineId === "all"
+          ? engineTotals
+          : engineTotals.filter((e) => e.engine === engineId);
+    }
+
+    setRecords(results);
+    setLoading(false);
+  }, [filterType, month, year, engineId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return (
+    <div className="card fade-in">
+      <div className="card-header flex justify-between items-center">
+        <h2 className="card-title">Engine Start/Stop Report</h2>
+      </div>
+
+      {/* Filters */}
+      <div className="card-content flex flex-wrap gap-3 items-center border-b border-[var(--border-color)] pb-4">
+        <div className="flex space-x-2">
+          {["monthly", "yearly", "all"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`btn ${filterType === type ? "btn-primary" : ""}`}
+            >
+              {type.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {filterType === "monthly" && (
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="form-input input-date"
+          />
+        )}
+
+        {filterType === "yearly" && (
+          <input
+            type="number"
+            placeholder="Select Year-YYYY"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            className="form-input input-date"
+          />
+        )}
+
+        <select
+          value={engineId}
+          onChange={(e) => setEngineId(e.target.value)}
+          className="form-select input-date"
+        >
+          <option value="all">All Engines</option>
+          {engines.map((e) => (
+            <option key={e}>{e}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Charts */}
+      {filterType === "yearly" &&
+        year &&
+        records.length > 0 &&
+        (loading ? (
+          <div className="flex justify-center items-center ">
+            <div className="spinner"></div>
+            <span className="ml-3 text-primary font-medium">
+              Please Wait...
+            </span>
+          </div>
+        ) : (
+          <div className="card-content chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={records}>
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="starts" fill="var(--success-color)" />
+                <Bar dataKey="stops" fill="var(--error-color)" />
+                <Line
+                  type="monotone"
+                  dataKey="starts"
+                  stroke="var(--success-color)"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="stops"
+                  stroke="var(--error-color)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ))}
+
+      {filterType === "monthly" && records.length > 0 && (
+        <div className="card-content chart-container">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={records}>
+              <XAxis dataKey="engine" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="starts" fill="var(--success-color)" />
+              <Bar dataKey="stops" fill="var(--error-color)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {filterType === "yearly" && !year && records.length > 0 && (
+        <div className="card-content chart-container">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={records}>
+              <XAxis dataKey="engine" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="starts" fill="var(--success-color)" />
+              <Bar dataKey="stops" fill="var(--error-color)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {filterType === "all" && records.length > 0 && (
+        <div className="card-content chart-container">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={records}>
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="starts" fill="var(--success-color)" />
+              <Bar dataKey="stops" fill="var(--error-color)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Results Table */}
+      <div className="card-content overflow-x-auto">
+        <table className="table">
+          <thead>
+            <tr>
+              {filterType === "monthly" ||
+              (filterType === "yearly" && !year) ? (
+                <>
+                  <th>Engine</th>
+                  <th className="text-green">Starts</th>
+                  <th className="text-red">Stops</th>
+                </>
+              ) : (
+                <>
+                  <th>Period</th>
+                  <th className="text-green">Starts</th>
+                  <th className="text-red">Stops</th>
+                </>
+              )}
+            </tr>
+          </thead>
+          <tbody>
+            {records.map((r, idx) => (
+              <tr key={idx}>
+                <td>
+                  {filterType === "monthly" ||
+                  (filterType === "yearly" && !year)
+                    ? r.engine
+                    : r.period}
+                </td>
+                <td className="text-green font-semibold">{r.starts}</td>
+                <td className="text-red font-semibold">{r.stops}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

@@ -13,11 +13,16 @@ const SOPsComponent = () => {
     const fetchSops = async () => {
       try {
         const snapshot = await getDocs(collection(db, "sops"));
-        const sopList = snapshot.docs.map((doc, idx) => ({
-          id: doc.id, // document ID = SOP title
-          title: doc.data().title,
-          steps: doc.data().steps || [],
-        }));
+        const sopList = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            objective: data.objective || "",
+            steps: data.steps || [],
+            safetyNotes: data.safetyNotes || [],
+          };
+        });
         setSops(sopList);
         if (sopList.length > 0) setOpenId(sopList[0].id); // open first SOP by default
       } catch (err) {

@@ -271,7 +271,6 @@ body {
 }
 
 /* sop content */
-/* Accordion animation */
 .sop-content {
   max-height: 0;
   overflow: hidden;
@@ -283,7 +282,7 @@ body {
   max-width: 100%;
 }
 .sop-content.open {
-  max-height: 1000px; /* large enough to fit content */
+  max-height: 1000rem; /* large enough to fit content */
   opacity: 1;
 }
 

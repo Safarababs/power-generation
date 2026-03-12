@@ -17,10 +17,9 @@ export default function MonthlyPreviousRecord({ currentUser }) {
     if (!month) return alert("Select month");
     const diff1 = stops - starts;
     const diff2 = starts - stops;
-    console.log(diff1, diff2);
+
     if (diff1 > 1 || diff2 > 1)
       return alert("Start and Stop difference can not greater that 1");
-
     setLoading(true);
 
     try {
