@@ -73,6 +73,7 @@ const SignUpForm = ({ onSwitchToLogin }) => {
         onChange={(e) => setDepartment(e.target.value)}
         required
       >
+        <option value="operation">Select Department</option>
         <option value="operation">Operation</option>
         <option value="E&i">E&I</option>
         <option value="mechanical">Mechanical</option>
