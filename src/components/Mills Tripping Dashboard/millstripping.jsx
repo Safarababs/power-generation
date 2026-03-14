@@ -70,7 +70,7 @@ const MillRecordsTable = ({ currentUser }) => {
   // ✅ Helper: who can edit
   const canEdit =
     currentUser?.department === "uty" ||
-    ("operation" &&
+    (currentUser?.department === "operation" &&
       (currentUser?.designation === "developer" ||
         currentUser?.designation === "Office Assistant"));
 

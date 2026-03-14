@@ -157,6 +157,24 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
       ],
     });
   }
+
+  if (
+    currentUser?.department === "operation" &&
+    currentUser.designation === "Officer"
+  ) {
+    groupedNavItems.push({
+      group: "Manager Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaCog size={20} />,
+          label: "Approval Dashboard",
+          path: "/apprvelabsop",
+        },
+      ],
+    });
+  }
+
   if (currentUser?.department === "manager-operation") {
     groupedNavItems.push({
       group: "Manager Tools",

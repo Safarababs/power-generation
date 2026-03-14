@@ -40,6 +40,7 @@ import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
 import AddSOPForm from "./components/SOP/AddSop.jsx";
 import MillRecordsTable from "./components/Mills Tripping Dashboard/millstripping.jsx";
+import DepartmentSOPApproval from "./components/SOP/All Sop Files/SopAppoval.jsx";
 
 function App() {
   const auth = getAuth();
@@ -105,7 +106,6 @@ function App() {
                     path="/DashboardLayout"
                     element={<DashboardLayout />}
                   />
-
                   {/* egnine start/stop */}
                   <Route
                     path="/start-stop-logs"
@@ -142,6 +142,13 @@ function App() {
                     path="/addsop"
                     element={<AddSOPForm currentUser={userProfile} />}
                   />
+                  <Route
+                    path="/apprvelabsop"
+                    element={
+                      <DepartmentSOPApproval currentUser={userProfile} />
+                    }
+                  />
+
                   {/* engines-safety */}
                   <Route
                     path="/engines-safety"
@@ -149,7 +156,6 @@ function App() {
                   />
                   {/* Attandance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
-
                   {/* Approval dashboards */}
                   <Route
                     path="/approval-dashboard"
