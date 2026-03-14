@@ -50,6 +50,7 @@ const AddSOPForm = ({ currentUser }) => {
     try {
       const sopRef = doc(db, "sops", title.trim());
       await setDoc(sopRef, {
+        isApproved: false,
         title: title.trim(),
         objective: objective.trim(),
         steps: steps.map((s) => ({

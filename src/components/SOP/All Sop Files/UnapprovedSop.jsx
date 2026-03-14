@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../FIrestore/firebase";
+import { db } from "../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
 
-const SOPsComponent = () => {
+const UnapprovedSops = () => {
   const [sops, setSops] = useState([]);
   const [totalSops, setTotalSops] = useState(0);
   const [openId, setOpenId] = useState(null);
@@ -19,7 +19,7 @@ const SOPsComponent = () => {
         // ✅ Get only approved SOPs
         const approvedQuery = query(
           collection(db, "sops"),
-          where("isApproved", "==", true),
+          where("isApproved", "==", false),
         );
         const approvedSnapshot = await getDocs(approvedQuery);
 
@@ -52,7 +52,9 @@ const SOPsComponent = () => {
     <div className="card">
       <div className="card-header">
         <h2 className="card-title">All SOPs</h2>
-
+        {totalSops > 0 ? (
+          <p>{totalSops} SOPs exist but need approval.</p>
+        ) : null}
         <input
           type="text"
           placeholder="Search SOP..."
@@ -127,4 +129,4 @@ const SOPsComponent = () => {
   );
 };
 
-export default SOPsComponent;
+export default UnapprovedSops;

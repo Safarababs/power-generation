@@ -41,6 +41,7 @@ import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
 import AddSOPForm from "./components/SOP/AddSop.jsx";
 import MillRecordsTable from "./components/Mills Tripping Dashboard/millstripping.jsx";
 import DepartmentSOPApproval from "./components/SOP/All Sop Files/SopAppoval.jsx";
+import UnapprovedSops from "./components/SOP/All Sop Files/UnapprovedSop.jsx";
 
 function App() {
   const auth = getAuth();
@@ -138,6 +139,8 @@ function App() {
                   />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
+                  {/* unapproved sop */}
+                  <Route path="/pendingsop" element={<UnapprovedSops />} />
                   <Route
                     path="/addsop"
                     element={<AddSOPForm currentUser={userProfile} />}

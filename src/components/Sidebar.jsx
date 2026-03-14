@@ -159,7 +159,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   }
 
   if (
-    currentUser?.department === "operation" &&
+    currentUser?.department === "uty" &&
     currentUser.designation === "Officer"
   ) {
     groupedNavItems.push({
@@ -170,6 +170,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           icon: <FaCog size={20} />,
           label: "Approval Dashboard",
           path: "/apprvelabsop",
+        },
+        {
+          icon: <FaCog size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
         },
       ],
     });
