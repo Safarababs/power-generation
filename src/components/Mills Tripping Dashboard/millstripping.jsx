@@ -10,7 +10,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 
-const MillRecordsTable = () => {
+const MillRecordsTable = ({ currentUser }) => {
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({
@@ -67,6 +67,13 @@ const MillRecordsTable = () => {
     return () => unsubscribe();
   }, []);
 
+  // ✅ Helper: who can edit
+  const canEdit =
+    currentUser?.department === "uty" ||
+    ("operation" &&
+      (currentUser?.designation === "developer" ||
+        currentUser?.designation === "Office Assistant"));
+
   const handleEdit = (rec) => {
     setEditingId(rec.id);
     setEditData({
@@ -111,7 +118,7 @@ const MillRecordsTable = () => {
               <th>Stop Time</th>
               <th>Start Time</th>
               <th>Total Stop Time</th>
-              <th>Actions</th>
+              {canEdit ? <th>Actions</th> : null}
             </tr>
           </thead>
           <tbody>
@@ -154,18 +161,21 @@ const MillRecordsTable = () => {
                     </td>
                     <td>{rec.totalStop}</td>
                     <td>
+                      (
                       <button
                         onClick={handleUpdate}
                         className="btn btn-success m-1"
                       >
                         Save
                       </button>
+                      ) (
                       <button
                         onClick={() => setEditingId(null)}
                         className="btn btn-warning m-1"
                       >
                         Cancel
                       </button>
+                      )
                     </td>
                   </>
                 ) : (
@@ -175,18 +185,22 @@ const MillRecordsTable = () => {
                     <td>{rec.startTime}</td>
                     <td>{rec.totalStop}</td>
                     <td>
-                      <button
-                        onClick={() => handleEdit(rec)}
-                        className="btn btn-primary m-1"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(rec.id)}
-                        className="btn btn-danger m-1"
-                      >
-                        Delete
-                      </button>
+                      {canEdit ? (
+                        <button
+                          onClick={() => handleEdit(rec)}
+                          className="btn btn-primary m-1"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
+                      {canEdit ? (
+                        <button
+                          onClick={() => handleDelete(rec.id)}
+                          className="btn btn-danger m-1"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </td>
                   </>
                 )}

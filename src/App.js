@@ -132,7 +132,10 @@ function App() {
                     path="/mills-tripping-record"
                     element={<MillRecordForm currentUser={userProfile} />}
                   />
-                  <Route path="/millstripping" element={<MillRecordsTable />} />
+                  <Route
+                    path="/millstripping"
+                    element={<MillRecordsTable currentUser={userProfile} />}
+                  />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
                   <Route
