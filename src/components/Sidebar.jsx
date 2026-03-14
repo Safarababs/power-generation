@@ -157,6 +157,28 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
       ],
     });
   }
+  // naveed sb
+  if (
+    currentUser?.department === "uty" &&
+    currentUser.designation === "Deputy Manager Utilities"
+  ) {
+    groupedNavItems.push({
+      group: "Manager Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaCog size={20} />,
+          label: "Approval Dashboard",
+          path: "/apprvelabsop",
+        },
+        {
+          icon: <FaCog size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
+        },
+      ],
+    });
+  }
 
   if (
     currentUser?.department === "uty" &&
