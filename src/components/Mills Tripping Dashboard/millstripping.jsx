@@ -38,7 +38,11 @@ const MillRecordsTable = () => {
 
         let totalStop = null;
         if (stop && start) {
-          const diffMs = start - stop;
+          let diffMs = start - stop;
+
+          if (diffMs < 0) {
+            diffMs += 24 * 60 * 60 * 1000;
+          }
           const diffHours = diffMs / (1000 * 60 * 60);
           totalStop = diffHours.toFixed(2) + " hrs";
         }
