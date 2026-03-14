@@ -180,7 +180,10 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
     });
   }
 
-  if (currentUser?.department === "manager-operation") {
+  if (
+    currentUser?.department === "operation" &&
+    currentUser?.designation === "MO"
+  ) {
     groupedNavItems.push({
       group: "Manager Tools",
       icon: <FaCog size={16} />,
@@ -189,6 +192,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           icon: <FaExclamationTriangle size={20} />,
           label: "Alerts Approval",
           path: "/alerts-approval",
+        },
+        {
+          icon: <FaExclamationTriangle size={20} />,
+          label: "Pending SOP's",
+          path: "/pendingsop",
         },
       ],
     });

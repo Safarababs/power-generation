@@ -140,7 +140,10 @@ function App() {
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
                   {/* unapproved sop */}
-                  <Route path="/pendingsop" element={<UnapprovedSops />} />
+                  <Route
+                    path="/pendingsop"
+                    element={<UnapprovedSops currentUser={userProfile} />}
+                  />
                   <Route
                     path="/addsop"
                     element={<AddSOPForm currentUser={userProfile} />}
