@@ -198,6 +198,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           label: "Pending SOP's",
           path: "/pendingsop",
         },
+        {
+          icon: <FaCog size={20} />,
+          label: "Approval Dashboard",
+          path: "/apprvelabsop",
+        },
       ],
     });
   }
