@@ -41,7 +41,12 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           label: "Monitoring",
           path: "/DashboardLayout",
         },
-        { icon: <FaSliders size={20} />, label: "Controls", path: "/controls" },
+
+        {
+          icon: <FaSliders size={20} />,
+          label: "Feeders Tripping record",
+          path: "/millstripping",
+        },
       ],
     },
     {

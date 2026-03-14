@@ -39,6 +39,7 @@ import AlertsApproval from "./components/Users/Manager Approval Dashboard/Alerts
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
 import AddSOPForm from "./components/SOP/AddSop.jsx";
+import MillRecordsTable from "./components/Mills Tripping Dashboard/millstripping.jsx";
 
 function App() {
   const auth = getAuth();
@@ -131,6 +132,7 @@ function App() {
                     path="/mills-tripping-record"
                     element={<MillRecordForm currentUser={userProfile} />}
                   />
+                  <Route path="/millstripping" element={<MillRecordsTable />} />
                   {/* SOPs */}
                   <Route path="/sop" element={<SOPsComponent />} />
                   <Route
