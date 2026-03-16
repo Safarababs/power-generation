@@ -85,6 +85,16 @@ body {
   animation: spin 1s linear infinite;
 }
 
+.border-red-500 {
+  border-color: red;
+  color: white;
+}
+
+.bg-red-50 {
+  background-color: red;
+  columns: white;
+}
+
 /* Utility classes */
 .container {
   max-width: 1200px;
@@ -406,7 +416,9 @@ body {
 
 /* === Navigation === */
 .sidebar-nav {
-  margin-top: 1.5rem;
+  flex: 1;
+  overflow-y: auto; /* enable vertical scroll */
+  max-height: calc(100vh - 4rem);
 }
 
 .sidebar-nav ul {

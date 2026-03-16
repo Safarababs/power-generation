@@ -61,32 +61,34 @@ const DepartmentSOPApproval = ({ currentUser }) => {
       <h2 className="text-xl font-semibold mb-4">
         SOPs Pending Approval ({currentUser.department})
       </h2>
-      {sops.length === 0 ? (
+      {sops.filter(
+        (sop) => sop.createdBy?.department === currentUser.department,
+      ).length === 0 ? (
         <p>No SOPs found.</p>
       ) : (
         <ul className="list-disc ml-6">
-          {sops.map((sop) => (
-            <li key={sop.id} className="mb-4">
-              <strong>{sop.title}</strong> – {sop.objective}
-              <div className="mt-2">
-                {/* ✅ Only allow edit/approve if manager’s department matches SOP’s department */}
-                {currentUser.department === sop.createdBy?.department &&
-                  !sop.isApproved && (
-                    <>
-                      <button
-                        onClick={() => handleApprove(sop.id)}
-                        className="btn btn-success m-1"
-                      >
-                        Approve
-                      </button>
-                    </>
+          {sops
+            .filter(
+              (sop) => sop.createdBy?.department === currentUser.department,
+            )
+            .map((sop) => (
+              <li key={sop.id} className="mb-4">
+                <strong>{sop.title}</strong> – {sop.objective}
+                <div className="mt-2">
+                  {!sop.isApproved && (
+                    <button
+                      onClick={() => handleApprove(sop.id)}
+                      className="btn btn-success m-1"
+                    >
+                      Approve
+                    </button>
                   )}
-                {sop.isApproved && (
-                  <span className="text-green ml-2">Approved</span>
-                )}
-              </div>
-            </li>
-          ))}
+                  {sop.isApproved && (
+                    <span className="text-green ml-2">Approved</span>
+                  )}
+                </div>
+              </li>
+            ))}
         </ul>
       )}
     </div>

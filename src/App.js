@@ -28,6 +28,7 @@ import SOPsComponent from "./components/SOP/SOP's.jsx";
 
 // New Login Component
 import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
+import MillRecordsTable from "./components/Stoppage Dashboard/millstripping.jsx";
 import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
@@ -39,9 +40,9 @@ import AlertsApproval from "./components/Users/Manager Approval Dashboard/Alerts
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
 import AddSOPForm from "./components/SOP/AddSop.jsx";
-import MillRecordsTable from "./components/Mills Tripping Dashboard/millstripping.jsx";
 import DepartmentSOPApproval from "./components/SOP/All Sop Files/SopAppoval.jsx";
 import UnapprovedSops from "./components/SOP/All Sop Files/UnapprovedSop.jsx";
+import EngineLogTable from "./components/Stoppage Dashboard/EngineLogTable.jsx";
 
 function App() {
   const auth = getAuth();
@@ -112,6 +113,8 @@ function App() {
                     path="/start-stop-logs"
                     element={<EngineLogForm currentUser={userProfile} />}
                   />
+
+                  <Route path="enginelogtable" element={<EngineLogTable />} />
                   {/* previous start stop entry */}
                   <Route
                     path="/monthly-starts-stops"
@@ -154,7 +157,6 @@ function App() {
                       <DepartmentSOPApproval currentUser={userProfile} />
                     }
                   />
-
                   {/* engines-safety */}
                   <Route
                     path="/engines-safety"

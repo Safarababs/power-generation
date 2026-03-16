@@ -65,6 +65,11 @@ const FuelReadingsEntry = ({ currentUser }) => {
         const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
         const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
+        // if difference greater then 5000 then need to add logic
+        if (diffGasKg > 50000 || diffGasKg < 0) {
+          alert("Please check invalid readings");
+        }
+
         // Capacity logic
         let capacity = 9700; // Default for engines 1-3
         if (index >= 3) {

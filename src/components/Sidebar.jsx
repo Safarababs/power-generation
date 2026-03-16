@@ -41,6 +41,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           label: "Monitoring",
           path: "/DashboardLayout",
         },
+        {
+          icon: <FaSliders size={20} />,
+          label: "Engine's Record",
+          path: "/enginelogtable",
+        },
 
         {
           icon: <FaSliders size={20} />,
@@ -154,6 +159,16 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           label: "Approval Dashboard",
           path: "/approval-dashboard",
         },
+        {
+          icon: <FaCog size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
+        },
+        {
+          icon: <FaCog size={20} />,
+          label: "Approval SOP's",
+          path: "/apprvelabsop",
+        },
       ],
     });
   }
@@ -244,7 +259,8 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         </div>
       </div>
 
-      <nav className="sidebar-nav">
+      {/* Scrollable nav */}
+      <nav className="sidebar-nav overflow-y-auto">
         <ul>
           {groupedNavItems.map((group, gIndex) => (
             <li key={gIndex} className="sidebar-group">

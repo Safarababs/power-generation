@@ -184,6 +184,7 @@ const MillRecordsTable = ({ currentUser }) => {
                     <td>{rec.stopTime}</td>
                     <td>{rec.startTime}</td>
                     <td>{rec.totalStop}</td>
+
                     <td>
                       {canEdit ? (
                         <button

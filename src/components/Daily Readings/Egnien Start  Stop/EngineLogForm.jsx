@@ -163,9 +163,9 @@ export default function EngineLogForm({ currentUser }) {
       </div>
 
       {/* Reason for Stop */}
-      {status === "running" && (
+      {status === "stopped" && (
         <div className="flex flex-col space-y-2">
-          <label className="font-medium">Reason for Stop</label>
+          <label className="font-medium">Reason for Start</label>
           <input
             placeholder="Enter reason"
             value={reason}

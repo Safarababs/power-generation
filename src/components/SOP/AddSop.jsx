@@ -65,7 +65,7 @@ const AddSOPForm = ({ currentUser }) => {
           empNumber: currentUser?.empNumber,
         },
       });
-      alert("SOP saved successfully!");
+      alert("SOP saved for approval to your department head!");
       setTitle("");
       setObjective("");
       setSteps([{ heading: "", details: [""] }]);
