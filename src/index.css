@@ -1247,3 +1247,25 @@ body {
 .shadow-lg {
   box-shadow: var(--shadow-lg);
 }
+
+/* this is temperary css for sop approvels */
+/* Ensure edit inputs take full width inside list items */
+.list-edit-input {
+  flex: 1;
+  min-width: 600px; /* prevents shrinking */
+}
+
+/* Container for input + buttons */
+.list-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Buttons inside edit mode */
+.list-edit-container .btn {
+  min-width: 80px; /* consistent button width */
+  height: 2.5rem; /* consistent button height */
+  flex-shrink: 0; /* prevent shrinking */
+}
