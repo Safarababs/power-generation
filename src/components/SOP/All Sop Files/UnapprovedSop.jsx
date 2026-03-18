@@ -269,7 +269,7 @@ const UnapprovedSops = () => {
                                         <span>{d}</span>
                                       )}
                                       <button
-                                        className="btn btn-secondary ml-2 text-primary"
+                                        className="btn btn-secondary ml-2"
                                         onClick={() =>
                                           setEditing({
                                             sopId: sop.id,
