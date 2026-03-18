@@ -172,6 +172,22 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
       ],
     });
   }
+  // Nouman Naseer
+
+  if (currentUser?.department === "uty" && currentUser.designation === "QCO") {
+    groupedNavItems.push({
+      group: "Manager QC Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaCog size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
+        },
+      ],
+    });
+  }
+
   // naveed sb
   if (
     currentUser?.department === "uty" &&
