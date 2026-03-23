@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../FIrestore/firebase";
+import { db } from "../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
 
 const SOPsComponent = () => {
@@ -64,9 +64,7 @@ const SOPsComponent = () => {
 
       <div className="card-content">
         {filteredSops.length === 0 ? (
-          <p className="text-red font-semibold mt-4">
-            {totalSops} SOPs exist but need approval.
-          </p>
+          <p className="text-red font-semibold mt-4">{totalSops} SOPs exist.</p>
         ) : (
           filteredSops.map((sop) => (
             <div key={sop.id} className="mb-4 border-b pb-2">

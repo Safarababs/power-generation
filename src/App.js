@@ -24,7 +24,7 @@ import WashLogForm from "./components/Daily Readings/Washing/Washing.jsx";
 import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 import FeedersTripping from "./pages/Feeders Tripping.jsx";
 import { FeedersTrippingProvider } from "./context/Feeders Tripping Data.jsx";
-import SOPsComponent from "./components/SOP/SOP's.jsx";
+import SOPsComponent from "./components/Knowledge Hub/SOP/SOP's.jsx";
 
 // New Login Component
 import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
@@ -33,16 +33,17 @@ import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
 import MarkAttendance from "./components/Attandance/pages/MarkAttendance.jsx";
-import ProtectionsSafety from "./components/Knowledge Hub/ProtectionSafety.jsx";
+import ProtectionsSafety from "./components/Knowledge Hub/Protections/ProtectionSafety.jsx";
 import AuthModal from "./components/Users/AuthModel.js";
 import ApprovalDashboard from "./components/Users/ApprovalDashboard.jsx";
 import AlertsApproval from "./components/Users/Manager Approval Dashboard/AlertsApproval.jsx";
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
 import SummaryViewer from "./components/From Python/SummaryViewer.jsx";
-import AddSOPForm from "./components/SOP/AddSop.jsx";
-import DepartmentSOPApproval from "./components/SOP/All Sop Files/SopAppoval.jsx";
-import UnapprovedSops from "./components/SOP/All Sop Files/UnapprovedSop.jsx";
+import AddSOPForm from "./components/Knowledge Hub/SOP/AddSop.jsx";
+import DepartmentSOPApproval from "./components/Knowledge Hub/SOP/All Sop Files/SopAppoval.jsx";
+import UnapprovedSops from "./components/Knowledge Hub/SOP/All Sop Files/UnapprovedSop.jsx";
 import EngineLogTable from "./components/Stoppage Dashboard/EngineLogTable.jsx";
+import AnalyzeButton from "./components/Temporary Code/AnalyzeButton.jsx";
 
 function App() {
   const auth = getAuth();
@@ -89,7 +90,6 @@ function App() {
               <Layout currentUser={userProfile}>
                 {/* Protected routes */}
                 <Routes>
-                  <Route path="/summery" exact element={<SummaryViewer />} />
                   <Route path="/Moharram" element={<FullPixelInventory />} />
                   <Route path="/" exact element={<Dashboard />} />
                   <Route path="/generation" element={<Generation />} />
@@ -103,6 +103,13 @@ function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
+                  {/* parameter analyse  */}
+                  <Route
+                    path="/parameteranalyse"
+                    exact
+                    element={<AnalyzeButton />}
+                  />
+                  <Route path="/summery" element={<SummaryViewer />} />
                   {/* readings */}
                   <Route
                     path="/DashboardLayout"
@@ -113,7 +120,6 @@ function App() {
                     path="/start-stop-logs"
                     element={<EngineLogForm currentUser={userProfile} />}
                   />
-
                   <Route path="enginelogtable" element={<EngineLogTable />} />
                   {/* previous start stop entry */}
                   <Route

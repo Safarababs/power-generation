@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "../FIrestore/firebase";
+import { db } from "../../FIrestore/firebase";
 
 const AddSOPForm = ({ currentUser }) => {
   const [title, setTitle] = useState("");

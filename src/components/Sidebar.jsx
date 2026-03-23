@@ -169,6 +169,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           label: "Approval SOP's",
           path: "/apprvelabsop",
         },
+        {
+          icon: <FaCog size={20} />,
+          label: "Parameter Analyse",
+          path: "/parameteranalyse",
+        },
       ],
     });
   }

@@ -7,7 +7,7 @@ import {
   doc,
   updateDoc,
 } from "firebase/firestore";
-import { db } from "../../FIrestore/firebase";
+import { db } from "../../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
 
 const UnapprovedSops = () => {
