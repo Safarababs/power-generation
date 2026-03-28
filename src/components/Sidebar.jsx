@@ -186,8 +186,8 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   // General Manager view
 
   if (
-    currentUser?.department === "executive" &&
-    currentUser?.designation === "gm"
+    currentUser?.department === "operation" &&
+    currentUser?.designation === "developer"
   ) {
     groupedNavItems = [
       {

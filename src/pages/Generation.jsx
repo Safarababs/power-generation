@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaBolt, FaPlay, FaPause, FaSync, FaCog } from "react-icons/fa";
-import { FaArrowTrendUp, FaArrowTrendDown } from "react-icons/fa6";
+import { FaArrowTrendUp } from "react-icons/fa6";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../components/FIrestore/firebase";
 
@@ -82,9 +82,9 @@ const Generation = () => {
 
   const capacityUtilization =
     totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(2) : 0;
-  const maintenanceDue = latestFuelData.filter(
-    (f) => parseInt(f.nextMaintenance) <= 7,
-  ).length;
+  // const maintenanceDue = latestFuelData.filter(
+  //   (f) => parseInt(f.nextMaintenance) <= 7,
+  // ).length;
 
   const calculateSFC = (engineReading, fuelReading) => {
     if (!engineReading || !fuelReading) return 0;
