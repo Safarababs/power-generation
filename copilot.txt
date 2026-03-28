@@ -131,7 +131,7 @@ const SummaryPDF = ({ summary, dateKey, logoPath }) => {
           </Text>
           <Text style={styles.summaryText}>Issues Found: {totalIssues}</Text>
           <Text style={styles.summaryText}>
-            Engines Checked: {Object.keys(summary).length}
+            Engines Affected: {Object.keys(summary).length}
           </Text>
         </View>
 
@@ -195,7 +195,7 @@ const SummaryPDF = ({ summary, dateKey, logoPath }) => {
                           : styles.alertOkCell,
                       ]}
                     >
-                      {values.alert_flag ? "⚠️ Issue" : "OK"}
+                      {values.alert_flag ? "⚠️ Issue" : "✓ OK"}
                     </Text>
                   </View>
                 ))}

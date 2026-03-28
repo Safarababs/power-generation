@@ -44,6 +44,12 @@ import DepartmentSOPApproval from "./components/Knowledge Hub/SOP/All Sop Files/
 import UnapprovedSops from "./components/Knowledge Hub/SOP/All Sop Files/UnapprovedSop.jsx";
 import EngineLogTable from "./components/Stoppage Dashboard/EngineLogTable.jsx";
 import AnalyzeButton from "./components/Temporary Code/AnalyzeButton.jsx";
+import ExecutiveDashboard from "./components/All Dashboards/Executive Dashboard/Executive Dashboard.jsx";
+import MechanicalDashboard from "./components/All Dashboards/Mechanical Dashboard/MechanicalDashboard.jsx";
+import ServicesDashboard from "./components/All Dashboards/Services Dashboard/ServicesDashboard.jsx";
+import UtilityDashboard from "./components/All Dashboards/Utility Dashboard/UtilityDashboard.jsx";
+import ElectricalDashboard from "./components/All Dashboards/Electrical Dashboard/Electrical Dashboard.jsx";
+import VideoLectures from "./components/Knowledge Hub/Video Lectures/VideoLectures.jsx";
 
 function App() {
   const auth = getAuth();
@@ -91,7 +97,41 @@ function App() {
                 {/* Protected routes */}
                 <Routes>
                   <Route path="/Moharram" element={<FullPixelInventory />} />
-                  <Route path="/" exact element={<Dashboard />} />
+                  {/* General Manager Overview */}
+
+                  <Route
+                    path="/"
+                    element={
+                      userProfile?.department === "executive" &&
+                      userProfile?.designation === "executive" ? (
+                        <ExecutiveDashboard />
+                      ) : (
+                        <Dashboard />
+                      )
+                    }
+                  />
+
+                  {/* All Dashboards Links Start */}
+
+                  <Route
+                    path="/mechanical-Dashboard"
+                    element={<MechanicalDashboard />}
+                  />
+                  <Route
+                    path="/electrical-Dashboard"
+                    element={<ElectricalDashboard />}
+                  />
+                  <Route
+                    path="/utility-dashboard"
+                    element={<UtilityDashboard />}
+                  />
+                  <Route
+                    path="/services-Dashboard"
+                    element={<ServicesDashboard />}
+                  />
+                  <Route path="/videoslectures" element={<VideoLectures />} />
+                  {/* All Dashboards Links End */}
+
                   <Route path="/generation" element={<Generation />} />
                   <Route path="/monitoring" element={<Monitoring />} />
                   <Route path="/controls" element={<Controls />} />

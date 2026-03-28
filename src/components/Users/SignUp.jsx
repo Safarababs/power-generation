@@ -74,10 +74,12 @@ const SignUpForm = ({ onSwitchToLogin }) => {
         required
       >
         <option value="operation">Select Department</option>
+        <option value="executive">Executive</option>
         <option value="operation">Operation</option>
         <option value="E&i">E&I</option>
         <option value="mechanical">Mechanical</option>
         <option value="uty">UTY</option>
+        <option value="services">Services</option>
         <option value="developer">Developer</option>
       </select>
 

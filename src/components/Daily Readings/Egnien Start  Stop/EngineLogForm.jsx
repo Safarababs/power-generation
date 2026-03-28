@@ -50,10 +50,10 @@ export default function EngineLogForm({ currentUser }) {
       lastEventTime: new Date(eventTime),
       updatedAt: new Date(),
       createdBy: {
-        name: currentUser?.name, // "Safar Abbas"
-        email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-        department: currentUser?.department, // "developer"
-        empNumber: currentUser?.empNumber, // "058"
+        name: currentUser?.name,
+        email: currentUser?.email,
+        department: currentUser?.department,
+        empNumber: currentUser?.empNumber,
       },
     });
   };
@@ -69,10 +69,10 @@ export default function EngineLogForm({ currentUser }) {
       reason: eventType === "stop" ? reason : "",
       loggedAt: serverTimestamp(),
       createdBy: {
-        name: currentUser?.name, // "Safar Abbas"
-        email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-        department: currentUser?.department, // "developer"
-        empNumber: currentUser?.empNumber, // "058"
+        name: currentUser?.name,
+        email: currentUser?.email,
+        department: currentUser?.department,
+        empNumber: currentUser?.empNumber,
       },
     });
 
@@ -162,18 +162,17 @@ export default function EngineLogForm({ currentUser }) {
         />
       </div>
 
-      {/* Reason for Stop */}
-      {status === "stopped" && (
-        <div className="flex flex-col space-y-2">
-          <label className="font-medium">Reason for Start</label>
-          <input
-            placeholder="Enter reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            className="form-input"
-          />
-        </div>
-      )}
+      {/* Reason for Start/Stop */}
+
+      <div className="flex flex-col space-y-2">
+        <label className="font-medium">Reason for Start</label>
+        <input
+          placeholder="Enter reason"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          className="form-input"
+        />
+      </div>
 
       {/* Submit Button */}
       <button

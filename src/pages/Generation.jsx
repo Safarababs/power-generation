@@ -114,7 +114,7 @@ const Generation = () => {
       </div>
 
       {/* 🔧 Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 grid-cols-2 gap-6">
         <div className="card">
           <div className="card-content">
             <div className="flex items-center justify-between">
@@ -128,13 +128,6 @@ const Generation = () => {
               >
                 <FaBolt size={24} style={{ color: "#10b981" }} />
               </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <FaArrowTrendUp
-                size={16}
-                style={{ color: "#10b981", marginRight: "0.25rem" }}
-              />
-              <span style={{ color: "#10b981" }}>Compared to yesterday</span>
             </div>
           </div>
         </div>
@@ -153,17 +146,10 @@ const Generation = () => {
                 <FaArrowTrendUp size={24} style={{ color: "#3b82f6" }} />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-sm">
-              <FaArrowTrendDown
-                size={16}
-                style={{ color: "#ef4444", marginRight: "0.25rem" }}
-              />
-              <span style={{ color: "#ef4444" }}>Change from last hour</span>
-            </div>
           </div>
         </div>
 
-        <div className="card">
+        {/* <div className="card">
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
@@ -181,7 +167,7 @@ const Generation = () => {
               <span style={{ color: "#f59e0b" }}>Within 7 days</span>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* 🔧 Per-Engine Cards */}

@@ -16,6 +16,7 @@ import {
   FaCogs,
   FaPlug,
   FaPlay,
+  FaStop,
   FaCalendarAlt,
   FaBook,
   FaShieldAlt,
@@ -30,6 +31,7 @@ import {
   FaFileSignature,
   FaWater,
 } from "react-icons/fa";
+import { FaSliders } from "react-icons/fa6";
 
 const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   const location = useLocation();
@@ -40,7 +42,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   };
 
   // Base groups
-  let groupedNavItems = [
+  const groupedNavItems = [
     {
       group: "Operations Hub",
       icon: <FaBolt size={16} />,
@@ -186,8 +188,8 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   // General Manager view
 
   if (
-    currentUser?.department === "executive" &&
-    currentUser?.designation === "gm"
+    currentUser?.department === "operation" &&
+    currentUser?.designation === "developer"
   ) {
     groupedNavItems = [
       {
@@ -197,33 +199,12 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           {
             icon: <FaHome size={20} />,
             label: "Overview",
-            path: "/",
+            path: "/executive/operations",
           },
           {
             icon: <FaChartLine size={20} />,
-            label: "Generation",
-            path: "/generation",
-          },
-          {
-            icon: <FaTachometerAlt size={20} />,
-            label: "Monitoring",
-            path: "/DashboardLayout",
-          },
-          {
-            icon: <FaCogs size={20} />,
-            label: "Parameters Summary",
-            path: "/summery",
-          },
-
-          {
-            icon: <FaCogs size={20} />,
-            label: "Engine's Record",
-            path: "/enginelogtable",
-          },
-          {
-            icon: <FaPlug size={20} />,
-            label: "Feeders Tripping record",
-            path: "/millstripping",
+            label: "Stoppages",
+            path: "/executive/operations-stoppages",
           },
         ],
       },
@@ -232,20 +213,15 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         icon: <FaCogs size={16} />,
         items: [
           {
-            icon: <FaClipboardList size={20} />,
-            label: "Overview",
-            path: "/mechanical-Dashboard",
+            icon: <FaIndustry size={20} />,
+            label: "Equipment Health",
+            path: "/executive/mechanical-health",
           },
-          // {
-          //   icon: <FaIndustry size={20} />,
-          //   label: "Equipment Health",
-          //   path: "/executive/mechanical-health",
-          // },
-          // {
-          //   icon: <FaClipboardList size={20} />,
-          //   label: "Maintenance Logs",
-          //   path: "/executive/mechanical-maintenance",
-          // },
+          {
+            icon: <FaClipboardList size={20} />,
+            label: "Maintenance Logs",
+            path: "/executive/mechanical-maintenance",
+          },
         ],
       },
       {
@@ -254,19 +230,14 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         items: [
           {
             icon: <FaBolt size={20} />,
-            label: "Overview",
-            path: "/electrical-Dashboard",
+            label: "Load Distribution",
+            path: "/executive/electrical-load",
           },
-          // {
-          //   icon: <FaBolt size={20} />,
-          //   label: "Load Distribution",
-          //   path: "/executive/electrical-load",
-          // },
-          // {
-          //   icon: <FaExclamationTriangle size={20} />,
-          //   label: "Relay Trips",
-          //   path: "/executive/electrical-trips",
-          // },
+          {
+            icon: <FaExclamationTriangle size={20} />,
+            label: "Relay Trips",
+            path: "/executive/electrical-trips",
+          },
         ],
       },
       {
@@ -275,19 +246,14 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         items: [
           {
             icon: <FaWater size={20} />,
-            label: "Overview",
-            path: "/utility-dashboard",
+            label: "Water Usage",
+            path: "/executive/utility-water",
           },
-          // {
-          //   icon: <FaWater size={20} />,
-          //   label: "Water Usage",
-          //   path: "/executive/utility-water",
-          // },
-          // {
-          //   icon: <FaGasPump size={20} />,
-          //   label: "Fuel Consumption",
-          //   path: "/executive/utility-fuel",
-          // },
+          {
+            icon: <FaGasPump size={20} />,
+            label: "Fuel Consumption",
+            path: "/executive/utility-fuel",
+          },
         ],
       },
       {
@@ -296,35 +262,13 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         items: [
           {
             icon: <FaUserCheck size={20} />,
-            label: "Overview",
-            path: "/services-Dashboard",
+            label: "HR Attendance",
+            path: "/executive/services-hr",
           },
           {
-            icon: <FaUserCheck size={20} />,
-            label: "HR Attandance",
-            path: "/services-Dashboard",
-          },
-          //   {
-          //     icon: <FaClipboardList size={20} />,
-          //     label: "Procurement",
-          //     path: "/executive/services-procurement",
-          //   },
-        ],
-      },
-      {
-        group: "Knowledge Hub",
-        icon: <FaClipboardList size={16} />,
-        items: [
-          { icon: <FaBook size={20} />, label: "SOP's", path: "/sop" },
-          {
-            icon: <FaShieldAlt size={20} />,
-            label: "Protections",
-            path: "/engines-safety",
-          },
-          {
-            icon: <FaShieldAlt size={20} />,
-            label: "Video Lectures",
-            path: "/videoslectures",
+            icon: <FaClipboardList size={20} />,
+            label: "Procurement",
+            path: "/executive/services-procurement",
           },
         ],
       },

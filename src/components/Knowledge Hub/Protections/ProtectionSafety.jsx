@@ -51,12 +51,12 @@ export default function ProtectionsSafety() {
               <strong>Definition (EN):</strong> {item.definition_en}
             </p>
             {/* urdu is not desplaying for the time being */}
-            {/* <p
+            <p
               className="font-urdu"
               style={{ fontSize: "0.95rem", marginBottom: "0.3rem" }}
             >
               <strong>تعریف={">"}</strong> {item.definition_ur}
-            </p> */}
+            </p>
             <p
               style={{
                 fontSize: "0.9rem",

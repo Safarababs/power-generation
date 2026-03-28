@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import SOPPDF from "./SOPPDF";
 
 const SOPsComponent = () => {
   const [sops, setSops] = useState([]);
@@ -76,6 +78,20 @@ const SOPsComponent = () => {
                 >
                   {openId === sop.id ? <FaMinus /> : <FaPlus />}
                 </button>
+                <PDFDownloadLink
+                  document={<SOPPDF sop={sop} />}
+                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <span className="text-gray-500">Preparing...</span>
+                    ) : (
+                      <button className="btn-primary text-sm">
+                        Download PDF
+                      </button>
+                    )
+                  }
+                </PDFDownloadLink>
               </div>
 
               {openId === sop.id && (

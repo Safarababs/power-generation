@@ -44,6 +44,14 @@ const FuelReadingsEntry = ({ currentUser }) => {
     setFuelReadings(newFuelReadings);
   };
   // Submit readings
+  // Validation helper
+  const validateDiff = (value, label, index) => {
+    if (value > 50000 || value < 0) {
+      alert(`Please check ${label} Engine: ${index + 1}`);
+      throw new Error(`${label} invalid`);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -65,16 +73,19 @@ const FuelReadingsEntry = ({ currentUser }) => {
         const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
         const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
-        // if difference greater then 5000 then need to add logic
-        if (diffGasKg > 50000 || diffGasKg < 0) {
-          alert("Please check invalid readings");
-        }
+        // Validate each difference
+        validateDiff(diffGasKg, "Gas KG Reading", index);
+        validateDiff(diffGasNm3, "Gas Nm³ Reading", index);
+        validateDiff(diffHfoKg, "HFO KG Reading", index);
+        validateDiff(diffHfoLtr, "HFO Liter Reading", index);
+        validateDiff(diffLfoKg, "LFO KG Reading", index);
+        validateDiff(diffLfoLtr, "LFO Liter Reading", index);
 
         // Capacity logic
         let capacity = 9700; // Default for engines 1-3
         if (index >= 3) {
           // Engines 4 & 5 are DF
-          capacity = diffGasNm3 > 0 || diffGasKg > 0 ? 8900 : 9700;
+          capacity = diffGasNm3 > 1000 || diffGasKg > 1000 ? 8900 : 9700;
         }
 
         return {
@@ -88,23 +99,22 @@ const FuelReadingsEntry = ({ currentUser }) => {
         };
       });
 
-      // Save to Firestore
+      // Save to Firestore only if all validations passed
       await setDoc(doc(db, "fuelReadings", entryDate), {
         date: entryDate,
         fuelReadings,
         consumption,
         createdBy: {
-          name: currentUser?.name, // "Safar Abbas"
-          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-          department: currentUser?.department, // "developer"
-          empNumber: currentUser?.empNumber, // "058"
+          name: currentUser?.name,
+          email: currentUser?.email,
+          department: currentUser?.department,
+          empNumber: currentUser?.empNumber,
         },
       });
 
       alert("Fuel readings saved successfully!");
 
       // Reset form
-
       setEntryDate(todayDefault);
       setFuelReadings(
         Array(5)
@@ -120,7 +130,10 @@ const FuelReadingsEntry = ({ currentUser }) => {
       );
     } catch (error) {
       console.log("Error: ", error);
-      alert("Error saving fuel readings: ", error);
+      // If validation failed, Firestore save is skipped
+      if (!error.message.includes("invalid")) {
+        alert("Error saving fuel readings: " + error.message);
+      }
     }
   };
   return (
@@ -164,6 +177,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   onChange={(e) =>
                     handleFuelChange(index, "hfoKg", e.target.value)
                   }
+                  onWheel={(e) => e.target.blur()}
                   className="form-input"
                   required
                 />
@@ -179,6 +193,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   onChange={(e) =>
                     handleFuelChange(index, "hfoLtr", e.target.value)
                   }
+                  onWheel={(e) => e.target.blur()}
                   className="form-input"
                 />
               </div>
@@ -196,6 +211,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   onChange={(e) =>
                     handleFuelChange(index, "lfoLtr", e.target.value)
                   }
+                  onWheel={(e) => e.target.blur()}
                   className="form-input"
                 />
               </div>
@@ -216,6 +232,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
                       onChange={(e) =>
                         handleFuelChange(index, "gasNm3", e.target.value)
                       }
+                      onWheel={(e) => e.target.blur()}
                       className="form-input"
                     />
                   </div>
@@ -233,6 +250,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
                       onChange={(e) =>
                         handleFuelChange(index, "gasKg", e.target.value)
                       }
+                      onWheel={(e) => e.target.blur()}
                       className="form-input"
                     />
                   </div>
