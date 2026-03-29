@@ -102,8 +102,8 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      userProfile?.department === "operation" &&
-                      userProfile?.designation === "developer" ? (
+                      userProfile?.department === "executive" &&
+                      userProfile?.designation === "General Manager" ? (
                         <ExecutiveDashboard />
                       ) : (
                         <Dashboard />

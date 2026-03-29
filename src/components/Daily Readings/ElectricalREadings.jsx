@@ -19,10 +19,12 @@ const EngineReadingsEntry = ({ currentUser }) => {
   // Handle input change
   const handleChange = (index, field, value) => {
     const newReadings = [...readings];
-    newReadings[index] = { ...newReadings[index], [field]: Number(value) };
+    newReadings[index] = {
+      ...newReadings[index],
+      [field]: value === "" ? "" : Number(value),
+    };
     setReadings(newReadings);
 
-    // Reset error for that specific field when user edits
     const newErrors = [...errors];
     newErrors[index] = { ...newErrors[index], [field]: false };
     setErrors(newErrors);
@@ -148,6 +150,7 @@ const EngineReadingsEntry = ({ currentUser }) => {
               required
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
+              onWheel={(e) => e.target.blur()}
             />
           </div>
 
@@ -175,6 +178,7 @@ const EngineReadingsEntry = ({ currentUser }) => {
                       ? { borderColor: "red", borderWidth: "2px" }
                       : {}
                   }
+                  onWheel={(e) => e.target.blur()}
                   required
                 />
               </div>
@@ -193,6 +197,7 @@ const EngineReadingsEntry = ({ currentUser }) => {
                   value={engine.kwh}
                   placeholder={previousReadings[index]?.kwh || "Enter KWH"}
                   onChange={(e) => handleChange(index, "kwh", e.target.value)}
+                  i
                   className="form-input"
                   style={
                     errors[index].kwh

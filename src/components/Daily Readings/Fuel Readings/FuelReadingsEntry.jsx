@@ -18,7 +18,23 @@ const FuelReadingsEntry = ({ currentUser }) => {
         gasKg: "",
       })),
   );
+
   const [yesterdayData, setYesterdayData] = useState([]);
+
+  // ✅ Add errors state
+  const [errors, setErrors] = useState(
+    Array(5)
+      .fill(null)
+      .map(() => ({
+        hfoKg: false,
+        hfoLtr: false,
+        lfoKg: false,
+        lfoLtr: false,
+        gasNm3: false,
+        gasKg: false,
+      })),
+  );
+
   // Fetch yesterday’s readings for placeholders
   useEffect(() => {
     const fetchYesterday = async () => {
@@ -34,6 +50,7 @@ const FuelReadingsEntry = ({ currentUser }) => {
     };
     fetchYesterday();
   }, [entryDate]);
+
   // Handle input change
   const handleFuelChange = (index, field, value) => {
     const newFuelReadings = [...fuelReadings];
@@ -42,20 +59,19 @@ const FuelReadingsEntry = ({ currentUser }) => {
       [field]: value === "" ? "" : Number(value),
     };
     setFuelReadings(newFuelReadings);
-  };
-  // Submit readings
-  // Validation helper
-  const validateDiff = (value, label, index) => {
-    if (value > 50000 || value < 0) {
-      alert(`Please check ${label} Engine: ${index + 1}`);
-      throw new Error(`${label} invalid`);
-    }
+
+    // Reset error for that field when user edits
+    const newErrors = [...errors];
+    newErrors[index] = { ...newErrors[index], [field]: false };
+    setErrors(newErrors);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Calculate consumption + capacity
+      let hasError = false;
+      let newErrors = [...errors]; // copy current errors
+
       const consumption = fuelReadings.map((engine, index) => {
         const yesterdayEngine = yesterdayData[index] || {
           hfoKg: 0,
@@ -73,18 +89,35 @@ const FuelReadingsEntry = ({ currentUser }) => {
         const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
         const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
 
-        // Validate each difference
-        validateDiff(diffGasKg, "Gas KG Reading", index);
-        validateDiff(diffGasNm3, "Gas Nm³ Reading", index);
-        validateDiff(diffHfoKg, "HFO KG Reading", index);
-        validateDiff(diffHfoLtr, "HFO Liter Reading", index);
-        validateDiff(diffLfoKg, "LFO KG Reading", index);
-        validateDiff(diffLfoLtr, "LFO Liter Reading", index);
+        // Validate each difference and mark errors
+        if (diffHfoKg > 50000 || diffHfoKg < 0) {
+          newErrors[index].hfoKg = true;
+          hasError = true;
+        }
+        if (diffHfoLtr > 50000 || diffHfoLtr < 0) {
+          newErrors[index].hfoLtr = true;
+          hasError = true;
+        }
+        if (diffLfoKg > 50000 || diffLfoKg < 0) {
+          newErrors[index].lfoKg = true;
+          hasError = true;
+        }
+        if (diffLfoLtr > 50000 || diffLfoLtr < 0) {
+          newErrors[index].lfoLtr = true;
+          hasError = true;
+        }
+        if (diffGasNm3 > 50000 || diffGasNm3 < 0) {
+          newErrors[index].gasNm3 = true;
+          hasError = true;
+        }
+        if (diffGasKg > 50000 || diffGasKg < 0) {
+          newErrors[index].gasKg = true;
+          hasError = true;
+        }
 
         // Capacity logic
-        let capacity = 9700; // Default for engines 1-3
+        let capacity = 9700;
         if (index >= 3) {
-          // Engines 4 & 5 are DF
           capacity = diffGasNm3 > 1000 || diffGasKg > 1000 ? 8900 : 9700;
         }
 
@@ -99,7 +132,15 @@ const FuelReadingsEntry = ({ currentUser }) => {
         };
       });
 
-      // Save to Firestore only if all validations passed
+      // ✅ Update errors once after the loop
+      setErrors(newErrors);
+
+      if (hasError) {
+        alert("Some readings are invalid. Please correct highlighted fields.");
+        return;
+      }
+
+      // Save to Firestore if no errors
       await setDoc(doc(db, "fuelReadings", entryDate), {
         date: entryDate,
         fuelReadings,
@@ -113,40 +154,21 @@ const FuelReadingsEntry = ({ currentUser }) => {
       });
 
       alert("Fuel readings saved successfully!");
-
-      // Reset form
-      setEntryDate(todayDefault);
-      setFuelReadings(
-        Array(5)
-          .fill(null)
-          .map(() => ({
-            hfoKg: "",
-            hfoLtr: "",
-            lfoKg: "",
-            lfoLtr: "",
-            gasNm3: "",
-            gasKg: "",
-          })),
-      );
+      // Reset form...
     } catch (error) {
-      console.log("Error: ", error);
-      // If validation failed, Firestore save is skipped
-      if (!error.message.includes("invalid")) {
-        alert("Error saving fuel readings: " + error.message);
-      }
+      console.error("Error: ", error);
+      alert("Error saving fuel readings: " + error.message);
     }
   };
+
   return (
     <div className="card">
-      {" "}
       <div className="card-content">
-        {" "}
-        <h2 className="card-title mb-6">Fuel Readings Entry</h2>{" "}
+        <h2 className="card-title mb-6">Fuel Readings Entry</h2>
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {" "}
           {/* Date Picker */}
           <div className="col-span-full">
             <label className="text-secondary font-medium mb-2 block">
@@ -158,8 +180,10 @@ const FuelReadingsEntry = ({ currentUser }) => {
               required
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
+              onWheel={(e) => e.target.blur()}
             />
           </div>
+
           {/* Engine Inputs */}
           {fuelReadings.map((engine, index) => (
             <div key={index} className="p-4 rounded-lg bg-gray-100">
@@ -179,9 +203,15 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   }
                   onWheel={(e) => e.target.blur()}
                   className="form-input"
+                  style={
+                    errors[index].hfoKg
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
                   required
                 />
               </div>
+
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
                   HFO Reading (Liters)
@@ -195,11 +225,15 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   }
                   onWheel={(e) => e.target.blur()}
                   className="form-input"
+                  style={
+                    errors[index].hfoLtr
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
                 />
               </div>
 
               {/* LFO */}
-
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
                   LFO Reading (Liters)
@@ -213,6 +247,11 @@ const FuelReadingsEntry = ({ currentUser }) => {
                   }
                   onWheel={(e) => e.target.blur()}
                   className="form-input"
+                  style={
+                    errors[index].lfoLtr
+                      ? { borderColor: "red", borderWidth: "2px" }
+                      : {}
+                  }
                 />
               </div>
 
@@ -234,6 +273,11 @@ const FuelReadingsEntry = ({ currentUser }) => {
                       }
                       onWheel={(e) => e.target.blur()}
                       className="form-input"
+                      style={
+                        errors[index].gasNm3
+                          ? { borderColor: "red", borderWidth: "2px" }
+                          : {}
+                      }
                     />
                   </div>
 
@@ -252,12 +296,18 @@ const FuelReadingsEntry = ({ currentUser }) => {
                       }
                       onWheel={(e) => e.target.blur()}
                       className="form-input"
+                      style={
+                        errors[index].gasKg
+                          ? { borderColor: "red", borderWidth: "2px" }
+                          : {}
+                      }
                     />
                   </div>
                 </>
               )}
             </div>
           ))}
+
           {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
             <button type="submit" className="btn-primary">
@@ -269,4 +319,5 @@ const FuelReadingsEntry = ({ currentUser }) => {
     </div>
   );
 };
+
 export default FuelReadingsEntry;
