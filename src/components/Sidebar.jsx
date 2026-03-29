@@ -183,6 +183,35 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
     });
   }
 
+  if (
+    currentUser?.department === "services" &&
+    currentUser.designation === "STORE In-Charge"
+  ) {
+    groupedNavItems = [
+      {
+        group: "Store Admin Tools",
+        icon: <FaCog size={16} />,
+        items: [
+          {
+            icon: <FaCheckCircle size={20} />,
+            label: "Approval Dashboard",
+            path: "/approval-dashboard",
+          },
+          {
+            icon: <FaHourglassHalf size={20} />,
+            label: "Pending Sop's",
+            path: "/pendingsop",
+          },
+          {
+            icon: <FaClipboardCheck size={20} />,
+            label: "Approval SOP's",
+            path: "/apprvelabsop",
+          },
+        ],
+      },
+    ];
+  }
+
   // General Manager view
 
   if (

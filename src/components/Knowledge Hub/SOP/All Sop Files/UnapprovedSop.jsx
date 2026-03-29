@@ -9,6 +9,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
+import SOPPDF from "../SOPPDF";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 const UnapprovedSops = () => {
   const [sops, setSops] = useState([]);
@@ -130,7 +132,7 @@ const UnapprovedSops = () => {
     <div className="card">
       <div className="card-header">
         <h2 className="card-title">All SOPs</h2>
-        {totalSops > 0 && <p>{totalSops} SOPs exist but need approval.</p>}
+        {totalSops > 0 && <p>{totalSops} SOPs exist.</p>}
         <input
           type="text"
           placeholder="Search SOP..."
@@ -150,6 +152,20 @@ const UnapprovedSops = () => {
             <div key={sop.id} className="mb-4 border-b pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{sop.title}</span>
+                <PDFDownloadLink
+                  document={<SOPPDF sop={sop} />}
+                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <span className="text-gray-500">Preparing...</span>
+                    ) : (
+                      <button className="btn-primary text-sm">
+                        Download PDF
+                      </button>
+                    )
+                  }
+                </PDFDownloadLink>
                 <button
                   onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
                   className="p-1 rounded hover:bg-gray-200"

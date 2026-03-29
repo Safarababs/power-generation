@@ -18,6 +18,12 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 14, fontWeight: "bold", marginBottom: 4 },
   text: { fontSize: 12, marginBottom: 4 },
   list: { marginLeft: 12, marginBottom: 6 },
+  heading: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginBottom: 2,
+    textDecoration: "underline",
+  },
   listItem: { fontSize: 12, marginBottom: 2 },
   safetyNote: { fontSize: 12, color: "#991b1b", marginBottom: 2 },
   footer: {
@@ -56,9 +62,7 @@ const SOPPDF = ({ sop }) => (
           <Text style={styles.subtitle}>Steps</Text>
           {sop.steps.map((step, idx) => (
             <View key={idx} style={styles.list}>
-              <Text style={styles.listItem}>
-                {idx + 1}. {step.heading}
-              </Text>
+              <Text style={styles.heading}>{step.heading}</Text>
               {Array.isArray(step.details) &&
                 step.details.map((d, dIdx) => (
                   <Text key={dIdx} style={styles.listItem}>
