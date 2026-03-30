@@ -87,6 +87,7 @@ const EngineReadingsEntry = ({ currentUser }) => {
 
       if (hasError) {
         alert("Some readings are invalid. Please correct highlighted fields.");
+        setLoading(false);
         return;
       }
 
