@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { collection, query, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, limit } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
 const engines = ["All Engines", "E1", "E2", "E3", "E4", "E5"];
@@ -13,6 +13,7 @@ export default function EngineLogTable() {
     let q = query(
       collection(db, "engineLogs"),
       orderBy("eventDateTime", "desc"),
+      limit(5),
     );
     const snap = await getDocs(q);
 

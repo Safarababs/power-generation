@@ -33,7 +33,7 @@ const PowerGenerationChart = () => {
           collection(db, "engineReadings"),
           orderBy("date", "desc"),
           // if on mobile screen we can reduce this to 7 to speed up loading
-          window.innerWidth < 768 ? limit(7) : limit(30),
+          window.innerWidth < 768 ? limit(7) : limit(7),
         );
         const snapshot = await getDocs(q);
         const docs = snapshot.docs.map((doc) => doc.data());
@@ -175,11 +175,10 @@ const PowerGenerationChart = () => {
         )}
 
         {/* X-axis labels BELOW the chart */}
-        {/* X-axis labels BELOW the chart */}
         <div className="chart-x-axis flex justify-center">
           <p className="text-center text-secondary text-sm mt-2">
-            Here we can view the last 30 days generation data (to view the
-            values please hover over the bars)
+            Here we can view the last 7 days generation data (to view the values
+            please hover over the bars)
           </p>
         </div>
       </div>

@@ -1,513 +1,346 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+this is code import React, { useState, useEffect } from "react";
 import {
-  FaHome,
-  FaCog,
-  FaExclamationTriangle,
-  FaChartLine,
-  FaFileAlt,
-  FaUsers,
-  FaBolt,
-  FaTachometerAlt,
-  FaClipboardList,
-  FaGasPump,
-  FaChevronDown,
-  FaChevronRight,
-  FaCogs,
-  FaPlug,
-  FaPlay,
-  FaCalendarAlt,
-  FaBook,
-  FaShieldAlt,
-  FaBell,
-  FaUserCheck,
-  FaCheckCircle,
-  FaHourglassHalf,
-  FaClipboardCheck,
-  FaSlidersH,
-  FaExclamationCircle,
-  FaIndustry,
-  FaFileSignature,
-  FaWater,
-} from "react-icons/fa";
+  collection,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
+  startAfter,
+} from "firebase/firestore";
+import { db } from "../../FIrestore/firebase";
+import { FaPlus, FaMinus } from "react-icons/fa";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import SOPPDF from "./SOPPDF";
 
-const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
-  const location = useLocation();
-  const [openGroups, setOpenGroups] = useState({});
+const SOPsComponent = ({ currentUser }) => {
+  const [sops, setSops] = useState([]);
+  const [totalSops, setTotalSops] = useState(0);
+  const [openId, setOpenId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [lastDoc, setLastDoc] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
 
-  const toggleGroup = (group) => {
-    setOpenGroups((prev) => ({ ...prev, [group]: !prev[group] }));
+  const fetchSops = async (reset = false) => {
+    try {
+      const isManagerOrDev =
+        currentUser?.department === "executive" ||
+        currentUser?.designation === "developer";
+
+      let q;
+      if (isManagerOrDev) {
+        q = query(
+          collection(db, "sops"),
+          where("isApproved", "==", true),
+
+          limit(10),
+        );
+      } else if (currentUser?.department) {
+        q = query(
+          collection(db, "sops"),
+          where("isApproved", "==", true),
+          where("department", "==", currentUser.department),
+
+          limit(10),
+        );
+      } else {
+        // fallback: just approved SOPs without department filter
+        q = query(
+          collection(db, "sops"),
+          where("isApproved", "==", true),
+
+          limit(10),
+        );
+      }
+
+      const snapshot = await getDocs(q);
+      const sopList = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      if (reset) {
+        setSops(sopList);
+        setTotalSops(sopList.length);
+      } else {
+        setSops((prev) => [...prev, ...sopList]);
+        setTotalSops((prev) => prev + sopList.length);
+      }
+
+      if (snapshot.docs.length < 10) {
+        setHasMore(false);
+      } else {
+        setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
+      }
+    } catch (err) {
+      console.error("Error fetching SOPs:", err);
+    }
   };
 
-  // Base groups
-  let groupedNavItems = [
-    {
-      group: "Operations Hub",
-      icon: <FaBolt size={16} />,
-      items: [
-        { icon: <FaHome size={20} />, label: "Dashboard", path: "/" },
-        {
-          icon: <FaBolt size={20} />,
-          label: "Generation",
-          path: "/generation",
-        },
-        {
-          icon: <FaTachometerAlt size={20} />,
-          label: "Monitoring",
-          path: "/DashboardLayout",
-        },
-        {
-          icon: <FaCogs size={20} />,
-          label: "Engine's Record",
-          path: "/enginelogtable",
-        },
-        {
-          icon: <FaPlug size={20} />,
-          label: "Feeders Tripping record",
-          path: "/millstripping",
-        },
-      ],
-    },
-    {
-      group: "Data Input",
-      icon: <FaGasPump size={16} />,
-      items: [
-        {
-          icon: <FaPlay size={20} />,
-          label: "Start/Stop Logs",
-          path: "/start-stop-logs",
-        },
-        {
-          icon: <FaExclamationTriangle size={20} />,
-          label: "Plant Alerts",
-          path: "/alerts",
-        },
-        {
-          icon: <FaCalendarAlt size={20} />,
-          label: "Monthly Start/Stop",
-          path: "/monthly-starts-stops",
-        },
-        {
-          icon: <FaClipboardList size={20} />,
-          label: "Readings",
-          path: "/readings",
-        },
-        {
-          icon: <FaGasPump size={20} />,
-          label: "Fuel Reading",
-          path: "/fuel-readings",
-        },
-        {
-          icon: <FaIndustry size={20} />,
-          label: "Mills Tripping Record",
-          path: "/mills-tripping-record",
-        },
-        {
-          icon: <FaFileSignature size={20} />,
-          label: "Add Sop's",
-          path: "/addsop",
-        },
-        { icon: <FaWater size={20} />, label: "Wash Log", path: "/wash-logs" },
-      ],
-    },
-    {
-      group: "Knowledge Hub",
-      icon: <FaClipboardList size={16} />,
-      items: [
-        { icon: <FaBook size={20} />, label: "SOP's", path: "/sop" },
-        {
-          icon: <FaShieldAlt size={20} />,
-          label: "Protections",
-          path: "/engines-safety",
-        },
-      ],
-    },
-    {
-      group: "Miscellaneous",
-      icon: <FaClipboardList size={16} />,
-      items: [
-        { icon: <FaFileAlt size={20} />, label: "Reports", path: "/reports" },
-        {
-          icon: <FaChartLine size={20} />,
-          label: "Analytics",
-          path: "/analytics",
-        },
-        { icon: <FaBell size={20} />, label: "Alerts", path: "/alerts" },
-      ],
-    },
-    {
-      group: "Team & Settings",
-      icon: <FaUsers size={16} />,
-      items: [
-        {
-          icon: <FaUserCheck size={20} />,
-          label: "Attendance",
-          path: "/attendance",
-        },
-        { icon: <FaUsers size={20} />, label: "Team", path: "/team" },
-        { icon: <FaCog size={20} />, label: "Settings", path: "/settings" },
-      ],
-    },
-  ];
+  useEffect(() => {
+    if (currentUser) {
+      fetchSops(true);
+    }
+  }, [currentUser]);
 
-  // Conditional groups based on user role
-  if (
-    currentUser?.department === "operation" &&
-    currentUser.designation === "developer"
-  ) {
-    groupedNavItems.push({
-      group: "Developer Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaCheckCircle size={20} />,
-          label: "Approval Dashboard",
-          path: "/approval-dashboard",
-        },
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending Sop's",
-          path: "/pendingsop",
-        },
-        {
-          icon: <FaClipboardCheck size={20} />,
-          label: "Approval SOP's",
-          path: "/apprvelabsop",
-        },
-        {
-          icon: <FaSlidersH size={20} />,
-          label: "Parameter Analyse",
-          path: "/parameteranalyse",
-        },
-      ],
-    });
-  }
-
-  if (
-    currentUser?.department === "services" &&
-    currentUser.designation === "STORE In-Charge"
-  ) {
-    groupedNavItems.push({
-      group: "Store Admin Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaCheckCircle size={20} />,
-          label: "Approval Dashboard",
-          path: "/approval-dashboard",
-        },
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending Sop's",
-          path: "/pendingsop",
-        },
-        {
-          icon: <FaClipboardCheck size={20} />,
-          label: "Approval SOP's",
-          path: "/apprvelabsop",
-        },
-      ],
-    });
-  }
-
-  // General Manager view
-
-  if (
-    currentUser?.department === "executive" &&
-    currentUser?.designation === "General Manager"
-  ) {
-    groupedNavItems = [
-      {
-        group: "Operations Dashboard",
-        icon: <FaBolt size={16} />,
-        items: [
-          {
-            icon: <FaHome size={20} />,
-            label: "Overview",
-            path: "/",
-          },
-          {
-            icon: <FaChartLine size={20} />,
-            label: "Generation",
-            path: "/generation",
-          },
-          {
-            icon: <FaTachometerAlt size={20} />,
-            label: "Monitoring",
-            path: "/DashboardLayout",
-          },
-          {
-            icon: <FaCogs size={20} />,
-            label: "Parameters Summary",
-            path: "/summery",
-          },
-
-          {
-            icon: <FaCogs size={20} />,
-            label: "Engine's Record",
-            path: "/enginelogtable",
-          },
-          {
-            icon: <FaPlug size={20} />,
-            label: "Feeders Tripping record",
-            path: "/millstripping",
-          },
-        ],
-      },
-      {
-        group: "Mechanical Dashboard",
-        icon: <FaCogs size={16} />,
-        items: [
-          {
-            icon: <FaClipboardList size={20} />,
-            label: "Overview",
-            path: "/mechanical-Dashboard",
-          },
-          // {
-          //   icon: <FaIndustry size={20} />,
-          //   label: "Equipment Health",
-          //   path: "/executive/mechanical-health",
-          // },
-          // {
-          //   icon: <FaClipboardList size={20} />,
-          //   label: "Maintenance Logs",
-          //   path: "/executive/mechanical-maintenance",
-          // },
-        ],
-      },
-      {
-        group: "Electrical Dashboard",
-        icon: <FaPlug size={16} />,
-        items: [
-          {
-            icon: <FaBolt size={20} />,
-            label: "Overview",
-            path: "/electrical-Dashboard",
-          },
-          // {
-          //   icon: <FaBolt size={20} />,
-          //   label: "Load Distribution",
-          //   path: "/executive/electrical-load",
-          // },
-          // {
-          //   icon: <FaExclamationTriangle size={20} />,
-          //   label: "Relay Trips",
-          //   path: "/executive/electrical-trips",
-          // },
-        ],
-      },
-      {
-        group: "Utility Dashboard",
-        icon: <FaGasPump size={16} />,
-        items: [
-          {
-            icon: <FaWater size={20} />,
-            label: "Overview",
-            path: "/utility-dashboard",
-          },
-          // {
-          //   icon: <FaWater size={20} />,
-          //   label: "Water Usage",
-          //   path: "/executive/utility-water",
-          // },
-          // {
-          //   icon: <FaGasPump size={20} />,
-          //   label: "Fuel Consumption",
-          //   path: "/executive/utility-fuel",
-          // },
-        ],
-      },
-      {
-        group: "Services Dashboard",
-        icon: <FaUsers size={16} />,
-        items: [
-          {
-            icon: <FaUserCheck size={20} />,
-            label: "Overview",
-            path: "/services-Dashboard",
-          },
-          {
-            icon: <FaUserCheck size={20} />,
-            label: "HR Attandance",
-            path: "/services-Dashboard",
-          },
-          //   {
-          //     icon: <FaClipboardList size={20} />,
-          //     label: "Procurement",
-          //     path: "/executive/services-procurement",
-          //   },
-        ],
-      },
-      {
-        group: "Knowledge Hub",
-        icon: <FaClipboardList size={16} />,
-        items: [
-          { icon: <FaBook size={20} />, label: "SOP's", path: "/sop" },
-          {
-            icon: <FaShieldAlt size={20} />,
-            label: "Protections",
-            path: "/engines-safety",
-          },
-          {
-            icon: <FaShieldAlt size={20} />,
-            label: "Video Lectures",
-            path: "/videoslectures",
-          },
-        ],
-      },
-    ];
-  }
-
-  // General Manager view end
-
-  if (currentUser?.department === "uty" && currentUser.designation === "QCO") {
-    groupedNavItems.push({
-      group: "Manager QC Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending Sop's",
-          path: "/pendingsop",
-        },
-      ],
-    });
-  }
-
-  if (
-    currentUser?.department === "uty" &&
-    currentUser.designation === "Deputy Manager Utilities"
-  ) {
-    groupedNavItems.push({
-      group: "Manager Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaCheckCircle size={20} />,
-          label: "Approval Dashboard",
-          path: "/apprvelabsop",
-        },
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending Sop's",
-          path: "/pendingsop",
-        },
-      ],
-    });
-  }
-
-  if (
-    currentUser?.department === "uty" &&
-    currentUser.designation === "Officer"
-  ) {
-    groupedNavItems.push({
-      group: "Manager Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaCheckCircle size={20} />,
-          label: "Approval Dashboard",
-          path: "/apprvelabsop",
-        },
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending Sop's",
-          path: "/pendingsop",
-        },
-      ],
-    });
-  }
-
-  if (
-    currentUser?.department === "operation" &&
-    currentUser?.designation === "MO"
-  ) {
-    groupedNavItems.push({
-      group: "Manager Tools",
-      icon: <FaCog size={16} />,
-      items: [
-        {
-          icon: <FaExclamationCircle size={20} />,
-          label: "Alerts Approval",
-          path: "/alerts-approval",
-        },
-        {
-          icon: <FaHourglassHalf size={20} />,
-          label: "Pending SOP's",
-          path: "/pendingsop",
-        },
-        {
-          icon: <FaCheckCircle size={20} />,
-          label: "Approval Dashboard",
-          path: "/apprvelabsop",
-        },
-      ],
-    });
-  }
+  const filteredSops = sops.filter((sop) =>
+    sop.title?.toLowerCase().includes(searchTerm.toLowerCase()),
+  );
 
   return (
-    <aside
-      className={`sidebar ${collapsed ? "collapsed" : ""} ${mobileOpen ? "mobile-open" : ""}`}
-    >
-      <div className="sidebar-header">
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-icon">
-            <FaBolt size={18} />
-          </div>
-          {!collapsed && (
-            <span className="font-bold text-lg">NAS PG Samawa</span>
-          )}
-        </div>
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">All SOPs</h2>
+        <input
+          type="text"
+          placeholder="Search SOP..."
+          className="border p-2 rounded w-full mt-2"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      {/* Scrollable nav */}
-      <nav className="sidebar-nav overflow-y-auto">
-        <ul>
-          {groupedNavItems.map((group, gIndex) => (
-            <li key={gIndex} className="sidebar-group">
-              <button
-                className={`group-toggle ${collapsed ? "justify-center" : ""}`}
-                onClick={() => toggleGroup(group.group)}
-              >
-                <span className="group-icon">{group.icon}</span>
-                {!collapsed && (
-                  <span className="font-semibold ml-2">{group.group}</span>
-                )}
-                <span className="ml-auto">
-                  {openGroups[group.group] ? (
-                    <FaChevronDown />
-                  ) : (
-                    <FaChevronRight />
+      <div className="card-content">
+        {filteredSops.length === 0 ? (
+          <p className="text-red font-semibold mt-4">{totalSops} SOPs exist.</p>
+        ) : (
+          filteredSops.map((sop) => (
+            <div key={sop.id} className="mb-4 border-b pb-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{sop.title}</span>
+                <button
+                  onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
+                  className="p-1 rounded hover:bg-gray-200"
+                >
+                  {openId === sop.id ? <FaMinus /> : <FaPlus />}
+                </button>
+                <PDFDownloadLink
+                  document={<SOPPDF sop={sop} />}
+                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <span className="text-gray-500">Preparing...</span>
+                    ) : (
+                      <button className="btn-primary text-sm">
+                        Download PDF
+                      </button>
+                    )
+                  }
+                </PDFDownloadLink>
+              </div>
+
+              {openId === sop.id && (
+                <div className="sop-content open">
+                  {sop.objective && (
+                    <p className="text-secondary mb-2">
+                      <strong>Objective:</strong> {sop.objective}
+                    </p>
                   )}
-                </span>
-              </button>
-              {openGroups[group.group] && (
-                <ul className="submenu">
-                  {group.items.map((item, index) => {
-                    const isActive = location.pathname === item.path;
-                    return (
-                      <li key={index}>
-                        <Link
-                          to={item.path}
-                          onClick={closeSidebar}
-                          className={`${isActive ? "active" : ""} ${collapsed ? "justify-center" : ""}`}
-                        >
-                          <span>{item.icon}</span>
-                          {!collapsed && (
-                            <span className="ml-2">{item.label}</span>
-                          )}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
+                  {Array.isArray(sop.steps) && sop.steps.length > 0 && (
+                    <ol className="sop-steps list-decimal ml-6 mt-2">
+                      {sop.steps.map((step, idx) => (
+                        <li key={idx}>
+                          <strong>{step.heading}</strong>
+                          {Array.isArray(step.details) &&
+                            step.details.length > 0 && (
+                              <ul className="ml-4 list-disc">
+                                {step.details.map((d, dIdx) => (
+                                  <li key={dIdx}>{d}</li>
+                                ))}
+                              </ul>
+                            )}
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {Array.isArray(sop.safetyNotes) &&
+                    sop.safetyNotes.length > 0 && (
+                      <>
+                        <h4 className="mt-4 font-semibold">Safety Notes</h4>
+                        <ul className="ml-6 list-disc text-red">
+                          {sop.safetyNotes.map((note, idx) => (
+                            <li key={idx}>{note}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                </div>
               )}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
+            </div>
+          ))
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center mt-4">
+            <button onClick={() => fetchSops()} className="btn-primary">
+              Load More
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
-export default Sidebar;
+export default SOPsComponent;
+ and here is how i am saving sops import React, { useState } from "react";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../FIrestore/firebase";
+
+const AddSOPForm = ({ currentUser }) => {
+  const [title, setTitle] = useState("");
+  const [objective, setObjective] = useState("");
+  const [steps, setSteps] = useState([{ heading: "", details: [""] }]);
+  const [safetyNotes, setSafetyNotes] = useState([""]);
+
+  // Add new step section
+  const addStepSection = () =>
+    setSteps([...steps, { heading: "", details: [""] }]);
+
+  // Update step heading
+  const updateStepHeading = (index, value) => {
+    const newSteps = [...steps];
+    newSteps[index].heading = value;
+    setSteps(newSteps);
+  };
+
+  // Update step detail
+  const updateStepDetail = (stepIndex, detailIndex, value) => {
+    const newSteps = [...steps];
+    newSteps[stepIndex].details[detailIndex] = value;
+    setSteps(newSteps);
+  };
+
+  // Add detail line to a step
+  const addDetailLine = (stepIndex) => {
+    const newSteps = [...steps];
+    newSteps[stepIndex].details.push("");
+    setSteps(newSteps);
+  };
+
+  // Add safety note
+  const addSafetyNote = () => setSafetyNotes([...safetyNotes, ""]);
+
+  const updateSafetyNote = (index, value) => {
+    const newNotes = [...safetyNotes];
+    newNotes[index] = value;
+    setSafetyNotes(newNotes);
+  };
+
+  const saveSOP = async () => {
+    if (!title.trim()) {
+      alert("Title is required!");
+      return;
+    }
+    try {
+      const sopRef = doc(db, "sops", title.trim());
+      await setDoc(sopRef, {
+        isApproved: false,
+        title: title.trim(),
+        objective: objective.trim(),
+        steps: steps.map((s) => ({
+          heading: s.heading.trim(),
+          details: s.details.filter((d) => d.trim() !== ""),
+        })),
+        safetyNotes: safetyNotes.filter((n) => n.trim() !== ""),
+        createdBy: {
+          name: currentUser?.name,
+          email: currentUser?.email,
+          department: currentUser?.department,
+          empNumber: currentUser?.empNumber,
+        },
+      });
+      alert("SOP saved for approval to your department head!");
+      setTitle("");
+      setObjective("");
+      setSteps([{ heading: "", details: [""] }]);
+      setSafetyNotes([""]);
+    } catch (err) {
+      console.error("Error saving SOP:", err);
+      alert("Failed to save SOP");
+    }
+  };
+
+  return (
+    <div className="card p-4 space-y-4">
+      <h2 className="card-title">Add New SOP</h2>
+
+      <input
+        type="text"
+        placeholder="Enter SOP Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="form-input w-full"
+      />
+
+      <textarea
+        placeholder="Enter Objective"
+        value={objective}
+        onChange={(e) => setObjective(e.target.value)}
+        className="form-input w-full"
+      />
+
+      {steps.map((step, idx) => (
+        <div key={idx} className="space-y-2 border p-2 rounded">
+          <input
+            type="text"
+            placeholder={`Step ${idx + 1} Heading`}
+            value={step.heading}
+            onChange={(e) => updateStepHeading(idx, e.target.value)}
+            className="form-input w-full"
+          />
+          {step.details.map((detail, dIdx) => (
+            <input
+              key={dIdx}
+              type="text"
+              placeholder={`Detail ${dIdx + 1}`}
+              value={detail}
+              onChange={(e) => updateStepDetail(idx, dIdx, e.target.value)}
+              className="form-input w-full"
+            />
+          ))}
+          <button
+            type="button"
+            onClick={() => addDetailLine(idx)}
+            className="btn btn-secondary"
+          >
+            + Add Detail
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={addStepSection}
+        className="btn btn-secondary"
+      >
+        + Add Step Section
+      </button>
+
+      <h3 className="card-title mt-4">Safety Notes</h3>
+      {safetyNotes.map((note, idx) => (
+        <input
+          key={idx}
+          type="text"
+          placeholder={`Safety Note ${idx + 1}`}
+          value={note}
+          onChange={(e) => updateSafetyNote(idx, e.target.value)}
+          className="form-input w-full"
+        />
+      ))}
+      <button
+        type="button"
+        onClick={addSafetyNote}
+        className="btn btn-secondary"
+      >
+        + Add Safety Note
+      </button>
+
+      <button type="button" onClick={saveSOP} className="btn btn-primary mt-4">
+        Save SOP
+      </button>
+    </div>
+  );
+};
+
+export default AddSOPForm;

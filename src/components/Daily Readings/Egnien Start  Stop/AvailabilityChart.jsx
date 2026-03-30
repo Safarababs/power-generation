@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, limit } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 import {
   calculateRunningHours,
@@ -24,7 +24,7 @@ export default function AvailabilityChart() {
 
   useEffect(() => {
     const fetchLogs = async () => {
-      const snap = await getDocs(collection(db, "engineLogs"));
+      const snap = await getDocs(collection(db, "engineLogs"), limit(5));
       const logs = snap.docs.map((d) => ({
         ...d.data(),
         eventDateTime: d.data().eventDateTime.toDate(),

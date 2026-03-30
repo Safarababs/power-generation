@@ -8,7 +8,7 @@ import {
   doc,
   updateDoc,
   deleteDoc,
-  where,
+  limit,
 } from "firebase/firestore";
 
 const MillRecordsTable = ({ currentUser }) => {
@@ -24,14 +24,17 @@ const MillRecordsTable = ({ currentUser }) => {
     const fetchData = async () => {
       try {
         // Calculate start and end of today
-        const today = new Date();
-        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+        // const today = new Date();
+        // const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        // const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+        // Calculate one hour ago
+        // const now = new Date();
+        // const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
         const q = query(
           collection(db, "millRecords"),
-          where("createdAt", ">=", startOfDay),
-          where("createdAt", "<=", endOfDay),
+          limit(5),
           orderBy("createdAt", "desc"),
         );
 
