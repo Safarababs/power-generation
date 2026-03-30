@@ -4,10 +4,11 @@ import {
   collection,
   query,
   orderBy,
-  onSnapshot,
+  getDocs,
   doc,
   updateDoc,
   deleteDoc,
+  where,
 } from "firebase/firestore";
 
 const MillRecordsTable = ({ currentUser }) => {
@@ -20,51 +21,62 @@ const MillRecordsTable = ({ currentUser }) => {
   });
 
   useEffect(() => {
-    const q = query(
-      collection(db, "millRecords"),
-      orderBy("createdAt", "desc"),
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => {
-        const d = doc.data();
-        const stop = d.stopTime?.toDate();
-        const start = d.startTime?.toDate();
+    const fetchData = async () => {
+      try {
+        // Calculate start and end of today
+        const today = new Date();
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
-        const dateFormatter = new Intl.DateTimeFormat("en-GB", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
+        const q = query(
+          collection(db, "millRecords"),
+          where("createdAt", ">=", startOfDay),
+          where("createdAt", "<=", endOfDay),
+          orderBy("createdAt", "desc"),
+        );
+
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((doc) => {
+          const d = doc.data();
+          const stop = d.stopTime?.toDate();
+          const start = d.startTime?.toDate();
+
+          const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          });
+
+          let totalStop = null;
+          if (stop && start) {
+            let diffMs = start - stop;
+            if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+            const diffHours = diffMs / (1000 * 60 * 60);
+            totalStop = diffHours.toFixed(2) + " hrs";
+          }
+
+          return {
+            id: doc.id,
+            mill: d.mill,
+            stopTime: stop
+              ? `${dateFormatter.format(stop)} ${stop.toLocaleTimeString()}`
+              : "",
+            startTime: start
+              ? `${dateFormatter.format(start)} ${start.toLocaleTimeString()}`
+              : "",
+            totalStop,
+            rawStop: stop,
+            rawStart: start,
+          };
         });
 
-        let totalStop = null;
-        if (stop && start) {
-          let diffMs = start - stop;
+        setRecords(data);
+      } catch (err) {
+        console.error("Error fetching records:", err);
+      }
+    };
 
-          if (diffMs < 0) {
-            diffMs += 24 * 60 * 60 * 1000;
-          }
-          const diffHours = diffMs / (1000 * 60 * 60);
-          totalStop = diffHours.toFixed(2) + " hrs";
-        }
-
-        return {
-          id: doc.id,
-          mill: d.mill,
-          stopTime: stop
-            ? `${dateFormatter.format(stop)} ${stop.toLocaleTimeString()}`
-            : "",
-          startTime: start
-            ? `${dateFormatter.format(start)} ${start.toLocaleTimeString()}`
-            : "",
-          totalStop,
-          rawStop: stop,
-          rawStart: start,
-        };
-      });
-
-      setRecords(data);
-    });
-    return () => unsubscribe();
+    fetchData();
   }, []);
 
   // ✅ Helper: who can edit
@@ -117,6 +129,7 @@ const MillRecordsTable = ({ currentUser }) => {
               <th>Mill Name</th>
               <th>Stop Time</th>
               <th>Start Time</th>
+
               <th>Total Stop Time</th>
               {canEdit ? <th>Actions</th> : null}
             </tr>
@@ -159,6 +172,7 @@ const MillRecordsTable = ({ currentUser }) => {
                         className="form-input"
                       />
                     </td>
+                    <td>{rec.createdAt}</td>
                     <td>{rec.totalStop}</td>
                     <td>
                       (

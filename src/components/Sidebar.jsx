@@ -189,14 +189,30 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
   ) {
     groupedNavItems = [
       {
+        group: "Services Dashboard",
+        icon: <FaPlug size={16} />,
+        items: [
+          {
+            icon: <FaBolt size={20} />,
+            label: "Overview",
+            path: "/electrical-Dashboard",
+          },
+          // {
+          //   icon: <FaBolt size={20} />,
+          //   label: "Load Distribution",
+          //   path: "/executive/electrical-load",
+          // },
+          // {
+          //   icon: <FaExclamationTriangle size={20} />,
+          //   label: "Relay Trips",
+          //   path: "/executive/electrical-trips",
+          // },
+        ],
+      },
+      {
         group: "Store Admin Tools",
         icon: <FaCog size={16} />,
         items: [
-          {
-            icon: <FaCheckCircle size={20} />,
-            label: "Approval Dashboard",
-            path: "/approval-dashboard",
-          },
           {
             icon: <FaHourglassHalf size={20} />,
             label: "Pending Sop's",

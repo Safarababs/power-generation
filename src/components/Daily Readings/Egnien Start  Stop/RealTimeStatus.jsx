@@ -12,6 +12,7 @@ export default function RealTimeStatus() {
         ...doc.data(),
       }));
       setEngines(data);
+      console.log(window.innerWidth);
     });
 
     return () => unsub();
