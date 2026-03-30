@@ -21,8 +21,16 @@ const MillRecordForm = ({ currentUser }) => {
   ];
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
+    setLoading(true);
+
+    // ✅ Validation: stop must be before start
+    if (new Date(stopTime) >= new Date(startTime)) {
+      alert("Stop time must be before start time.");
+      setLoading(false);
+      return;
+    }
+
     try {
       await addDoc(collection(db, "millRecords"), {
         mill,
@@ -30,19 +38,20 @@ const MillRecordForm = ({ currentUser }) => {
         startTime: Timestamp.fromDate(new Date(startTime)),
         createdAt: Timestamp.now(),
         createdBy: {
-          name: currentUser?.name, // "Safar Abbas"
-          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-          department: currentUser?.department, // "developer"
-          empNumber: currentUser?.empNumber, // "058"
-        },
+          empNumber: currentUser?.empNumber,
+          email: currentUser?.email,
+        }, // ✅ lean metadata
       });
+
       alert("Record saved successfully!");
+
       setMill("");
       setStopTime("");
       setStartTime("");
     } catch (error) {
       console.error("Error saving record: ", error);
     }
+
     setLoading(false);
   };
 

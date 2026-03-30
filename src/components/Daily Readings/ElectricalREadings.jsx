@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from "react";
+// EngineReadingsEntry.jsx
+import React, { useState, useEffect, useRef } from "react";
 import { FaBolt, FaClock } from "react-icons/fa";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
 const EngineReadingsEntry = ({ currentUser }) => {
-  const todayDefault = new Date().toISOString().split("T")[0]; // default to today
+  const todayDefault = new Date().toISOString().split("T")[0];
   const [entryDate, setEntryDate] = useState(todayDefault);
   const [readings, setReadings] = useState(
-    Array(5).fill({ kwh: "", rhrs: "" }), // 5 engines
+    Array(5).fill({ kwh: "", rhrs: "" }),
   );
   const [errors, setErrors] = useState(
-    Array(5).fill({ kwh: false, rhrs: false }), // track invalid inputs separately
+    Array(5).fill({ kwh: false, rhrs: false }),
   );
   const [previousReadings, setPreviousReadings] = useState(
     Array(5).fill({ kwh: "", rhrs: "" }),
   );
 
-  // Handle input change
+  // ✅ Cache to avoid duplicate Firestore reads
+  const cacheRef = useRef({});
+
   const handleChange = (index, field, value) => {
     const newReadings = [...readings];
     newReadings[index] = {
@@ -30,7 +33,6 @@ const EngineReadingsEntry = ({ currentUser }) => {
     setErrors(newErrors);
   };
 
-  // Submit readings
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -39,40 +41,37 @@ const EngineReadingsEntry = ({ currentUser }) => {
       return;
     }
 
-    // Yesterday = entryDate - 1 day
+    // Yesterday key
     const yesterdayDate = new Date(entryDate);
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
     const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
 
     try {
-      // 1. Fetch yesterday’s readings
-      let yesterdayData = [];
-      const yesterdayDoc = await getDoc(
-        doc(db, "engineReadings", yesterdayKey),
-      );
-      if (yesterdayDoc.exists()) {
-        yesterdayData = yesterdayDoc.data().readings;
+      // ✅ Use cache first, fallback to Firestore
+      let yesterdayData = cacheRef.current[yesterdayKey] || [];
+      if (!yesterdayData.length) {
+        const yesterdayDoc = await getDoc(
+          doc(db, "engineReadings", yesterdayKey),
+        );
+        if (yesterdayDoc.exists()) {
+          yesterdayData = yesterdayDoc.data().readings;
+          cacheRef.current[yesterdayKey] = yesterdayData;
+        }
       }
 
       let hasError = false;
       let newErrors = [...errors];
 
-      // 2. Compute generation + validate
       const generation = readings.map((engine, index) => {
         const yesterdayEngine = yesterdayData[index] || { kwh: 0, rhrs: 0 };
         const diffKwh = engine.kwh - yesterdayEngine.kwh;
         const diffRhrs = engine.rhrs - yesterdayEngine.rhrs;
 
-        // ✅ Validation for kWh
         if (diffKwh < 0 || diffKwh > 200000) {
-          console.warn(`Engine ${index + 1} invalid kWh diff: ${diffKwh}`);
           hasError = true;
           newErrors[index] = { ...newErrors[index], kwh: true };
         }
-
-        // ✅ Validation for Running Hours
         if (diffRhrs < 0 || diffRhrs > 24) {
-          console.warn(`Engine ${index + 1} invalid Rhrs diff: ${diffRhrs}`);
           hasError = true;
           newErrors[index] = { ...newErrors[index], rhrs: true };
         }
@@ -80,32 +79,39 @@ const EngineReadingsEntry = ({ currentUser }) => {
         return { kwh: diffKwh, rhrs: diffRhrs };
       });
 
-      // ✅ Update errors once after the loop
       setErrors(newErrors);
 
-      // Stop if invalid
       if (hasError) {
-        console.log("Validation errors:", newErrors);
         alert("Some readings are invalid. Please correct highlighted fields.");
         return;
       }
 
-      // 3. Save readings under chosen date
-      await setDoc(doc(db, "engineReadings", entryDate), {
-        date: entryDate,
-        readings,
-        generation,
-        createdBy: {
-          name: currentUser?.name, // "Safar Abbas"
-          email: currentUser?.email, // "safarabbas73.sa@gmail.com"
-          department: currentUser?.department, // "developer"
-          empNumber: currentUser?.empNumber, // "058"
-        },
-      });
+      const docRef = doc(db, "engineReadings", entryDate);
+
+      // ✅ Use updateDoc if doc exists, else setDoc
+      const existingDoc = await getDoc(docRef);
+      if (existingDoc.exists()) {
+        await updateDoc(docRef, {
+          readings,
+          generation,
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        await setDoc(docRef, {
+          date: entryDate,
+          readings,
+          generation,
+          createdBy: {
+            name: currentUser?.name,
+            email: currentUser?.email,
+            department: currentUser?.department,
+            empNumber: currentUser?.empNumber,
+          },
+          createdAt: new Date().toISOString(),
+        });
+      }
 
       alert("Readings saved successfully!");
-      // ✅ Reset all fields after successful save
-
       setEntryDate(todayDefault);
       setReadings(Array(5).fill({ kwh: "", rhrs: "" }));
       setErrors(Array(5).fill({ kwh: false, rhrs: false }));
@@ -120,16 +126,24 @@ const EngineReadingsEntry = ({ currentUser }) => {
       yesterdayDate.setDate(yesterdayDate.getDate() - 1);
       const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
 
+      // ✅ Avoid duplicate Firestore calls by checking cache
+      if (cacheRef.current[yesterdayKey]) {
+        setPreviousReadings(cacheRef.current[yesterdayKey]);
+        return;
+      }
+
       const yesterdayDoc = await getDoc(
         doc(db, "engineReadings", yesterdayKey),
       );
       if (yesterdayDoc.exists()) {
-        setPreviousReadings(yesterdayDoc.data().readings || []);
+        const data = yesterdayDoc.data().readings || [];
+        cacheRef.current[yesterdayKey] = data;
+        setPreviousReadings(data);
       }
     };
 
     fetchPrevious();
-  }, [entryDate]); // runs whenever entryDate changes
+  }, [entryDate]);
 
   return (
     <div className="card">
@@ -197,7 +211,6 @@ const EngineReadingsEntry = ({ currentUser }) => {
                   value={engine.kwh}
                   placeholder={previousReadings[index]?.kwh || "Enter KWH"}
                   onChange={(e) => handleChange(index, "kwh", e.target.value)}
-                  i
                   className="form-input"
                   style={
                     errors[index].kwh

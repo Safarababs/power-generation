@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { FaBolt, FaPlay, FaPause, FaSync, FaCog } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../components/FIrestore/firebase";
 
 const Generation = () => {
@@ -10,30 +16,28 @@ const Generation = () => {
   const [fuelReadings, setFuelReadings] = useState([]);
   const [engines, setEngines] = useState([]);
 
-  // lets track real-time engine status for the top tiles
+  // ✅ Real-time engine status (keep, but consider throttling if updates are too frequent)
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "engineStatus"), (snapshot) => {
       const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-
       setEngines(data);
     });
-
     return () => unsub();
   }, []);
 
-  // Add a derived value that counts how many engines have currentStatus === "running":
   const runningGenerators = engines.filter(
     (engine) => engine.currentStatus === "running",
   ).length;
 
-  // 🔧 Fetch Firestore data
+  // ✅ Fetch only recent Firestore data (limit results)
   useEffect(() => {
     const qEngine = query(
       collection(db, "engineReadings"),
       orderBy("date", "desc"),
+      limit(10), // 🔧 only last 10 docs
     );
     const unsubscribeEngine = onSnapshot(qEngine, (snapshot) => {
       const docs = snapshot.docs.map((doc) => ({
@@ -47,6 +51,7 @@ const Generation = () => {
     const qFuel = query(
       collection(db, "fuelReadings"),
       orderBy("date", "desc"),
+      limit(10), // 🔧 only last 10 docs
     );
     const unsubscribeFuel = onSnapshot(qFuel, (snapshot) => {
       const docs = snapshot.docs.map((doc) => ({
@@ -68,13 +73,10 @@ const Generation = () => {
   const latestFuelData = fuelReadings[0]?.consumption || [];
 
   const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
-  // total capacit is, in latest engine data there are rhrs and kwh, so the the total capacity will rhrs * 9700 (assuming 9700 is the capacity per engine per day)
-
   const totalCapacity = latestEngineData.reduce(
     (sum, e) => sum + (e.rhrs || 0) * 9700,
     0,
   );
-  // now we can calculate individual engine capacity by rhrs * 9700
   const individualCapacities = latestEngineData.map((e) => ({
     engineId: e.engineId,
     capacity: (e.rhrs || 0) * 9700,
@@ -82,21 +84,14 @@ const Generation = () => {
 
   const capacityUtilization =
     totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(2) : 0;
-  // const maintenanceDue = latestFuelData.filter(
-  //   (f) => parseInt(f.nextMaintenance) <= 7,
-  // ).length;
 
   const calculateSFC = (engineReading, fuelReading) => {
     if (!engineReading || !fuelReading) return 0;
-
-    const fuelLiters = fuelReading.hfoLtr || 0; // you can add lfoLtr if needed
-    const fuelKg = fuelLiters * 0.98; // convert liters to kg
-
+    const fuelLiters = fuelReading.hfoLtr || 0;
+    const fuelKg = fuelLiters * 0.98;
     const kWh = engineReading.kwh || 0;
-
     if (kWh === 0) return 0;
-
-    return (fuelKg / kWh).toFixed(3); // kg/kWh
+    return (fuelKg / kWh).toFixed(3);
   };
 
   return (
@@ -113,7 +108,7 @@ const Generation = () => {
         </div>
       </div>
 
-      {/* 🔧 Overview Cards */}
+      {/* Overview Cards */}
       <div className="grid grid-cols-1 grid-cols-2 gap-6">
         <div className="card">
           <div className="card-content">
@@ -148,29 +143,9 @@ const Generation = () => {
             </div>
           </div>
         </div>
-
-        {/* <div className="card">
-          <div className="card-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary">Maintenance Due</p>
-                <p className="text-2xl font-bold">{maintenanceDue}</p>
-              </div>
-              <div
-                className="p-3 rounded-full"
-                style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
-              >
-                <FaSync size={24} style={{ color: "#f59e0b" }} />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span style={{ color: "#f59e0b" }}>Within 7 days</span>
-            </div>
-          </div>
-        </div> */}
       </div>
 
-      {/* 🔧 Per-Engine Cards */}
+      {/* Per-Engine Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {latestEngineData.map((engine, idx) => {
           const fuel = latestFuelData[idx] || {};
@@ -238,7 +213,6 @@ const Generation = () => {
                         {fuel.gasNm3 || 0}
                       </div>
                     </div>
-                    {/* sfc */}
                     <div>
                       <span className="text-secondary">SFC</span>
                       <p className="font-semibold text-blue-600">
@@ -280,7 +254,8 @@ const Generation = () => {
           );
         })}
       </div>
-      {/* 🔧 Selected Generator Details */}
+
+      {/* Selected Generator Details */}
       {selectedGenerator !== null && (
         <div className="card mt-6">
           <div className="card-content">
