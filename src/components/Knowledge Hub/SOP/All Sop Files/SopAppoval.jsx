@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../../../FIrestore/firebase";
 
 const DepartmentSOPApproval = ({ currentUser }) => {
@@ -8,7 +15,12 @@ const DepartmentSOPApproval = ({ currentUser }) => {
   useEffect(() => {
     const fetchSops = async () => {
       try {
-        const snapshot = await getDocs(collection(db, "sops"));
+        // ✅ Only fetch SOPs for this department
+        const q = query(
+          collection(db, "sops"),
+          where("createdBy.department", "==", currentUser.department),
+        );
+        const snapshot = await getDocs(q);
         const sopList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -19,7 +31,7 @@ const DepartmentSOPApproval = ({ currentUser }) => {
       }
     };
     fetchSops();
-  }, []);
+  }, [currentUser.department]);
 
   const handleApprove = async (id) => {
     try {
@@ -30,7 +42,7 @@ const DepartmentSOPApproval = ({ currentUser }) => {
           email: currentUser?.email,
           department: currentUser?.department,
           empNumber: currentUser?.empNumber,
-          approvedAt: new Date(), // optional timestamp
+          approvedAt: new Date(),
         },
       });
       alert("SOP approved successfully!");
@@ -56,39 +68,30 @@ const DepartmentSOPApproval = ({ currentUser }) => {
     }
   };
 
+  const pendingSops = sops.filter((sop) => !sop.isApproved);
+
   return (
     <div className="card p-4">
       <h2 className="text-xl font-semibold mb-4">
         SOPs Pending Approval ({currentUser.department})
       </h2>
-      {sops.filter(
-        (sop) => sop.createdBy?.department === currentUser.department,
-      ).length === 0 ? (
+      {pendingSops.length === 0 ? (
         <p>No SOPs found.</p>
       ) : (
         <ul className="list-disc ml-6">
-          {sops
-            .filter(
-              (sop) => sop.createdBy?.department === currentUser.department,
-            )
-            .map((sop) => (
-              <li key={sop.id} className="mb-4">
-                <strong>{sop.title}</strong> – {sop.objective}
-                <div className="mt-2">
-                  {!sop.isApproved && (
-                    <button
-                      onClick={() => handleApprove(sop.id)}
-                      className="btn btn-success m-1"
-                    >
-                      Approve
-                    </button>
-                  )}
-                  {sop.isApproved && (
-                    <span className="text-green ml-2">Approved</span>
-                  )}
-                </div>
-              </li>
-            ))}
+          {pendingSops.map((sop) => (
+            <li key={sop.id} className="mb-4">
+              <strong>{sop.title}</strong> – {sop.objective}
+              <div className="mt-2">
+                <button
+                  onClick={() => handleApprove(sop.id)}
+                  className="btn btn-success m-1"
+                >
+                  Approve
+                </button>
+              </div>
+            </li>
+          ))}
         </ul>
       )}
     </div>

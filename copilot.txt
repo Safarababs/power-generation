@@ -1,300 +1,234 @@
 import React, { useState, useEffect } from "react";
-import { FaBolt, FaPlay, FaPause, FaSync, FaCog } from "react-icons/fa";
-import { FaArrowTrendUp } from "react-icons/fa6";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
-import { db } from "../components/FIrestore/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  getCountFromServer,
+} from "firebase/firestore";
+import { db } from "../../../FIrestore/firebase";
+import { FaPlus, FaMinus } from "react-icons/fa";
+import SOPPDF from "../SOPPDF";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
-const Generation = () => {
-  const [selectedGenerator, setSelectedGenerator] = useState(null);
-  const [engineReadings, setEngineReadings] = useState([]);
-  const [fuelReadings, setFuelReadings] = useState([]);
-  const [engines, setEngines] = useState([]);
+const UnapprovedSops = () => {
+  const [sops, setSops] = useState([]);
+  const [totalSops, setTotalSops] = useState(0);
+  const [openId, setOpenId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editing, setEditing] = useState({
+    sopId: null,
+    stepIndex: null,
+    detailIndex: null,
+    newValue: "",
+  });
 
-  // lets track real-time engine status for the top tiles
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "engineStatus"), (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const fetchSops = async () => {
+      try {
+        // ✅ Count metadata only
+        const countSnapshot = await getCountFromServer(collection(db, "sops"));
+        setTotalSops(countSnapshot.data().count);
 
-      setEngines(data);
-    });
+        // ✅ Only fetch unapproved SOPs
+        const unapprovedQuery = query(
+          collection(db, "sops"),
+          where("isApproved", "==", false)
+        );
+        const unapprovedSnapshot = await getDocs(unapprovedQuery);
 
-    return () => unsub();
-  }, []);
+        const sopList = unapprovedSnapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            title: data.title,
+            objective: data.objective || "",
+            steps: data.steps || [],
+            safetyNotes: data.safetyNotes || [],
+          };
+        });
 
-  // Add a derived value that counts how many engines have currentStatus === "running":
-  const runningGenerators = engines.filter(
-    (engine) => engine.currentStatus === "running",
-  ).length;
-
-  // 🔧 Fetch Firestore data
-  useEffect(() => {
-    const qEngine = query(
-      collection(db, "engineReadings"),
-      orderBy("date", "desc"),
-    );
-    const unsubscribeEngine = onSnapshot(qEngine, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        generation: doc.data().generation || [],
-        date: doc.data().date,
-      }));
-      setEngineReadings(docs);
-    });
-
-    const qFuel = query(
-      collection(db, "fuelReadings"),
-      orderBy("date", "desc"),
-    );
-    const unsubscribeFuel = onSnapshot(qFuel, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        consumption: doc.data().consumption || [],
-        date: doc.data().date,
-      }));
-      setFuelReadings(docs);
-    });
-
-    return () => {
-      unsubscribeEngine();
-      unsubscribeFuel();
+        setSops(sopList);
+        if (sopList.length > 0) setOpenId(sopList[0].id);
+      } catch (err) {
+        console.error("Error fetching SOPs:", err);
+      }
     };
+
+    fetchSops();
   }, []);
 
-  // 🔧 Helper: Get latest readings
-  const latestEngineData = engineReadings[0]?.generation || [];
-  const latestFuelData = fuelReadings[0]?.consumption || [];
-
-  const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
-  // total capacit is, in latest engine data there are rhrs and kwh, so the the total capacity will rhrs * 9700 (assuming 9700 is the capacity per engine per day)
-
-  const totalCapacity = latestEngineData.reduce(
-    (sum, e) => sum + (e.rhrs || 0) * 9700,
-    0,
+  const filteredSops = sops.filter((sop) =>
+    sop.title?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  // now we can calculate individual engine capacity by rhrs * 9700
-  const individualCapacities = latestEngineData.map((e) => ({
-    engineId: e.engineId,
-    capacity: (e.rhrs || 0) * 9700,
-  }));
 
-  const capacityUtilization =
-    totalCapacity > 0 ? ((totalKWh / totalCapacity) * 100).toFixed(2) : 0;
-  // const maintenanceDue = latestFuelData.filter(
-  //   (f) => parseInt(f.nextMaintenance) <= 7,
-  // ).length;
+  // ✅ Editing functions remain unchanged
+  const saveStep = async (sopId, stepIndex, newHeading) => {
+    const sopRef = doc(db, "sops", sopId);
+    const sop = sops.find((s) => s.id === sopId);
+    const newSteps = [...sop.steps];
+    newSteps[stepIndex].heading = newHeading;
 
-  const calculateSFC = (engineReading, fuelReading) => {
-    if (!engineReading || !fuelReading) return 0;
+    await updateDoc(sopRef, { steps: newSteps });
+    setSops((prev) =>
+      prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s))
+    );
+    setEditing({ sopId: null, stepIndex: null, detailIndex: null, newValue: "" });
+  };
 
-    const fuelLiters = fuelReading.hfoLtr || 0; // you can add lfoLtr if needed
-    const fuelKg = fuelLiters * 0.98; // convert liters to kg
+  const saveDetail = async (sopId, stepIndex, detailIndex, newDetail) => {
+    const sopRef = doc(db, "sops", sopId);
+    const sop = sops.find((s) => s.id === sopId);
+    const newSteps = [...sop.steps];
+    newSteps[stepIndex].details[detailIndex] = newDetail;
 
-    const kWh = engineReading.kwh || 0;
+    await updateDoc(sopRef, { steps: newSteps });
+    setSops((prev) =>
+      prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s))
+    );
+    setEditing({ sopId: null, stepIndex: null, detailIndex: null, newValue: "" });
+  };
 
-    if (kWh === 0) return 0;
+  const deleteStep = async (sopId, stepIndex) => {
+    const sopRef = doc(db, "sops", sopId);
+    const sop = sops.find((s) => s.id === sopId);
+    const newSteps = sop.steps.filter((_, idx) => idx !== stepIndex);
 
-    return (fuelKg / kWh).toFixed(3); // kg/kWh
+    await updateDoc(sopRef, { steps: newSteps });
+    setSops((prev) =>
+      prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s))
+    );
+  };
+
+  const saveSafetyNote = async (sopId, noteIndex, newNote) => {
+    const sopRef = doc(db, "sops", sopId);
+    const sop = sops.find((s) => s.id === sopId);
+    const newNotes = [...sop.safetyNotes];
+    newNotes[noteIndex] = newNote;
+
+    await updateDoc(sopRef, { safetyNotes: newNotes });
+    setSops((prev) =>
+      prev.map((s) => (s.id === sopId ? { ...s, safetyNotes: newNotes } : s))
+    );
+    setEditing({ sopId: null, stepIndex: null, detailIndex: null, newValue: "" });
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Power Generation Management</h1>
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-secondary">
-            Total Output:{" "}
-            <span className="font-semibold text-lg">
-              {totalKWh.toFixed(1)} KWh
-            </span>
-          </div>
-        </div>
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">Unapproved SOPs</h2>
+        {totalSops > 0 && <p>{totalSops} SOPs exist in total.</p>}
+        <input
+          type="text"
+          placeholder="Search SOP..."
+          className="border p-2 rounded w-full mt-2"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
-      {/* 🔧 Overview Cards */}
-      <div className="grid grid-cols-1 grid-cols-2 gap-6">
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary">Active Generators</p>
-                <p className="text-2xl font-bold">{runningGenerators}</p>
-              </div>
-              <div
-                className="p-3 rounded-full"
-                style={{ backgroundColor: "rgba(16, 185, 129, 0.1)" }}
-              >
-                <FaBolt size={24} style={{ color: "#10b981" }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary">Capacity Utilization</p>
-                <p className="text-2xl font-bold">{capacityUtilization}%</p>
-              </div>
-              <div
-                className="p-3 rounded-full"
-                style={{ backgroundColor: "rgba(59, 130, 246, 0.1)" }}
-              >
-                <FaArrowTrendUp size={24} style={{ color: "#3b82f6" }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* <div className="card">
-          <div className="card-content">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-secondary">Maintenance Due</p>
-                <p className="text-2xl font-bold">{maintenanceDue}</p>
-              </div>
-              <div
-                className="p-3 rounded-full"
-                style={{ backgroundColor: "rgba(245, 158, 11, 0.1)" }}
-              >
-                <FaSync size={24} style={{ color: "#f59e0b" }} />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm">
-              <span style={{ color: "#f59e0b" }}>Within 7 days</span>
-            </div>
-          </div>
-        </div> */}
-      </div>
-
-      {/* 🔧 Per-Engine Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {latestEngineData.map((engine, idx) => {
-          const fuel = latestFuelData[idx] || {};
-          const isRunning =
-            engines.find((e) => e.engineId === `E${idx + 1}`)?.currentStatus ===
-            "running";
-
-          return (
-            <div key={idx} className="card">
-              <div className="card-content">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Engine {idx + 1}</h3>
-                  <span
-                    className={`status-badge ${isRunning ? "status-online" : "status-offline"}`}
-                  >
-                    {isRunning ? "Running" : "Stopped"}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-secondary">Output</span>
-                    <span className="font-semibold">
-                      {(
-                        (engine.kwh /
-                          (individualCapacities[idx]?.capacity || 9700)) *
-                        100
-                      ).toFixed(2)}
-                      %
-                    </span>
-                  </div>
-
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{
-                        width: `${
-                          (engine.kwh /
-                            (individualCapacities[idx]?.capacity || 9700)) *
-                          100
-                        }%`,
-                      }}
-                    ></div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-secondary">Running Hours</span>
-                      <p className="font-semibold">{engine.rhrs.toFixed(1)}</p>
-                    </div>
-                    <div>
-                      <span className="text-secondary">Generation</span>
-                      <p className="font-semibold">{engine.kwh} KWH</p>
-                    </div>
-                    <div>
-                      <span className="text-secondary">Fuel Used</span>
-                      <p className="font-semibold">
-                        {(fuel.hfoLtr || 0) +
-                          (fuel.lfoLtr || 0) +
-                          (fuel.gasNm3 || 0)}{" "}
-                        Total
-                      </p>
-                      <div className="text-xs text-secondary mt-1">
-                        HFO: {fuel.hfoKg || 0} | LFO: {fuel.lfoLtr || 0} | Gas:{" "}
-                        {fuel.gasNm3 || 0}
-                      </div>
-                    </div>
-                    {/* sfc */}
-                    <div>
-                      <span className="text-secondary">SFC</span>
-                      <p className="font-semibold text-blue-600">
-                        {calculateSFC(engine, fuel)} kg/kWh
-                      </p>
-                      <div className="text-xs text-secondary mt-1">
-                        Fuel: {fuel.hfoLtr || 0} L | Generation: {engine.kwh}{" "}
-                        kWh
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2 pt-4 border-t">
-                    {isRunning ? (
-                      <button className="flex-1 btn btn-danger">
-                        <FaPause size={16} className="btn-icon" /> Stop
-                      </button>
+      <div className="card-content">
+        {filteredSops.length === 0 ? (
+          <p className="text-red font-semibold mt-4">
+            No unapproved SOPs found.
+          </p>
+        ) : (
+          filteredSops.map((sop) => (
+            <div key={sop.id} className="mb-4 border-b pb-2">
+              <div className="flex justify-between items-center">
+                <span className="font-medium">{sop.title}</span>
+                <PDFDownloadLink
+                  document={<SOPPDF sop={sop} />}
+                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
+                >
+                  {({ loading }) =>
+                    loading ? (
+                      <span className="text-gray-500">Preparing...</span>
                     ) : (
-                      <button className="flex-1 btn btn-success">
-                        <FaPlay size={16} className="btn-icon" /> Start
-                      </button>
-                    )}
-
-                    <button className="flex-1 btn btn-primary">
-                      <FaSync size={16} className="btn-icon" /> Maintain
-                    </button>
-
-                    <button
-                      onClick={() => setSelectedGenerator(idx)}
-                      className="btn"
-                      style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                    >
-                      <FaCog size={16} />
-                    </button>
-                  </div>
-                </div>
+                      <button className="btn-primary text-sm">Download PDF</button>
+                    )
+                  }
+                </PDFDownloadLink>
+                <button
+                  onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
+                  className="p-1 rounded hover:bg-gray-200"
+                >
+                  {openId === sop.id ? <FaMinus /> : <FaPlus />}
+                </button>
               </div>
+
+              {openId === sop.id && (
+                <div className="sop-content open">
+                  {sop.objective && (
+                    <p className="text-secondary mb-2">
+                      <strong>Objective:</strong> {sop.objective}
+                    </p>
+                  )}
+
+                  {/* Steps */}
+                  {Array.isArray(sop.steps) && sop.steps.length > 0 && (
+                    <ol className="sop-steps list-decimal ml-6 mt-2">
+                      {sop.steps.map((step, idx) => (
+                        <li key={idx} className="flex justify-between items-start">
+                          <div>
+                            <strong>{step.heading}</strong>
+                            {Array.isArray(step.details) &&
+                              step.details.length > 0 && (
+                                <ul className="ml-4 list-disc">
+                                  {step.details.map((d, dIdx) => (
+                                    <li key={dIdx}>{d}</li>
+                                  ))}
+                                </ul>
+                              )}
+                          </div>
+                          <div className="ml-4 space-x-2">
+                            <button
+                              className="btn btn-secondary"
+                              onClick={() =>
+                                setEditing({
+                                  sopId: sop.id,
+                                  stepIndex: idx,
+                                  detailIndex: null,
+                                  newValue: step.heading,
+                                })
+                              }
+                            >
+                              Edit Heading
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              onClick={() => deleteStep(sop.id, idx)}
+                            >
+                              Delete Step
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
+                  {/* Safety Notes */}
+                  {Array.isArray(sop.safetyNotes) &&
+                    sop.safetyNotes.length > 0 && (
+                      <>
+                        <h4 className="mt-4 font-semibold">Safety Notes</h4>
+                        <ul className="ml-6 list-disc text-red">
+                          {sop.safetyNotes.map((note, idx) => (
+                            <li key={idx}>{note}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                </div>
+              )}
             </div>
-          );
-        })}
+          ))
+        )}
       </div>
-      {/* 🔧 Selected Generator Details */}
-      {selectedGenerator !== null && (
-        <div className="card mt-6">
-          <div className="card-content">
-            <h3 className="text-lg font-semibold">
-              Engine {selectedGenerator + 1} Settings
-            </h3>
-            <p className="text-secondary">
-              Here you can show extra details or controls…
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
-export default Generation;
+export default UnapprovedSops;

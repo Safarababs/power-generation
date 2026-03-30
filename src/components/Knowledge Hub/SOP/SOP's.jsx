@@ -1,12 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  limit,
-  startAfter,
-} from "firebase/firestore";
+import React, { useState, useEffect } from "react";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 import { FaPlus, FaMinus } from "react-icons/fa";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -16,66 +9,38 @@ const PAGE_SIZE = 10;
 
 const SOPsComponent = () => {
   const [sops, setSops] = useState([]);
-  const [totalSops, setTotalSops] = useState(0);
   const [openId, setOpenId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [lastDoc, setLastDoc] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const fetchSops = useCallback(
-    async (reset = false) => {
+  useEffect(() => {
+    const fetchSops = async () => {
       try {
-        let q;
-        if (lastDoc && !reset) {
-          q = query(
-            collection(db, "sops"),
-            where("isApproved", "==", true),
-
-            startAfter(lastDoc),
-            limit(PAGE_SIZE),
-          );
-        } else {
-          q = query(
-            collection(db, "sops"),
-            where("isApproved", "==", true),
-
-            limit(PAGE_SIZE),
-          );
-        }
-
+        const q = query(
+          collection(db, "sops"),
+          where("isApproved", "==", true),
+        );
         const snapshot = await getDocs(q);
         const sopList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-
-        if (reset) {
-          setSops(sopList);
-          setTotalSops(sopList.length);
-        } else {
-          setSops((prev) => [...prev, ...sopList]);
-          setTotalSops((prev) => prev + sopList.length);
-        }
-
-        if (snapshot.docs.length < PAGE_SIZE) {
-          setHasMore(false);
-        } else {
-          setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
-        }
+        setSops(sopList);
       } catch (err) {
         console.error("Error fetching SOPs:", err);
       }
-    },
-    [lastDoc],
-  );
+    };
 
-  useEffect(() => {
-    fetchSops(true);
-  }, [fetchSops]);
+    fetchSops();
+  }, []);
 
+  // ✅ Filter SOPs by search term
   const filteredSops = sops.filter((sop) =>
     sop.title?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+
+  // ✅ Slice visible items
+  const visibleSops = filteredSops.slice(0, visibleCount);
 
   return (
     <div className="card">
@@ -86,17 +51,18 @@ const SOPsComponent = () => {
           placeholder="Search SOP..."
           className="border p-2 rounded w-full mt-2"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setVisibleCount(PAGE_SIZE); // reset pagination on new search
+          }}
         />
       </div>
 
       <div className="card-content">
-        {filteredSops.length === 0 ? (
-          <p className="text-red font-semibold mt-4">
-            {totalSops} SOPs loaded.
-          </p>
+        {visibleSops.length === 0 ? (
+          <p className="text-secondary">No approved SOPs found.</p>
         ) : (
-          filteredSops.map((sop) => (
+          visibleSops.map((sop) => (
             <div key={sop.id} className="mb-4 border-b pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{sop.title}</span>
@@ -130,7 +96,7 @@ const SOPsComponent = () => {
                     </p>
                   )}
                   {Array.isArray(sop.steps) && sop.steps.length > 0 && (
-                    <ol className="sop-steps list-decimal ml-6 mt-2">
+                    <ol className="list-decimal ml-6 mt-2">
                       {sop.steps.map((step, idx) => (
                         <li key={idx}>
                           <strong>{step.heading}</strong>
@@ -163,9 +129,13 @@ const SOPsComponent = () => {
           ))
         )}
 
-        {hasMore && (
+        {/* ✅ Load More button (client-side only) */}
+        {visibleCount < filteredSops.length && (
           <div className="flex justify-center mt-4">
-            <button onClick={() => fetchSops()} className="btn-primary">
+            <button
+              onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+              className="btn-primary"
+            >
               Load More
             </button>
           </div>

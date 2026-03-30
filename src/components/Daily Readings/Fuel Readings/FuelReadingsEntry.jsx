@@ -116,9 +116,9 @@ const FuelReadingsEntry = ({ currentUser }) => {
         }
 
         // Capacity logic
-        let capacity = 9700;
+        let capacity = 9780;
         if (index >= 3) {
-          capacity = diffGasNm3 > 1000 || diffGasKg > 1000 ? 8900 : 9700;
+          capacity = diffGasNm3 > 200 || diffGasKg > 200 ? 8997 : 9766;
         }
 
         return {

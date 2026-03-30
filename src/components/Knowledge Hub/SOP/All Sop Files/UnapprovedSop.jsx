@@ -47,7 +47,6 @@ const UnapprovedSops = () => {
         });
 
         setSops(sopList);
-        if (sopList.length > 0) setOpenId(sopList[0].id);
       } catch (err) {
         console.error("Error fetching SOPs:", err);
       }
