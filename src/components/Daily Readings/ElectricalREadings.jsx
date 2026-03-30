@@ -7,6 +7,8 @@ import { db } from "../FIrestore/firebase";
 const EngineReadingsEntry = ({ currentUser }) => {
   const todayDefault = new Date().toISOString().split("T")[0];
   const [entryDate, setEntryDate] = useState(todayDefault);
+  const [Loading, setLoading] = useState(false);
+
   const [readings, setReadings] = useState(
     Array(5).fill({ kwh: "", rhrs: "" }),
   );
@@ -35,6 +37,8 @@ const EngineReadingsEntry = ({ currentUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (Loading) return;
+    setLoading(true);
 
     if (!entryDate) {
       alert("Please select a date for these readings.");
@@ -112,6 +116,8 @@ const EngineReadingsEntry = ({ currentUser }) => {
       }
 
       alert("Readings saved successfully!");
+      setLoading(false);
+
       setEntryDate(todayDefault);
       setReadings(Array(5).fill({ kwh: "", rhrs: "" }));
       setErrors(Array(5).fill({ kwh: false, rhrs: false }));
@@ -225,8 +231,8 @@ const EngineReadingsEntry = ({ currentUser }) => {
 
           {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
-            <button type="submit" className="btn-primary">
-              Submit Readings
+            <button type="submit" className="btn-primary" disabled={Loading}>
+              {Loading ? "Saving..." : "Submit Readings"}
             </button>
           </div>
         </form>
