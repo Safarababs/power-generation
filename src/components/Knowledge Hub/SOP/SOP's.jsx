@@ -46,6 +46,7 @@ const SOPsComponent = () => {
     <div className="card">
       <div className="card-header">
         <h2 className="card-title">Approved SOPs</h2>
+        <p>{filteredSops.length} SOPs found</p>
         <input
           type="text"
           placeholder="Search SOP..."
