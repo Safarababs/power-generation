@@ -79,7 +79,7 @@ const Generation = () => {
   );
   const individualCapacities = latestEngineData.map((e) => ({
     engineId: e.engineId,
-    capacity: (e.rhrs || 0) * 9700,
+    capacity: (e.rhrs || 0) * 9780,
   }));
 
   const capacityUtilization =

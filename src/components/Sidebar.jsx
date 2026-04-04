@@ -414,6 +414,51 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
     });
   }
 
+  // manager Mechanical view start
+  if (
+    currentUser?.department === "mechanical" &&
+    currentUser.designation === "MM"
+  ) {
+    groupedNavItems.push({
+      group: "Manager Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaCheckCircle size={20} />,
+          label: "Approval Dashboard",
+          path: "/apprvelabsop",
+        },
+        {
+          icon: <FaHourglassHalf size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
+        },
+      ],
+    });
+  }
+
+  // manager Mechanical view end
+
+  // Deputy manager Mechanical view start
+  if (
+    currentUser?.department === "mechanical" &&
+    currentUser.designation === "Sr Shift Incharge"
+  ) {
+    groupedNavItems.push({
+      group: "Manager Tools",
+      icon: <FaCog size={16} />,
+      items: [
+        {
+          icon: <FaHourglassHalf size={20} />,
+          label: "Pending Sop's",
+          path: "/pendingsop",
+        },
+      ],
+    });
+  }
+
+  // Deputy manager Mechanical view end
+
   if (
     currentUser?.department === "uty" &&
     currentUser.designation === "Officer"
