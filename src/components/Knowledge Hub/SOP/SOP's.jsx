@@ -5,21 +5,31 @@ import { FaPlus, FaMinus } from "react-icons/fa";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import SOPPDF from "./SOPPDF";
 
-const PAGE_SIZE = 10;
-
-const SOPsComponent = () => {
+const SOPsComponent = ({ currentUser }) => {
   const [sops, setSops] = useState([]);
   const [openId, setOpenId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     const fetchSops = async () => {
       try {
-        const q = query(
-          collection(db, "sops"),
-          where("isApproved", "==", true),
-        );
+        // ✅ Guard rendering until currentUser is ready
+        if (!currentUser) {
+          return <p>Loading user...</p>;
+        }
+        if (!currentUser) return; // ✅ guard inside effect
+
+        let q;
+        if (currentUser.department === "executive") {
+          q = query(collection(db, "sops"), where("isApproved", "==", true));
+        } else {
+          q = query(
+            collection(db, "sops"),
+            where("isApproved", "==", true),
+            where("createdBy.department", "==", currentUser.department),
+          );
+        }
+
         const snapshot = await getDocs(q);
         const sopList = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -32,15 +42,11 @@ const SOPsComponent = () => {
     };
 
     fetchSops();
-  }, []);
+  }, [currentUser]);
 
-  // ✅ Filter SOPs by search term
   const filteredSops = sops.filter((sop) =>
     sop.title?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  // ✅ Slice visible items
-  const visibleSops = filteredSops.slice(0, visibleCount);
 
   return (
     <div className="card">
@@ -52,18 +58,15 @@ const SOPsComponent = () => {
           placeholder="Search SOP..."
           className="border p-2 rounded w-full mt-2"
           value={searchTerm}
-          onChange={(e) => {
-            setSearchTerm(e.target.value);
-            setVisibleCount(PAGE_SIZE); // reset pagination on new search
-          }}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
       <div className="card-content">
-        {visibleSops.length === 0 ? (
+        {filteredSops.length === 0 ? (
           <p className="text-secondary">No approved SOPs found.</p>
         ) : (
-          visibleSops.map((sop) => (
+          filteredSops.map((sop) => (
             <div key={sop.id} className="mb-4 border-b pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{sop.title}</span>
@@ -90,7 +93,7 @@ const SOPsComponent = () => {
               </div>
 
               {openId === sop.id && (
-                <div className="sop-content open">
+                <div className="sop-content open mt-2">
                   {sop.objective && (
                     <p className="text-secondary mb-2">
                       <strong>Objective:</strong> {sop.objective}
@@ -128,18 +131,6 @@ const SOPsComponent = () => {
               )}
             </div>
           ))
-        )}
-
-        {/* ✅ Load More button (client-side only) */}
-        {visibleCount < filteredSops.length && (
-          <div className="flex justify-center mt-4">
-            <button
-              onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-              className="btn-primary"
-            >
-              Load More
-            </button>
-          </div>
         )}
       </div>
     </div>

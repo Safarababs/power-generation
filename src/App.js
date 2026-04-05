@@ -187,15 +187,18 @@ function App() {
                     element={<MillRecordsTable currentUser={userProfile} />}
                   />
                   {/* SOPs */}
-                  <Route path="/sop" element={<SOPsComponent />} />
-                  {/* unapproved sop */}
                   <Route
-                    path="/pendingsop"
-                    element={<UnapprovedSops currentUser={userProfile} />}
+                    path="/sop"
+                    element={<SOPsComponent currentUser={userProfile} />}
                   />
                   <Route
                     path="/addsop"
                     element={<AddSOPForm currentUser={userProfile} />}
+                  />
+                  {/* unapproved sop */}
+                  <Route
+                    path="/pendingsop"
+                    element={<UnapprovedSops currentUser={userProfile} />}
                   />
                   <Route
                     path="/apprvelabsop"

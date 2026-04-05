@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   collection,
   getDocs,
   doc,
   setDoc,
-  deleteDoc,
+  where,
+  query,
 } from "firebase/firestore";
 import { db } from "../../../FIrestore/firebase";
 
@@ -20,9 +21,11 @@ const UnapprovedSops = ({ currentUser }) => {
   const [safetyNotes, setSafetyNotes] = useState([""]);
 
   // ---------------- FETCH ALL SOPS ONCE ----------------
-  const fetchSOPs = async () => {
+  const fetchSOPs = useCallback(async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "sops"));
+      const querySnapshot = await getDocs(
+        query(collection(db, "sops"), where("isApproved", "==", false)),
+      );
       const list = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -33,11 +36,11 @@ const UnapprovedSops = ({ currentUser }) => {
       console.error(err);
       alert("Error fetching SOPs");
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSOPs();
-  }, []);
+  }, [fetchSOPs]);
 
   // ---------------- FILTER SOPs ----------------
   useEffect(() => {
@@ -79,18 +82,18 @@ const UnapprovedSops = ({ currentUser }) => {
   };
 
   // ---------------- DELETE SOP ----------------
-  const deleteSOP = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this SOP?")) return;
-    try {
-      await deleteDoc(doc(db, "sops", id));
-      alert("SOP deleted!");
-      setSelectedSOP(null);
-      fetchSOPs();
-    } catch (err) {
-      console.error(err);
-      alert("Delete failed");
-    }
-  };
+  // const deleteSOP = async (id) => {
+  //   if (!window.confirm("Are you sure you want to delete this SOP?")) return;
+  //   try {
+  //     await deleteDoc(doc(db, "sops", id));
+  //     alert("SOP deleted!");
+  //     setSelectedSOP(null);
+  //     fetchSOPs();
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Delete failed");
+  //   }
+  // };
 
   // ---------------- STEP FUNCTIONS ----------------
   const addSection = () => setSteps([...steps, { heading: "", details: [""] }]);
@@ -142,19 +145,22 @@ const UnapprovedSops = ({ currentUser }) => {
           className="form-input w-full mb-2"
         />
 
-        {filteredSops.map((sop) => (
-          <div key={sop.id} className="flex justify-between border p-2 mt-2">
-            <span onClick={() => loadSOP(sop.id)} className="cursor-pointer">
-              {sop.title}
-            </span>
-            <button
-              onClick={() => deleteSOP(sop.id)}
-              className="btn btn-danger"
-            >
-              Delete
-            </button>
-          </div>
-        ))}
+        {filteredSops.map((sop) =>
+          sop.createdBy.department === currentUser.department ? (
+            <div key={sop.id} className="flex justify-between border p-2 mt-2">
+              <span onClick={() => loadSOP(sop.id)} className="cursor-pointer">
+                {sop.title}
+              </span>
+              {/* Uncomment if you want delete functionality */}
+              {/* <button
+        onClick={() => deleteSOP(sop.id)}
+        className="btn btn-danger"
+      >
+        Delete
+      </button> */}
+            </div>
+          ) : null,
+        )}
       </div>
 
       {/* RIGHT SIDE - EDITOR */}

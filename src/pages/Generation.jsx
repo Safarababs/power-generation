@@ -74,7 +74,7 @@ const Generation = () => {
 
   const totalKWh = latestEngineData.reduce((sum, e) => sum + e.kwh, 0);
   const totalCapacity = latestEngineData.reduce(
-    (sum, e) => sum + (e.rhrs || 0) * 9700,
+    (sum, e) => sum + (e.rhrs || 0) * 9780,
     0,
   );
   const individualCapacities = latestEngineData.map((e) => ({

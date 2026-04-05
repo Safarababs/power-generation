@@ -39,9 +39,9 @@ const DepartmentSOPApproval = ({ currentUser }) => {
         isApproved: true,
         approvedBy: {
           name: currentUser?.name,
-          email: currentUser?.email,
+
           department: currentUser?.department,
-          empNumber: currentUser?.empNumber,
+
           approvedAt: new Date(),
         },
       });
@@ -54,9 +54,9 @@ const DepartmentSOPApproval = ({ currentUser }) => {
                 isApproved: true,
                 approvedBy: {
                   name: currentUser?.name,
-                  email: currentUser?.email,
+
                   department: currentUser?.department,
-                  empNumber: currentUser?.empNumber,
+
                   approvedAt: new Date(),
                 },
               }
@@ -71,29 +71,33 @@ const DepartmentSOPApproval = ({ currentUser }) => {
   const pendingSops = sops.filter((sop) => !sop.isApproved);
 
   return (
-    <div className="card p-4">
-      <h2 className="text-xl font-semibold mb-4">
-        SOPs Pending Approval ({currentUser.department})
-      </h2>
-      {pendingSops.length === 0 ? (
-        <p>No SOPs found.</p>
-      ) : (
-        <ul className="list-disc ml-6">
-          {pendingSops.map((sop) => (
-            <li key={sop.id} className="mb-4">
-              <strong>{sop.title}</strong> – {sop.objective}
-              <div className="mt-2">
-                <button
-                  onClick={() => handleApprove(sop.id)}
-                  className="btn btn-success m-1"
-                >
-                  Approve
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">
+          SOPs Pending Approval ({currentUser.department})
+        </h2>
+        {pendingSops.length === 0 ? (
+          <p>No SOPs found.</p>
+        ) : (
+          <div className="card-content">
+            <ul className="list-decimal ml-6">
+              {pendingSops.map((sop) => (
+                <li key={sop.id} className="mb-4">
+                  <strong>{sop.title}</strong> – {sop.objective}
+                  <div className="mt-2">
+                    <button
+                      onClick={() => handleApprove(sop.id)}
+                      className="btn btn-success m-1"
+                    >
+                      Approve
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>{" "}
     </div>
   );
 };
