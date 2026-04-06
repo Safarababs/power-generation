@@ -13,6 +13,7 @@ const UnapprovedSops = ({ currentUser }) => {
   const [sopList, setSopList] = useState([]);
   const [filteredSops, setFilteredSops] = useState([]);
   const [selectedSOP, setSelectedSOP] = useState(null);
+  const [originalSOP, setOriginalSOP] = useState(null); // ✅ IMPORTANT
 
   const [search, setSearch] = useState("");
   const [title, setTitle] = useState("");
@@ -20,16 +21,18 @@ const UnapprovedSops = ({ currentUser }) => {
   const [steps, setSteps] = useState([{ heading: "", details: [""] }]);
   const [safetyNotes, setSafetyNotes] = useState([""]);
 
-  // ---------------- FETCH ALL SOPS ONCE ----------------
+  // ---------------- FETCH UNAPPROVED SOPs ----------------
   const fetchSOPs = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(
-        query(collection(db, "sops"), where("isApproved", "==", false)),
+        query(collection(db, "sops"), where("isApproved", "==", false)), // ✅ FIXED
       );
+
       const list = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
       setSopList(list);
       setFilteredSops(list);
     } catch (err) {
@@ -42,7 +45,7 @@ const UnapprovedSops = ({ currentUser }) => {
     fetchSOPs();
   }, [fetchSOPs]);
 
-  // ---------------- FILTER SOPs ----------------
+  // ---------------- FILTER ----------------
   useEffect(() => {
     const filtered = sopList.filter((sop) =>
       sop.title.toLowerCase().includes(search.toLowerCase()),
@@ -50,69 +53,70 @@ const UnapprovedSops = ({ currentUser }) => {
     setFilteredSops(filtered);
   }, [search, sopList]);
 
-  // ---------------- LOAD SOP FROM FRONTEND ----------------
+  // ---------------- LOAD SOP ----------------
   const loadSOP = (id) => {
     const sop = sopList.find((s) => s.id === id);
     if (!sop) return;
 
     setSelectedSOP(id);
+    setOriginalSOP(sop); // ✅ KEEP ORIGINAL DATA
+
     setTitle(sop.title || "");
     setObjective(sop.objective || "");
     setSteps(sop.steps?.length ? sop.steps : [{ heading: "", details: [""] }]);
     setSafetyNotes(sop.safetyNotes?.length ? sop.safetyNotes : [""]);
   };
 
-  // ---------------- SAVE ----------------
+  // ---------------- SAVE (SAFE MERGE) ----------------
   const saveSOP = async () => {
     try {
       const ref = doc(db, "sops", selectedSOP);
+
       await setDoc(ref, {
+        ...originalSOP, // ✅ KEEP OLD DATA
+
+        // ✅ UPDATE ONLY EDITED FIELDS
         title,
         objective,
         steps,
         safetyNotes,
+
+        // ✅ FORCE RULES
+        isApproved: false,
         updatedAt: new Date(),
       });
-      alert("SOP saved successfully!");
-      fetchSOPs(); // update list after save
+
+      alert("SOP updated successfully!");
+      fetchSOPs();
     } catch (err) {
       console.error(err);
       alert("Save failed");
     }
   };
 
-  // ---------------- DELETE SOP ----------------
-  // const deleteSOP = async (id) => {
-  //   if (!window.confirm("Are you sure you want to delete this SOP?")) return;
-  //   try {
-  //     await deleteDoc(doc(db, "sops", id));
-  //     alert("SOP deleted!");
-  //     setSelectedSOP(null);
-  //     fetchSOPs();
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Delete failed");
-  //   }
-  // };
-
   // ---------------- STEP FUNCTIONS ----------------
   const addSection = () => setSteps([...steps, { heading: "", details: [""] }]);
+
   const updateStepHeading = (i, val) => {
     const s = [...steps];
     s[i].heading = val;
     setSteps(s);
   };
+
   const updateDetail = (i, j, val) => {
     const s = [...steps];
     s[i].details[j] = val;
     setSteps(s);
   };
+
   const addDetail = (i) => {
     const s = [...steps];
     s[i].details.push("");
     setSteps(s);
   };
+
   const deleteStep = (i) => setSteps(steps.filter((_, idx) => idx !== i));
+
   const deleteDetail = (i, j) => {
     const s = [...steps];
     s[i].details.splice(j, 1);
@@ -122,20 +126,22 @@ const UnapprovedSops = ({ currentUser }) => {
 
   // ---------------- SAFETY NOTES ----------------
   const addNote = () => setSafetyNotes([...safetyNotes, ""]);
+
   const updateNote = (i, val) => {
     const n = [...safetyNotes];
     n[i] = val;
     setSafetyNotes(n);
   };
+
   const deleteNote = (i) =>
     setSafetyNotes(safetyNotes.filter((_, idx) => idx !== i));
 
   // ---------------- UI ----------------
   return (
     <div className="grid grid-cols-2 gap-4">
-      {/* LEFT SIDE - SOP LIST */}
+      {/* LEFT SIDE */}
       <div className="card p-4">
-        <h2 className="card-title">All SOPs</h2>
+        <h2 className="card-title">Unapproved SOPs</h2>
 
         <input
           type="text"
@@ -146,24 +152,17 @@ const UnapprovedSops = ({ currentUser }) => {
         />
 
         {filteredSops.map((sop) =>
-          sop.createdBy.department === currentUser.department ? (
+          sop.createdBy?.department === currentUser.department ? (
             <div key={sop.id} className="flex justify-between border p-2 mt-2">
               <span onClick={() => loadSOP(sop.id)} className="cursor-pointer">
                 {sop.title}
               </span>
-              {/* Uncomment if you want delete functionality */}
-              {/* <button
-        onClick={() => deleteSOP(sop.id)}
-        className="btn btn-danger"
-      >
-        Delete
-      </button> */}
             </div>
           ) : null,
         )}
       </div>
 
-      {/* RIGHT SIDE - EDITOR */}
+      {/* RIGHT SIDE */}
       <div className="card p-4">
         {selectedSOP ? (
           <>
@@ -189,7 +188,7 @@ const UnapprovedSops = ({ currentUser }) => {
                   value={step.heading}
                   onChange={(e) => updateStepHeading(i, e.target.value)}
                   className="form-input w-full"
-                  placeholder={`Section ${i + 1} Heading`}
+                  placeholder={`Section ${i + 1}`}
                 />
 
                 {step.details.map((d, j) => (
@@ -198,7 +197,6 @@ const UnapprovedSops = ({ currentUser }) => {
                       value={d}
                       onChange={(e) => updateDetail(i, j, e.target.value)}
                       className="form-input w-full"
-                      placeholder={`Detail ${j + 1}`}
                     />
                     <button
                       onClick={() => deleteDetail(i, j)}
@@ -214,20 +212,20 @@ const UnapprovedSops = ({ currentUser }) => {
                     onClick={() => addDetail(i)}
                     className="btn btn-secondary"
                   >
-                    + Add Detail
+                    + Step
                   </button>
                   <button
                     onClick={() => deleteStep(i)}
                     className="btn btn-danger"
                   >
-                    Delete Section
+                    Delete
                   </button>
                 </div>
               </div>
             ))}
 
             <button onClick={addSection} className="btn btn-secondary mt-2">
-              + Add Section
+              + Section
             </button>
 
             <h3 className="mt-4">Safety Notes</h3>
@@ -238,7 +236,6 @@ const UnapprovedSops = ({ currentUser }) => {
                   value={n}
                   onChange={(e) => updateNote(i, e.target.value)}
                   className="form-input w-full"
-                  placeholder={`Safety Note ${i + 1}`}
                 />
                 <button
                   onClick={() => deleteNote(i)}
@@ -250,7 +247,7 @@ const UnapprovedSops = ({ currentUser }) => {
             ))}
 
             <button onClick={addNote} className="btn btn-secondary mt-2">
-              + Add Safety Note
+              + Note
             </button>
 
             <button onClick={saveSOP} className="btn btn-primary mt-4">

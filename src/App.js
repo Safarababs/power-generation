@@ -25,8 +25,6 @@ import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 import FeedersTripping from "./pages/Feeders Tripping.jsx";
 import { FeedersTrippingProvider } from "./context/Feeders Tripping Data.jsx";
 import SOPsComponent from "./components/Knowledge Hub/SOP/SOP's.jsx";
-
-// New Login Component
 import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
 import MillRecordsTable from "./components/Stoppage Dashboard/millstripping.jsx";
 import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
@@ -34,7 +32,7 @@ import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/Engine
 import MonthlyStartsStopsEntry from "./components/Daily Readings/Egnien Start  Stop/PreviousData/PreviousRecord.jsx";
 import MarkAttendance from "./components/Attandance/pages/MarkAttendance.jsx";
 import ProtectionsSafety from "./components/Knowledge Hub/Protections/ProtectionSafety.jsx";
-import AuthModal from "./components/Users/AuthModel.js";
+import AuthPortal from "./components/Users/AuthModel.js";
 import ApprovalDashboard from "./components/Users/ApprovalDashboard.jsx";
 import AlertsApproval from "./components/Users/Manager Approval Dashboard/AlertsApproval.jsx";
 import NotificationSetup from "./components/Notifications/NotificationSetup.js";
@@ -50,55 +48,64 @@ import ServicesDashboard from "./components/All Dashboards/Services Dashboard/Se
 import UtilityDashboard from "./components/All Dashboards/Utility Dashboard/UtilityDashboard.jsx";
 import ElectricalDashboard from "./components/All Dashboards/Electrical Dashboard/Electrical Dashboard.jsx";
 import VideoLectures from "./components/Knowledge Hub/Video Lectures/VideoLectures.jsx";
+import ImportReadings from "./components/dashboard/PowerGenerationOverview.jsx";
+import PowerGenerationChart from "./components/dashboard/PowerGenerationChart.jsx";
 
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // Track authentication state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const docRef = doc(db, "teamMembers", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setUserProfile(docSnap.data());
+        try {
+          const docRef = doc(db, "teamMembers", currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          setUserProfile(docSnap.exists() ? docSnap.data() : null);
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+          setUserProfile(null);
         }
       } else {
         setUserProfile(null);
       }
+      setLoadingProfile(false);
     });
     return () => unsubscribe();
   }, [auth]);
 
-  const handleLogin = (user) => {
-    setUser(user); // update App state with the logged-in user
-  };
+  // ✅ Always at top level
+  useEffect(() => {
+    if (userProfile) {
+      console.log("User Profile in App:", userProfile);
+    }
+  }, [userProfile]);
 
-  // ✅ Helper: who can approve
   const canApprove =
     userProfile?.department === "operation" &&
     (userProfile?.designation === "developer" ||
       userProfile?.designation === "MO");
 
+  if (loadingProfile) {
+    return <div>Loading user profile...</div>;
+  }
   return (
     <ThemeProvider>
       <DataProvider>
         <FeedersTrippingProvider>
           <NotificationSetup />
-
           <Router>
             {!user ? (
-              <AuthModal onLogin={handleLogin} onClose={() => {}} />
+              <AuthPortal onClose={() => {}} />
             ) : (
               <Layout currentUser={userProfile}>
-                {/* Protected routes */}
                 <Routes>
                   <Route path="/Moharram" element={<FullPixelInventory />} />
-                  {/* General Manager Overview */}
 
+                  {/* General Manager Overview */}
                   <Route
                     path="/"
                     element={
@@ -106,13 +113,12 @@ function App() {
                       userProfile?.designation === "General Manager" ? (
                         <ExecutiveDashboard />
                       ) : (
-                        <Dashboard />
+                        <Dashboard currentUser={userProfile} />
                       )
                     }
                   />
 
-                  {/* All Dashboards Links Start */}
-
+                  {/* All Dashboards */}
                   <Route
                     path="/mechanical-Dashboard"
                     element={<MechanicalDashboard />}
@@ -130,8 +136,8 @@ function App() {
                     element={<ServicesDashboard />}
                   />
                   <Route path="/videoslectures" element={<VideoLectures />} />
-                  {/* All Dashboards Links End */}
 
+                  {/* Other Pages */}
                   <Route path="/generation" element={<Generation />} />
                   <Route path="/monitoring" element={<Monitoring />} />
                   <Route path="/controls" element={<Controls />} />
@@ -143,25 +149,19 @@ function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
-                  {/* parameter analyse  */}
-                  <Route
-                    path="/parameteranalyse"
-                    exact
-                    element={<AnalyzeButton />}
-                  />
+                  <Route path="/parameteranalyse" element={<AnalyzeButton />} />
                   <Route path="/summery" element={<SummaryViewer />} />
-                  {/* readings */}
+
+                  {/* Readings */}
                   <Route
                     path="/DashboardLayout"
                     element={<DashboardLayout />}
                   />
-                  {/* egnine start/stop */}
                   <Route
                     path="/start-stop-logs"
                     element={<EngineLogForm currentUser={userProfile} />}
                   />
-                  <Route path="enginelogtable" element={<EngineLogTable />} />
-                  {/* previous start stop entry */}
+                  <Route path="/enginelogtable" element={<EngineLogTable />} />
                   <Route
                     path="/monthly-starts-stops"
                     element={
@@ -186,6 +186,7 @@ function App() {
                     path="/millstripping"
                     element={<MillRecordsTable currentUser={userProfile} />}
                   />
+
                   {/* SOPs */}
                   <Route
                     path="/sop"
@@ -195,7 +196,6 @@ function App() {
                     path="/addsop"
                     element={<AddSOPForm currentUser={userProfile} />}
                   />
-                  {/* unapproved sop */}
                   <Route
                     path="/pendingsop"
                     element={<UnapprovedSops currentUser={userProfile} />}
@@ -206,13 +206,16 @@ function App() {
                       <DepartmentSOPApproval currentUser={userProfile} />
                     }
                   />
-                  {/* engines-safety */}
+
+                  {/* Engines-safety */}
                   <Route
                     path="/engines-safety"
                     element={<ProtectionsSafety />}
                   />
-                  {/* Attandance */}
+
+                  {/* Attendance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
+
                   {/* Approval dashboards */}
                   <Route
                     path="/approval-dashboard"

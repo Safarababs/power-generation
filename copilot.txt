@@ -1,407 +1,269 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   collection,
-  query,
-  where,
   getDocs,
   doc,
-  updateDoc,
+  setDoc,
+  where,
+  query,
 } from "firebase/firestore";
 import { db } from "../../../FIrestore/firebase";
-import { FaPlus, FaMinus } from "react-icons/fa";
-import SOPPDF from "../SOPPDF";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 
-const UnapprovedSops = () => {
-  const [sops, setSops] = useState([]);
-  const [totalSops, setTotalSops] = useState(0);
-  const [openId, setOpenId] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editing, setEditing] = useState({
-    sopId: null,
-    stepIndex: null,
-    detailIndex: null,
-  });
+const UnapprovedSops = ({ currentUser }) => {
+  const [sopList, setSopList] = useState([]);
+  const [filteredSops, setFilteredSops] = useState([]);
+  const [selectedSOP, setSelectedSOP] = useState(null);
 
-  useEffect(() => {
-    const fetchSops = async () => {
-      try {
-        const allSnapshot = await getDocs(collection(db, "sops"));
-        setTotalSops(allSnapshot.size);
+  const [search, setSearch] = useState("");
+  const [title, setTitle] = useState("");
+  const [objective, setObjective] = useState("");
+  const [steps, setSteps] = useState([{ heading: "", details: [""] }]);
+  const [safetyNotes, setSafetyNotes] = useState([""]);
 
-        const unapprovedQuery = query(
-          collection(db, "sops"),
-          where("isApproved", "==", false),
-        );
-        const unapprovedSnapshot = await getDocs(unapprovedQuery);
-
-        const sopList = unapprovedSnapshot.docs.map((docSnap) => {
-          const data = docSnap.data();
-          return {
-            id: docSnap.id,
-            title: data.title,
-            objective: data.objective || "",
-            steps: data.steps || [],
-            safetyNotes: data.safetyNotes || [],
-          };
-        });
-
-        setSops(sopList);
-      } catch (err) {
-        console.error("Error fetching SOPs:", err);
-      }
-    };
-
-    fetchSops();
+  // ---------------- FETCH ALL SOPS ONCE ----------------
+  const fetchSOPs = useCallback(async () => {
+    try {
+      const querySnapshot = await getDocs(
+        query(collection(db, "sops"), where("isApproved", "==", true)),
+      );
+      const list = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setSopList(list);
+      setFilteredSops(list);
+    } catch (err) {
+      console.error(err);
+      alert("Error fetching SOPs");
+    }
   }, []);
 
-  const filteredSops = sops.filter((sop) =>
-    sop.title.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  useEffect(() => {
+    fetchSOPs();
+  }, [fetchSOPs]);
 
-  // Save heading or detail
-  const saveStep = async (sopId, stepIndex, newHeading) => {
+  // ---------------- FILTER SOPs ----------------
+  useEffect(() => {
+    const filtered = sopList.filter((sop) =>
+      sop.title.toLowerCase().includes(search.toLowerCase()),
+    );
+    setFilteredSops(filtered);
+  }, [search, sopList]);
+
+  // ---------------- LOAD SOP FROM FRONTEND ----------------
+  const loadSOP = (id) => {
+    const sop = sopList.find((s) => s.id === id);
+    if (!sop) return;
+
+    setSelectedSOP(id);
+    setTitle(sop.title || "");
+    setObjective(sop.objective || "");
+    setSteps(sop.steps?.length ? sop.steps : [{ heading: "", details: [""] }]);
+    setSafetyNotes(sop.safetyNotes?.length ? sop.safetyNotes : [""]);
+  };
+
+  // ---------------- SAVE ----------------
+  const saveSOP = async () => {
     try {
-      const sopRef = doc(db, "sops", sopId);
-      const sop = sops.find((s) => s.id === sopId);
-      const newSteps = [...sop.steps];
-      newSteps[stepIndex].heading = newHeading;
-
-      await updateDoc(sopRef, { steps: newSteps });
-      setSops((prev) =>
-        prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s)),
+      const ref = doc(db, "sops", selectedSOP);
+      await setDoc(
+        ref,
+        {
+          title,
+          objective,
+          steps,
+          safetyNotes,
+          updatedAt: new Date(),
+          isApproved: false, // remains unapproved until a developer approves it
+        },
+        { merge: true },
       );
-      setEditing({ sopId: null, stepIndex: null, detailIndex: null });
+      alert("SOP saved successfully!");
+      fetchSOPs(); // update list after save
     } catch (err) {
-      console.error("Error saving step:", err);
+      console.error(err);
+      alert("Save failed");
     }
   };
 
-  const saveDetail = async (sopId, stepIndex, detailIndex, newDetail) => {
-    try {
-      const sopRef = doc(db, "sops", sopId);
-      const sop = sops.find((s) => s.id === sopId);
-      const newSteps = [...sop.steps];
-      newSteps[stepIndex].details[detailIndex] = newDetail;
+  // ---------------- DELETE SOP ----------------
+  // const deleteSOP = async (id) => {
+  //   if (!window.confirm("Are you sure you want to delete this SOP?")) return;
+  //   try {
+  //     await deleteDoc(doc(db, "sops", id));
+  //     alert("SOP deleted!");
+  //     setSelectedSOP(null);
+  //     fetchSOPs();
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Delete failed");
+  //   }
+  // };
 
-      await updateDoc(sopRef, { steps: newSteps });
-      setSops((prev) =>
-        prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s)),
-      );
-      setEditing({ sopId: null, stepIndex: null, detailIndex: null });
-    } catch (err) {
-      console.error("Error saving detail:", err);
-    }
+  // ---------------- STEP FUNCTIONS ----------------
+  const addSection = () => setSteps([...steps, { heading: "", details: [""] }]);
+  const updateStepHeading = (i, val) => {
+    const s = [...steps];
+    s[i].heading = val;
+    setSteps(s);
+  };
+  const updateDetail = (i, j, val) => {
+    const s = [...steps];
+    s[i].details[j] = val;
+    setSteps(s);
+  };
+  const addDetail = (i) => {
+    const s = [...steps];
+    s[i].details.push("");
+    setSteps(s);
+  };
+  const deleteStep = (i) => setSteps(steps.filter((_, idx) => idx !== i));
+  const deleteDetail = (i, j) => {
+    const s = [...steps];
+    s[i].details.splice(j, 1);
+    if (s[i].details.length === 0) s[i].details = [""];
+    setSteps(s);
   };
 
-  const deleteStep = async (sopId, stepIndex) => {
-    try {
-      const sopRef = doc(db, "sops", sopId);
-      const sop = sops.find((s) => s.id === sopId);
-      const newSteps = sop.steps.filter((_, idx) => idx !== stepIndex);
-
-      await updateDoc(sopRef, { steps: newSteps });
-      setSops((prev) =>
-        prev.map((s) => (s.id === sopId ? { ...s, steps: newSteps } : s)),
-      );
-    } catch (err) {
-      console.error("Error deleting step:", err);
-    }
+  // ---------------- SAFETY NOTES ----------------
+  const addNote = () => setSafetyNotes([...safetyNotes, ""]);
+  const updateNote = (i, val) => {
+    const n = [...safetyNotes];
+    n[i] = val;
+    setSafetyNotes(n);
   };
+  const deleteNote = (i) =>
+    setSafetyNotes(safetyNotes.filter((_, idx) => idx !== i));
 
-  const saveSafetyNote = async (sopId, noteIndex, newNote) => {
-    try {
-      const sopRef = doc(db, "sops", sopId);
-      const sop = sops.find((s) => s.id === sopId);
-      const newNotes = [...sop.safetyNotes];
-      newNotes[noteIndex] = newNote;
-
-      await updateDoc(sopRef, { safetyNotes: newNotes });
-
-      setSops((prev) =>
-        prev.map((s) => (s.id === sopId ? { ...s, safetyNotes: newNotes } : s)),
-      );
-      setEditing({ sopId: null, stepIndex: null, detailIndex: null });
-    } catch (err) {
-      console.error("Error saving safety note:", err);
-    }
-  };
-
+  // ---------------- UI ----------------
   return (
-    <div className="card">
-      <div className="card-header">
+    <div className="grid grid-cols-2 gap-4">
+      {/* LEFT SIDE - SOP LIST */}
+      <div className="card p-4">
         <h2 className="card-title">All SOPs</h2>
-        {totalSops > 0 && <p>{totalSops} SOPs exist.</p>}
+
         <input
           type="text"
           placeholder="Search SOP..."
-          className="border p-2 rounded w-full mt-2"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="form-input w-full mb-2"
         />
+
+        {filteredSops.map((sop) =>
+          sop.createdBy.department === currentUser.department ? (
+            <div key={sop.id} className="flex justify-between border p-2 mt-2">
+              <span onClick={() => loadSOP(sop.id)} className="cursor-pointer">
+                {sop.title}
+              </span>
+              {/* Uncomment if you want delete functionality */}
+              {/* <button
+        onClick={() => deleteSOP(sop.id)}
+        className="btn btn-danger"
+      >
+        Delete
+      </button> */}
+            </div>
+          ) : null,
+        )}
       </div>
 
-      <div className="card-content">
-        {filteredSops.length === 0 ? (
-          <p className="text-red font-semibold mt-4">
-            {totalSops} SOPs exist but need approval.
-          </p>
-        ) : (
-          filteredSops.map((sop) => (
-            <div key={sop.id} className="mb-4 border-b pb-2">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">{sop.title}</span>
-                <PDFDownloadLink
-                  document={<SOPPDF sop={sop} />}
-                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
-                >
-                  {({ loading }) =>
-                    loading ? (
-                      <span className="text-gray-500">Preparing...</span>
-                    ) : (
-                      <button className="btn-primary text-sm">
-                        Download PDF
-                      </button>
-                    )
-                  }
-                </PDFDownloadLink>
+      {/* RIGHT SIDE - EDITOR */}
+      <div className="card p-4">
+        {selectedSOP ? (
+          <>
+            <h2 className="card-title">Edit SOP</h2>
+
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="form-input w-full mb-2"
+              placeholder="SOP Title"
+            />
+
+            <textarea
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              className="form-input w-full mb-4"
+              placeholder="Objective"
+            />
+
+            {steps.map((step, i) => (
+              <div key={i} className="border p-2 mt-2">
+                <input
+                  value={step.heading}
+                  onChange={(e) => updateStepHeading(i, e.target.value)}
+                  className="form-input w-full"
+                  placeholder={`Section ${i + 1} Heading`}
+                />
+
+                {step.details.map((d, j) => (
+                  <div key={j} className="flex gap-2 mt-1">
+                    <input
+                      value={d}
+                      onChange={(e) => updateDetail(i, j, e.target.value)}
+                      className="form-input w-full"
+                      placeholder={`Detail ${j + 1}`}
+                    />
+                    <button
+                      onClick={() => deleteDetail(i, j)}
+                      className="btn btn-danger"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={() => addDetail(i)}
+                    className="btn btn-secondary"
+                  >
+                    + Add Step
+                  </button>
+                  <button
+                    onClick={() => deleteStep(i)}
+                    className="btn btn-danger"
+                  >
+                    Delete Section
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            <button onClick={addSection} className="btn btn-secondary mt-2">
+              + Add Section
+            </button>
+
+            <h3 className="mt-4">Safety Notes</h3>
+
+            {safetyNotes.map((n, i) => (
+              <div key={i} className="flex gap-2 mt-1">
+                <input
+                  value={n}
+                  onChange={(e) => updateNote(i, e.target.value)}
+                  className="form-input w-full"
+                  placeholder={`Safety Note ${i + 1}`}
+                />
                 <button
-                  onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
-                  className="p-1 rounded hover:bg-gray-200"
+                  onClick={() => deleteNote(i)}
+                  className="btn btn-danger"
                 >
-                  {openId === sop.id ? <FaMinus /> : <FaPlus />}
+                  X
                 </button>
               </div>
+            ))}
 
-              {openId === sop.id && (
-                <div className="sop-content open">
-                  {sop.objective && (
-                    <p className="text-secondary mb-2">
-                      <strong>Objective:</strong> {sop.objective}
-                    </p>
-                  )}
+            <button onClick={addNote} className="btn btn-secondary mt-2">
+              + Add Safety Note
+            </button>
 
-                  {Array.isArray(sop.steps) && sop.steps.length > 0 && (
-                    <ol className="sop-steps list-decimal ml-6 mt-2">
-                      {sop.steps.map((step, idx) => (
-                        <li
-                          key={idx}
-                          className="flex justify-between items-start"
-                        >
-                          <div>
-                            {/* Step heading */}
-                            {editing.sopId === sop.id &&
-                            editing.stepIndex === idx &&
-                            editing.detailIndex === null ? (
-                              <div className="flex space-x-2">
-                                <input
-                                  type="text"
-                                  defaultValue={step.heading}
-                                  onChange={(e) =>
-                                    setEditing({
-                                      ...editing,
-                                      newValue: e.target.value,
-                                    })
-                                  }
-                                  className="form-input"
-                                />
-                                <button
-                                  className="btn btn-primary"
-                                  onClick={() =>
-                                    saveStep(sop.id, idx, editing.newValue)
-                                  }
-                                >
-                                  Save
-                                </button>
-                                <button
-                                  className="btn btn-secondary"
-                                  onClick={() =>
-                                    setEditing({
-                                      sopId: null,
-                                      stepIndex: null,
-                                      detailIndex: null,
-                                    })
-                                  }
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            ) : (
-                              <strong>{step.heading}</strong>
-                            )}
-
-                            {/* Step details */}
-                            {Array.isArray(step.details) &&
-                              step.details.length > 0 && (
-                                <ul className="ml-4 list-disc">
-                                  {step.details.map((d, dIdx) => (
-                                    <li
-                                      key={dIdx}
-                                      className="flex justify-between items-center"
-                                    >
-                                      {editing.sopId === sop.id &&
-                                      editing.stepIndex === idx &&
-                                      editing.detailIndex === dIdx ? (
-                                        <div className="flex space-x-2 list-edit-container">
-                                          <input
-                                            type="text"
-                                            defaultValue={d}
-                                            onChange={(e) =>
-                                              setEditing({
-                                                ...editing,
-                                                newValue: e.target.value,
-                                              })
-                                            }
-                                            className="form-input list-edit-input"
-                                          />
-                                          <button
-                                            className="btn btn-primary"
-                                            onClick={() =>
-                                              saveDetail(
-                                                sop.id,
-                                                idx,
-                                                dIdx,
-                                                editing.newValue,
-                                              )
-                                            }
-                                          >
-                                            Save
-                                          </button>
-                                          <button
-                                            className="btn btn-secondary"
-                                            onClick={() =>
-                                              setEditing({
-                                                sopId: null,
-                                                stepIndex: null,
-                                                detailIndex: null,
-                                              })
-                                            }
-                                          >
-                                            Cancel
-                                          </button>
-                                        </div>
-                                      ) : (
-                                        <span>{d}</span>
-                                      )}
-                                      <button
-                                        className="btn btn-secondary ml-2"
-                                        onClick={() =>
-                                          setEditing({
-                                            sopId: sop.id,
-                                            stepIndex: idx,
-                                            detailIndex: dIdx,
-                                            newValue: d,
-                                          })
-                                        }
-                                      >
-                                        Edit
-                                      </button>
-                                    </li>
-                                  ))}
-                                </ul>
-                              )}
-                          </div>
-                          <div className="ml-4 space-x-2">
-                            <button
-                              className="btn btn-secondary"
-                              onClick={() =>
-                                setEditing({
-                                  sopId: sop.id,
-                                  stepIndex: idx,
-                                  detailIndex: null,
-                                  newValue: step.heading,
-                                })
-                              }
-                            >
-                              Edit Heading
-                            </button>
-                            <button
-                              className="btn btn-danger"
-                              onClick={() => deleteStep(sop.id, idx)}
-                            >
-                              Delete Step
-                            </button>
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-
-                  {Array.isArray(sop.safetyNotes) &&
-                    sop.safetyNotes.length > 0 && (
-                      <>
-                        <h4 className="mt-4 font-semibold">Safety Notes</h4>
-                        <ul className="ml-6 list-disc text-red">
-                          {sop.safetyNotes.map((note, idx) => (
-                            <li
-                              key={idx}
-                              className="flex justify-between items-center"
-                            >
-                              {editing.sopId === sop.id &&
-                              editing.stepIndex === null &&
-                              editing.detailIndex === idx ? (
-                                <div className="flex space-x-2">
-                                  <input
-                                    type="text"
-                                    defaultValue={note}
-                                    onChange={(e) =>
-                                      setEditing({
-                                        ...editing,
-                                        newValue: e.target.value,
-                                      })
-                                    }
-                                    className="form-input"
-                                  />
-                                  <button
-                                    className="btn btn-primary"
-                                    onClick={() =>
-                                      saveSafetyNote(
-                                        sop.id,
-                                        idx,
-                                        editing.newValue,
-                                      )
-                                    }
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    className="btn btn-secondary"
-                                    onClick={() =>
-                                      setEditing({
-                                        sopId: null,
-                                        stepIndex: null,
-                                        detailIndex: null,
-                                      })
-                                    }
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              ) : (
-                                <span>{note}</span>
-                              )}
-                              <button
-                                className="btn btn-secondary ml-2"
-                                onClick={() =>
-                                  setEditing({
-                                    sopId: sop.id,
-                                    stepIndex: null,
-                                    detailIndex: idx,
-                                    newValue: note,
-                                  })
-                                }
-                              >
-                                Edit
-                              </button>
-                            </li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                </div>
-              )}
-            </div>
-          ))
+            <button onClick={saveSOP} className="btn btn-primary mt-4">
+              Save Changes
+            </button>
+          </>
+        ) : (
+          <p>Select an SOP to edit</p>
         )}
       </div>
     </div>

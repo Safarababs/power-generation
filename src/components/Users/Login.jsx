@@ -3,7 +3,7 @@ import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "../FIrestore/firebase";
 
-const LoginForm = ({ onLogin, onSwitchToRegister }) => {
+const LoginForm = ({ onSwitchToRegister }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -34,8 +34,8 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
         return;
       }
 
-      // Approved → proceed
-      onLogin(user);
+      // ✅ No need to call onLogin — App.js will pick up the auth state change
+      // via onAuthStateChanged and load the profile automatically.
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed: " + (error?.message || "Unknown error"));
@@ -73,7 +73,7 @@ const LoginForm = ({ onLogin, onSwitchToRegister }) => {
       </button>
 
       <p className="text-center text-sm text-secondary m-2">
-        Don’t have an account?{" "}
+        Don’t have an account?
       </p>
       <button
         type="button"

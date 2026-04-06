@@ -7,14 +7,14 @@ import PowerGenerationChart from "../components/dashboard/PowerGenerationChart";
 import GeneratorStatus from "../components/dashboard/GeneratorStatus";
 import QuickActions from "../components/dashboard/QuickActions";
 
-const Dashboard = () => {
+const Dashboard = ({ currentUser }) => {
   return (
     <>
       <RealTimeStatus />
       <div className="grid grid-cols-1 gap-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <PowerGenerationOverview />
+            <PowerGenerationOverview currentUser={currentUser} />
           </div>
           <div>
             <AlertsPanel />
@@ -26,7 +26,7 @@ const Dashboard = () => {
             <EfficiencyMetrics />
           </div>
           <div className="lg:col-span-2">
-            <PowerGenerationChart />
+            <PowerGenerationChart currentUser={currentUser} />
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
