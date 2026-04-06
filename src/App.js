@@ -48,9 +48,6 @@ import ServicesDashboard from "./components/All Dashboards/Services Dashboard/Se
 import UtilityDashboard from "./components/All Dashboards/Utility Dashboard/UtilityDashboard.jsx";
 import ElectricalDashboard from "./components/All Dashboards/Electrical Dashboard/Electrical Dashboard.jsx";
 import VideoLectures from "./components/Knowledge Hub/Video Lectures/VideoLectures.jsx";
-import ImportReadings from "./components/dashboard/PowerGenerationOverview.jsx";
-import PowerGenerationChart from "./components/dashboard/PowerGenerationChart.jsx";
-
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
