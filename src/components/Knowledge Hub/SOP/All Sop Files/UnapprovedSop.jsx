@@ -137,11 +137,12 @@ const UnapprovedSops = ({ currentUser }) => {
     setSafetyNotes(safetyNotes.filter((_, idx) => idx !== i));
 
   // ---------------- UI ----------------
+  let totalSops = 0;
   return (
     <div className="grid grid-cols-2 gap-4">
       {/* LEFT SIDE */}
       <div className="card p-4">
-        <h2 className="card-title">Unapproved SOPs</h2>
+        <h2 className="card-title">Unapproved SOPs {totalSops}</h2>
 
         <input
           type="text"
@@ -155,7 +156,7 @@ const UnapprovedSops = ({ currentUser }) => {
           sop.createdBy?.department === currentUser.department ? (
             <div key={sop.id} className="flex justify-between border p-2 mt-2">
               <span onClick={() => loadSOP(sop.id)} className="cursor-pointer">
-                {sop.title}
+                {sop.title} {totalSops++}
               </span>
             </div>
           ) : null,

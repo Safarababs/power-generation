@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import { auth, db } from "../FIrestore/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
@@ -33,6 +34,9 @@ const SignUpForm = ({ onSwitchToLogin }) => {
       });
 
       alert("Registration submitted! Awaiting developer approval.");
+      // Optionally, you can log the user out immediately after registration
+      // await signOut(auth);
+      onSwitchToLogin(); // Redirect to login after successful registration
     } catch (error) {
       alert(error.message);
     }
