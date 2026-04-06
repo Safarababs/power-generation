@@ -24,24 +24,25 @@ const PowerGenerationChart = ({ currentUser }) => {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Always fetch last 30 docs for defaults
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1); // first day of current month
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const endOfMonth = new Date(startOfMonth);
-  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
-  endOfMonth.setDate(0); // last day of current month
-  endOfMonth.setHours(23, 59, 59, 999);
   useEffect(() => {
     const fetchDefaults = async () => {
       try {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const endOfMonth = new Date(startOfMonth);
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+        endOfMonth.setDate(0);
+        endOfMonth.setHours(23, 59, 59, 999);
+
         const q = query(
           collection(db, "engineReadings"),
           where("date", ">=", Timestamp.fromDate(startOfMonth)),
           where("date", "<=", Timestamp.fromDate(endOfMonth)),
           orderBy("date", "asc"),
         );
+
         const snapshot = await getDocs(q);
         const docs = snapshot.docs.map((doc) => doc.data());
 
@@ -55,6 +56,7 @@ const PowerGenerationChart = ({ currentUser }) => {
         setLoading(false);
       }
     };
+
     fetchDefaults();
   }, []);
 
@@ -92,8 +94,6 @@ const PowerGenerationChart = ({ currentUser }) => {
   const maxValue = chartData.length
     ? Math.max(...chartData.map((d) => d.value))
     : 0;
-
-  console.log("Current User in Chart: ", currentUser);
 
   return (
     <div className="card">
