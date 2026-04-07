@@ -25,7 +25,7 @@ const MillRecordsTable = ({ currentUser }) => {
       try {
         const q = query(
           collection(db, "millRecords"),
-          // limit(10),
+          limit(10),
           orderBy("createdAt", "desc"),
         );
 
