@@ -67,13 +67,18 @@ body {
 
 /* spinner */
 
+.mainspinner {
+  height: 100vh;
+  background: #111827;
+}
+
 .spinner {
-  border: 4px solid var(--border-color); /* light border */
-  border-top-color: var(--primary-color); /* top colored for spin effect */
-  border-radius: 50%; /* round shape */
-  width: 2.5rem; /* size */
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  width: 2.5rem;
   height: 2.5rem;
-  animation: spin 1s linear infinite; /* use your spin keyframes */
+  animation: spin 1s linear infinite;
 }
 @keyframes spin {
   to {
@@ -85,6 +90,7 @@ body {
   animation: spin 1s linear infinite;
 }
 
+/* Error Boundries */
 .border-red-500 {
   border-color: red;
   color: white;
@@ -1139,6 +1145,9 @@ body {
 }
 .text-red {
   color: var(--error-color);
+}
+.text-white {
+  color: var(--surface-color);
 }
 
 /* Width and height utilities */

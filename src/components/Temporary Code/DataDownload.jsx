@@ -11,7 +11,7 @@ import {
   limit,
 } from "firebase/firestore";
 
-const MillRecordsTable = ({ currentUser }) => {
+const DataDownload = ({ currentUser }) => {
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({
@@ -25,8 +25,8 @@ const MillRecordsTable = ({ currentUser }) => {
       try {
         const q = query(
           collection(db, "millRecords"),
-          // limit(10),
-          orderBy("createdAt", "desc"),
+          limit(10),
+          orderBy("createdAt", "asc"),
         );
 
         const snapshot = await getDocs(q);
@@ -63,7 +63,6 @@ const MillRecordsTable = ({ currentUser }) => {
             rawStart: start,
           };
         });
-
         setRecords(data);
       } catch (err) {
         console.error("Error fetching records:", err);
@@ -113,9 +112,28 @@ const MillRecordsTable = ({ currentUser }) => {
     }
   };
 
+  const downloadJSON = (data) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "engineReadings.json";
+    link.click();
+  };
+
   return (
     <div className="card p-4">
       <h2 className="text-xl font-semibold mb-4">Mill Records</h2>
+      <div className="flex gap-2">
+        <button
+          onClick={() => downloadJSON(records)}
+          className="btn-primary bg-blue-500 px-3 py-1 rounded"
+        >
+          Export JSON
+        </button>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="table w-full">
@@ -223,4 +241,4 @@ const MillRecordsTable = ({ currentUser }) => {
   );
 };
 
-export default MillRecordsTable;
+export default DataDownload;

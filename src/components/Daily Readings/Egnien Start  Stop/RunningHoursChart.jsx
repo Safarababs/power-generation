@@ -1,245 +1,153 @@
-// import React, { useEffect, useState, useMemo } from "react";
-// import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
-// import { db } from "../../FIrestore/firebase";
-
-// import {
-//   Chart as ChartJS,
-//   BarElement,
-//   CategoryScale,
-//   LinearScale,
-//   Tooltip,
-//   Legend,
-// } from "chart.js";
-// import { Bar } from "react-chartjs-2";
-
-// ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
-
-// export default function RunningHoursHybridChart() {
-//   const [chartData, setChartData] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const engines = useMemo(() => ["E1", "E2", "E3", "E4", "E5"], []);
-
-//   const calculateLogHours = (logs) => {
-//     let totalMs = 0;
-//     let lastStart = null;
-
-//     logs
-//       .sort((a, b) => a.eventDateTime - b.eventDateTime)
-//       .forEach((log) => {
-//         if (log.eventType === "start") {
-//           lastStart = log.eventDateTime;
-//         }
-//         if (log.eventType === "stop" && lastStart) {
-//           totalMs += log.eventDateTime - lastStart;
-//           lastStart = null;
-//         }
-//       });
-
-//     if (lastStart) {
-//       totalMs += new Date() - lastStart;
-//     }
-
-//     return totalMs / (1000 * 60 * 60);
-//   };
-
-//   useEffect(() => {
-//     const fetchHybridHours = async () => {
-//       try {
-//         const readingsSnap = await getDocs(
-//           query(
-//             collection(db, "engineReadings"),
-//             orderBy("date", "desc"),
-//             limit(1),
-//           ),
-//         );
-
-//         if (readingsSnap.empty) {
-//           console.warn("No meter readings found");
-//           setLoading(false);
-//           return;
-//         }
-
-//         const latestReadingDoc = readingsSnap.docs[0];
-//         const latestReading = latestReadingDoc.data();
-//         const meterDate = new Date(latestReading.date);
-
-//         const meterHoursArray = latestReading.readings.map(
-//           (eng) => eng.rhrs || 0,
-//         );
-
-//         const logsSnap = await getDocs(collection(db, "engineLogs"));
-//         const allLogs = logsSnap.docs.map((doc) => ({
-//           ...doc.data(),
-//           eventDateTime: doc.data().eventDateTime.toDate(),
-//         }));
-
-//         const hybridHours = engines.map((engine, index) => {
-//           const logsAfterMeter = allLogs.filter(
-//             (l) => l.engineId === engine && l.eventDateTime > meterDate,
-//           );
-//           const logHours = calculateLogHours(logsAfterMeter);
-//           return meterHoursArray[index] + logHours;
-//         });
-
-//         setChartData({
-//           labels: engines,
-//           datasets: [
-//             {
-//               label: "Hybrid Running Hours",
-//               data: hybridHours,
-//               backgroundColor: "rgba(54,162,235,0.7)",
-//               borderRadius: 6,
-//             },
-//           ],
-//         });
-
-//         setLoading(false);
-//       } catch (error) {
-//         console.error("Hybrid calculation error:", error);
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchHybridHours();
-//   }, [engines]); // include engines
-
-//   if (loading) return <p>Calculating hybrid running hours…</p>;
-//   if (!chartData) return <p>No data available.</p>;
-
-//   return (
-//     <div
-//       style={{
-//         width: "100%",
-//         maxWidth: "900px",
-//         background: "#fff",
-//         padding: "15px",
-//         borderRadius: "10px",
-//         boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-//       }}
-//     >
-//       <h3>Hybrid Running Hours (Meter + Logs)</h3>
-//       <Bar data={chartData} />
-//     </div>
-//   );
-// }
 import React, { useEffect, useState } from "react";
 import { db } from "../../FIrestore/firebase";
 import {
   collection,
-  doc,
-  getDoc,
   query,
-  where,
   orderBy,
   getDocs,
+  limit,
+  where,
 } from "firebase/firestore";
 
 export default function RunningHoursHybridChart() {
-  const [engineData, setEngineData] = useState({});
+  const [engineData, setEngineData] = useState([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [defaultDate, setDefaultDate] = useState("");
 
+  // Initial fetch (latest records)
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchLatest = async () => {
       try {
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(today.getDate() - 1);
-
-        const dateKey = yesterday.toISOString().split("T")[0]; // yesterday’s doc
-        const sixAM = new Date(
-          today.getFullYear(),
-          today.getMonth(),
-          today.getDate(),
-          6,
-          0,
-          0,
+        const q = query(
+          collection(db, "engineReadings"),
+          orderBy("date", "desc"),
+          limit(1),
         );
 
-        const engineIds = ["E1", "E2", "E3", "E4", "E5"];
-        const results = {};
-
-        // Get yesterday’s official readings
-        const engineDocSnap = await getDoc(doc(db, "engineReadings", dateKey));
-        const generationArray = engineDocSnap.exists()
-          ? engineDocSnap.data().readings
-          : [];
-
-        for (let i = 0; i < engineIds.length; i++) {
-          const id = engineIds[i];
-          const baseline = generationArray[i]?.rhrs || 0;
-
-          // Query logs since today 6 AM
-          const q = query(
-            collection(db, "engineLogs"),
-            where("engineId", "==", id),
-            orderBy("eventDateTime", "asc"),
-          );
-
-          const snap = await getDocs(q);
-          const logs = snap.docs
-            .map((d) => d.data())
-            .filter((log) => log.eventDateTime.toDate() >= sixAM);
-
-          let liveHours = 0;
-          let lastStart = null;
-
-          for (const log of logs) {
-            const eventTime = log.eventDateTime.toDate();
-            if (log.eventType === "start") {
-              lastStart = eventTime;
-            } else if (log.eventType === "stop" && lastStart) {
-              liveHours += (eventTime - lastStart) / (1000 * 60 * 60);
-              lastStart = null;
-            }
-          }
-
-          // If engine still running now
-          if (lastStart) {
-            liveHours += (new Date() - lastStart) / (1000 * 60 * 60);
-          }
-
-          results[id] = {
-            baseline: baseline, // number
-            live: liveHours, // number
-            total: baseline + liveHours, // number
-          };
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const logs = snap.docs.map((doc) => doc.data());
+          setEngineData(logs);
+          setDefaultDate(logs[0]?.date || "");
+        } else {
+          alert("No engine readings found.");
         }
-
-        setEngineData(results);
       } catch (err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching engine readings:", err);
       }
     };
 
-    fetchData();
+    fetchLatest();
   }, []);
+
+  // Fetch when user selects a date
+  useEffect(() => {
+    const fetchByDate = async () => {
+      if (!selectedDate) return;
+
+      try {
+        const q = query(
+          collection(db, "engineReadings"),
+          where("date", "==", selectedDate), // filter by chosen date
+        );
+
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const logs = snap.docs.map((doc) => doc.data());
+          setEngineData(logs);
+        } else {
+          setEngineData([]);
+        }
+      } catch (err) {
+        console.error("Error fetching engine readings:", err);
+      }
+    };
+
+    fetchByDate();
+  }, [selectedDate]);
+
+  const downloadJSON = (data) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "engineReadings.json";
+    link.click();
+  };
 
   return (
     <div className="card">
-      <div className="card-header">
-        <h2 className="card-title">Running Hours Dashboard</h2>
+      <div className="card-header flex justify-between items-center">
+        <h2 className="card-title text-lg font-semibold text-blue">
+          Running Hours Dashboard
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => downloadJSON(engineData)}
+            className="btn-primary bg-blue-500 text-white px-3 py-1 rounded"
+          >
+            Export JSON
+          </button>
+        </div>
+        <input
+          type="date"
+          onChange={(e) => setSelectedDate(e.target.value)}
+          className="border p-2 rounded"
+          value={selectedDate || defaultDate}
+        />
       </div>
       <div className="card-content">
         <div className="overflow-x-auto">
-          {Object.keys(engineData).length > 0 ? (
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Engine</th>
-                  <th>Total Hours</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(engineData).map(([id, data]) => (
-                  <tr key={id}>
-                    <td>{id}</td>
-                    <td>{data.total.toFixed(1)}</td>
+          <table className="table w-full text-sm text-center border rounded-lg shadow-md">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="p-2">Date</th>
+                <th className="p-2">Description</th>
+                <th className="p-2">E1</th>
+                <th className="p-2">E2</th>
+                <th className="p-2">E3</th>
+                <th className="p-2">E4</th>
+                <th className="p-2">E5</th>
+              </tr>
+            </thead>
+            <tbody>
+              {engineData.map((entry, entryIdx) => (
+                <React.Fragment key={entryIdx}>
+                  <tr>
+                    <td rowSpan={2} className="p-2 font-medium border">
+                      {entry?.date ?? "--"}
+                    </td>
+                    <td className="p-2 font-semibold border">
+                      {window.innerWidth > 768 ? "Running Hours" : "Rhrs"}
+                    </td>
+                    {entry?.readings?.map((engine, idx) => (
+                      <td
+                        key={`rhrs-${entryIdx}-${idx}`}
+                        className="p-2 border text-center"
+                      >
+                        {engine?.rhrs?.toFixed(2) ?? "--"}
+                      </td>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            "Loading dashboard..."
-          )}
+                  <tr>
+                    <td className="p-2 font-semibold border">
+                      {window.innerWidth > 768 ? "KWH" : "Kwh"}
+                    </td>
+                    {entry?.readings?.map((engine, idx) => (
+                      <td
+                        key={`kwh-${entryIdx}-${idx}`}
+                        className="p-2 border text-center"
+                      >
+                        {engine?.kwh?.toFixed(0) ?? "--"}
+                      </td>
+                    ))}
+                  </tr>
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

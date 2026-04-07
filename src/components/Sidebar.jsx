@@ -165,6 +165,22 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/approval-dashboard",
         },
         {
+          icon: <FaExclamationCircle size={20} />,
+          label: "DATA Download",
+          path: "/data-download",
+        },
+        // json handling
+        {
+          icon: <FaExclamationCircle size={20} />,
+          label: "Mill Records JSON",
+          path: "/mill-records-json",
+        },
+        {
+          icon: <FaExclamationCircle size={20} />,
+          label: "handled Mill Records JSON",
+          path: "/mill-records-json-after-handling",
+        },
+        {
           icon: <FaHourglassHalf size={20} />,
           label: "Pending Sop's",
           path: "/pendingsop",

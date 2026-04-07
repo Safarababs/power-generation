@@ -48,6 +48,10 @@ import ServicesDashboard from "./components/All Dashboards/Services Dashboard/Se
 import UtilityDashboard from "./components/All Dashboards/Utility Dashboard/UtilityDashboard.jsx";
 import ElectricalDashboard from "./components/All Dashboards/Electrical Dashboard/Electrical Dashboard.jsx";
 import VideoLectures from "./components/Knowledge Hub/Video Lectures/VideoLectures.jsx";
+import DataDownload from "./components/Temporary Code/DataDownload.jsx";
+import MillRecordsHumanReadable from "./components/Stoppage Dashboard/JSON Handling/MillRecordHandle.jsx";
+import HandledJsonFeederRecord from "./components/Stoppage Dashboard/JSON Handling/HandledJsonTable.jsx";
+
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
@@ -77,7 +81,6 @@ function App() {
   // ✅ Always at top level
   useEffect(() => {
     if (userProfile) {
-      console.log("User Profile in App:", userProfile);
     }
   }, [userProfile]);
 
@@ -87,7 +90,14 @@ function App() {
       userProfile?.designation === "MO");
 
   if (loadingProfile) {
-    return <div>Loading user profile...</div>;
+    return (
+      <div className=" mainspinner flex justify-center items-center">
+        <div className="spinner"></div>
+        <span className="ml-3 text-white font-medium">
+          Loading Please Wait...
+        </span>
+      </div>
+    );
   }
   return (
     <ThemeProvider>
@@ -233,6 +243,16 @@ function App() {
                         <p>Access denied 🚫</p>
                       )
                     }
+                  />
+                  {/* data download */}
+                  <Route path="/data-download" element={<DataDownload />} />
+                  <Route
+                    path="/mill-records-json"
+                    element={<MillRecordsHumanReadable />}
+                  />
+                  <Route
+                    path="/mill-records-json-after-handling"
+                    element={<HandledJsonFeederRecord />}
                   />
                 </Routes>
               </Layout>

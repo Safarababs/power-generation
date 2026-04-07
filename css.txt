@@ -66,6 +66,20 @@ body {
 }
 
 /* spinner */
+
+.mainspinner {
+  height: 100vh;
+  background: #111827;
+}
+
+.spinner {
+  border: 4px solid var(--border-color);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  animation: spin 1s linear infinite;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -74,6 +88,17 @@ body {
 
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* Error Boundries */
+.border-red-500 {
+  border-color: red;
+  color: white;
+}
+
+.bg-red-50 {
+  background-color: red;
+  columns: white;
 }
 
 /* Utility classes */
@@ -261,6 +286,45 @@ body {
   box-shadow: 0 0 5px var(--primary-color);
 }
 
+/* sop content */
+.sop-content {
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s ease,
+    opacity 0.3s ease;
+  opacity: 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.sop-content.open {
+  max-height: 1000rem; /* large enough to fit content */
+  opacity: 1;
+}
+
+/* Step list styling */
+.sop-steps li {
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--primary-color);
+  margin-bottom: 0.5rem;
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: var(--border-radius);
+  transition: background-color 0.2s ease;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.sop-steps li:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Card hover effect */
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .login-portal {
@@ -288,6 +352,24 @@ body {
   .login-date .time {
     font-size: 1.5rem;
     display: none;
+  }
+
+  .sop-steps li {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+    line-height: 1.4;
+    text-transform: capitalize;
+  }
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .card-header button {
+    margin-top: 0.5rem;
+  }
+  .form-input {
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow);
   }
 }
 
@@ -340,7 +422,9 @@ body {
 
 /* === Navigation === */
 .sidebar-nav {
-  margin-top: 1.5rem;
+  flex: 1;
+  overflow-y: auto; /* enable vertical scroll */
+  max-height: calc(100vh - 4rem);
 }
 
 .sidebar-nav ul {
@@ -1168,4 +1252,26 @@ body {
 }
 .shadow-lg {
   box-shadow: var(--shadow-lg);
+}
+
+/* this is temperary css for sop approvels */
+/* Ensure edit inputs take full width inside list items */
+.list-edit-input {
+  flex: 1;
+  min-width: 600px; /* prevents shrinking */
+}
+
+/* Container for input + buttons */
+.list-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+/* Buttons inside edit mode */
+.list-edit-container .btn {
+  min-width: 80px; /* consistent button width */
+  height: 2.5rem; /* consistent button height */
+  flex-shrink: 0; /* prevent shrinking */
 }
