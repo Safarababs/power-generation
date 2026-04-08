@@ -447,7 +447,7 @@ body {
   cursor: pointer;
   transition: var(--transition);
   font-weight: 600;
-  color: whitesmoke;
+  color: var(--text-primary);
 }
 
 .sidebar-group .group-toggle:hover {

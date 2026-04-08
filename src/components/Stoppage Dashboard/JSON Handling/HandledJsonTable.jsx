@@ -45,7 +45,15 @@ const HandledJsonFeederRecord = () => {
             </thead>
             <tbody>
               {groupedData[millName]
-                .filter((record) => parseFloat(record.totalStop) > 300)
+                // keep only duplicates
+                .filter(
+                  (record, index, self) =>
+                    self.findIndex(
+                      (r) =>
+                        r.stopTime === record.stopTime &&
+                        r.mill === record.mill,
+                    ) !== index,
+                )
                 .map((record, index) => (
                   <tr key={index}>
                     <td>{record.id}</td>

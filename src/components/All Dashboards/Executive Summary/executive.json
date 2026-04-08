@@ -417,7 +417,7 @@
     "id": "X4R9MWrAOJRu5oQLoYAj",
     "mill": "Raw Mill 1",
     "stopTime": "12 January 2026 3:56:00 PM",
-    "startTime": "12 January 2026 10:22:00 PM",
+    "startTime": "17 January 2026 10:22:00 PM",
     "totalStop": "6.43 hrs",
     "rawStop": "2026-01-12T12:56:00.000Z",
     "rawStart": "2026-01-12T19:22:00.000Z"
@@ -719,15 +719,7 @@
     "rawStop": "2026-02-02T15:19:00.000Z",
     "rawStart": "2026-02-03T01:35:00.000Z"
   },
-  {
-    "id": "bwjs5IRZ88UFdvBJGdQe",
-    "mill": "Kiln 2",
-    "stopTime": "30 January 2026 6:30:00 AM",
-    "startTime": "12 February 2026 4:26:00 AM",
-    "totalStop": "309.93 hrs",
-    "rawStop": "2026-01-30T03:30:00.000Z",
-    "rawStart": "2026-02-12T01:26:00.000Z"
-  },
+
   {
     "id": "QWyXWbAS037gdpqXq7L5",
     "mill": "Cement Mill 1",
@@ -25146,7 +25138,15 @@
     "rawStop": "2026-02-02T15:19:00.000Z",
     "rawStart": "2026-02-03T01:35:00.000Z"
   },
-
+  {
+    "id": "kEIh2q3frnswHNcOSIKR",
+    "mill": "Kiln 2",
+    "stopTime": "30 January 2026 6:30:00 AM",
+    "startTime": "12 February 2026 4:26:00 AM",
+    "totalStop": "309.93 hrs",
+    "rawStop": "2026-01-30T03:30:00.000Z",
+    "rawStart": "2026-02-12T01:26:00.000Z"
+  },
   {
     "id": "0q6J3H9r1XhD8qajZuQE",
     "mill": "Raw Mill 1",

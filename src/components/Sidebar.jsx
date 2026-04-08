@@ -63,6 +63,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
         },
         {
           icon: <FaPlug size={20} />,
+          label: "Feeders Executive Summary",
+          path: "/feedersummaryexecutive",
+        },
+        {
+          icon: <FaPlug size={20} />,
           label: "Feeders Tripping record",
           path: "/millstripping",
         },

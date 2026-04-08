@@ -1,0 +1,647 @@
+import React, { useMemo, useState } from "react";
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  CartesianGrid,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const CHART_COLORS = [
+  "var(--primary-color)",
+  "var(--success-color)",
+  "var(--warning-color)",
+  "var(--error-color)",
+  "#8b5cf6",
+  "#14b8a6",
+  "#f97316",
+];
+
+function parseHours(record) {
+  if (typeof record.totalStop === "number") return record.totalStop;
+
+  if (typeof record.totalStop === "string") {
+    const parsed = parseFloat(record.totalStop.replace(/[^\d.]/g, ""));
+    if (!Number.isNaN(parsed)) return parsed;
+  }
+
+  if (record.rawStop && record.rawStart) {
+    const stop = new Date(record.rawStop).getTime();
+    const start = new Date(record.rawStart).getTime();
+
+    if (!Number.isNaN(stop) && !Number.isNaN(start) && start >= stop) {
+      return Number(((start - stop) / (1000 * 60 * 60)).toFixed(2));
+    }
+  }
+
+  return 0;
+}
+
+function normalizeRecord(record) {
+  const stopDate = record.rawStop
+    ? new Date(record.rawStop)
+    : new Date(record.stopTime);
+  const startDate = record.rawStart
+    ? new Date(record.rawStart)
+    : new Date(record.startTime);
+  const hours = parseHours(record);
+  const year = stopDate.getFullYear();
+  const monthIndex = stopDate.getMonth();
+  const month = MONTH_NAMES[monthIndex];
+  const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+  return {
+    ...record,
+    stopDate,
+    startDate,
+    hours,
+    year,
+    monthIndex,
+    month,
+    monthKey,
+    duplicateKey: `${record.mill}__${record.rawStop || record.stopTime}__${record.rawStart || record.startTime}`,
+  };
+}
+
+function formatHours(value) {
+  return `${Number(value || 0).toFixed(2)} hrs`;
+}
+
+function formatMonthLabel(monthKey) {
+  const [year, month] = monthKey.split("-");
+  return `${MONTH_NAMES[Number(month) - 1].slice(0, 3)}-${year}`;
+}
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+
+  return (
+    <div className="card shadow-md p-3" style={{ margin: 0 }}>
+      <p className="text-sm font-semibold mb-2">{label}</p>
+      {payload.map((entry, index) => (
+        <p key={index} className="text-sm" style={{ color: entry.color }}>
+          {entry.name}:{" "}
+          {typeof entry.value === "number"
+            ? entry.value.toFixed(2)
+            : entry.value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+export default function FeedersExecutiveSummary({ data = [] }) {
+  const records = useMemo(() => {
+    const normalized = data
+      .map(normalizeRecord)
+      .filter(
+        (item) =>
+          item.stopDate instanceof Date &&
+          !Number.isNaN(item.stopDate.getTime()),
+      )
+      .sort((a, b) => a.stopDate.getTime() - b.stopDate.getTime());
+
+    const seenDuplicateKeys = new Set();
+    const lastOpenStopByMill = {};
+    const cleaned = [];
+
+    normalized.forEach((item) => {
+      if (seenDuplicateKeys.has(item.duplicateKey)) {
+        return;
+      }
+      seenDuplicateKeys.add(item.duplicateKey);
+
+      const millKey = item.mill;
+      const itemStop = item.stopDate.getTime();
+      const itemStart = item.startDate.getTime();
+      const activeStop = lastOpenStopByMill[millKey];
+
+      if (activeStop && itemStop < activeStop.startDate.getTime()) {
+        return;
+      }
+
+      if (itemStart >= itemStop) {
+        lastOpenStopByMill[millKey] = item;
+        cleaned.push(item);
+      }
+    });
+
+    return cleaned;
+  }, [data]);
+
+  const years = useMemo(() => {
+    return Array.from(new Set(records.map((item) => String(item.year)))).sort();
+  }, [records]);
+
+  const mills = useMemo(() => {
+    return Array.from(new Set(records.map((item) => item.mill))).sort();
+  }, [records]);
+
+  const [filterType, setFilterType] = useState("yearly");
+  const [year, setYear] = useState("");
+  const [month, setMonth] = useState("");
+  const [mill, setMill] = useState("all");
+
+  const filteredRecords = useMemo(() => {
+    return records.filter((item) => {
+      const matchesYear = !year || String(item.year) === year;
+      const matchesMonth = !month || item.monthKey === month;
+      const matchesMill = mill === "all" || item.mill === mill;
+      return matchesYear && matchesMonth && matchesMill;
+    });
+  }, [records, year, month, mill]);
+
+  const summary = useMemo(() => {
+    const totalHours = filteredRecords.reduce(
+      (sum, item) => sum + item.hours,
+      0,
+    );
+    const totalStops = filteredRecords.length;
+    const averageHours = totalStops ? totalHours / totalStops : 0;
+
+    const longestStop =
+      [...filteredRecords].sort((a, b) => b.hours - a.hours)[0] || null;
+
+    const millTotals = filteredRecords.reduce((acc, item) => {
+      if (!acc[item.mill]) {
+        acc[item.mill] = { mill: item.mill, hours: 0, stops: 0 };
+      }
+      acc[item.mill].hours += item.hours;
+      acc[item.mill].stops += 1;
+      return acc;
+    }, {});
+
+    const topMill =
+      Object.values(millTotals).sort((a, b) => b.hours - a.hours)[0] || null;
+
+    return {
+      totalHours: Number(totalHours.toFixed(2)),
+      totalStops,
+      averageHours: Number(averageHours.toFixed(2)),
+      longestStop,
+      topMill,
+    };
+  }, [filteredRecords]);
+
+  const yearlyEngineStyleChart = useMemo(() => {
+    if (!year) return [];
+
+    const months = Array.from({ length: 12 }, (_, index) => ({
+      period: `${year}-${String(index + 1).padStart(2, "0")}`,
+      monthLabel: MONTH_NAMES[index].slice(0, 3),
+      stopHours: 0,
+      stops: 0,
+    }));
+
+    filteredRecords.forEach((item) => {
+      if (String(item.year) === year) {
+        months[item.monthIndex].stopHours += item.hours;
+        months[item.monthIndex].stops += 1;
+      }
+    });
+
+    return months.map((item) => ({
+      ...item,
+      stopHours: Number(item.stopHours.toFixed(2)),
+    }));
+  }, [filteredRecords, year]);
+
+  const monthlyMillChart = useMemo(() => {
+    if (!month) return [];
+
+    const grouped = filteredRecords.reduce((acc, item) => {
+      if (!acc[item.mill]) {
+        acc[item.mill] = {
+          mill: item.mill,
+          stopHours: 0,
+          stops: 0,
+        };
+      }
+      acc[item.mill].stopHours += item.hours;
+      acc[item.mill].stops += 1;
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .sort((a, b) => b.stopHours - a.stopHours)
+      .map((item) => ({
+        ...item,
+        stopHours: Number(item.stopHours.toFixed(2)),
+      }));
+  }, [filteredRecords, month]);
+
+  const allYearSummaryChart = useMemo(() => {
+    const grouped = filteredRecords.reduce((acc, item) => {
+      const key = String(item.year);
+      if (!acc[key]) {
+        acc[key] = {
+          period: key,
+          stopHours: 0,
+          stops: 0,
+        };
+      }
+      acc[key].stopHours += item.hours;
+      acc[key].stops += 1;
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .sort((a, b) => a.period.localeCompare(b.period))
+      .map((item) => ({
+        ...item,
+        stopHours: Number(item.stopHours.toFixed(2)),
+      }));
+  }, [filteredRecords]);
+
+  const yearlyTrend = useMemo(() => {
+    const grouped = filteredRecords.reduce((acc, item) => {
+      if (!acc[item.monthKey]) {
+        acc[item.monthKey] = {
+          label: formatMonthLabel(item.monthKey),
+          monthKey: item.monthKey,
+          stopHours: 0,
+          stops: 0,
+        };
+      }
+      acc[item.monthKey].stopHours += item.hours;
+      acc[item.monthKey].stops += 1;
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+      .map((item) => ({
+        ...item,
+        stopHours: Number(item.stopHours.toFixed(2)),
+      }));
+  }, [filteredRecords]);
+
+  const millShareData = useMemo(() => {
+    const grouped = filteredRecords.reduce((acc, item) => {
+      if (!acc[item.mill]) {
+        acc[item.mill] = { name: item.mill, value: 0 };
+      }
+      acc[item.mill].value += item.hours;
+      return acc;
+    }, {});
+
+    return Object.values(grouped)
+      .sort((a, b) => b.value - a.value)
+      .map((item) => ({ ...item, value: Number(item.value.toFixed(2)) }));
+  }, [filteredRecords]);
+
+  const topRecords = useMemo(() => {
+    return [...filteredRecords].sort((a, b) => b.hours - a.hours).slice(0, 50);
+  }, [filteredRecords]);
+
+  const selectedYearlyTitle = year
+    ? `Yearly Record - ${year}`
+    : "Yearly Record";
+  const selectedMonthTitle = month
+    ? `Monthly Record - ${formatMonthLabel(month)}`
+    : "Monthly Record";
+
+  return (
+    <div className="card fade-in">
+      <div className="card-header flex justify-between items-center">
+        <h2 className="card-title">Mill Executive Summary</h2>
+      </div>
+
+      <div className="card-content flex flex-wrap gap-3 items-center border-b">
+        <div className="flex space-x-2">
+          {["yearly", "monthly", "all"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`btn ${filterType === type ? "btn-primary" : ""}`}
+            >
+              {type.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        <select
+          value={year}
+          onChange={(e) => {
+            setYear(e.target.value);
+            if (month && e.target.value && !month.startsWith(e.target.value)) {
+              setMonth("");
+            }
+          }}
+          className="form-select input-date"
+        >
+          <option value="">All Years</option>
+          {years.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+          className="form-select input-date"
+        >
+          <option value="">All Months</option>
+          {records
+            .filter((item) => !year || String(item.year) === year)
+            .map((item) => item.monthKey)
+            .filter((value, index, array) => array.indexOf(value) === index)
+            .sort()
+            .map((item) => (
+              <option key={item} value={item}>
+                {formatMonthLabel(item)}
+              </option>
+            ))}
+        </select>
+
+        <select
+          value={mill}
+          onChange={(e) => setMill(e.target.value)}
+          className="form-select input-date"
+        >
+          <option value="all">All Mills</option>
+          {mills.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="card-content">
+        <div className="grid grid-cols-4 gap-4">
+          <div className="card">
+            <div className="card-content">
+              <p className="text-sm text-secondary">Total Stop Hours</p>
+              <h3 className="text-2xl font-bold text-blue mt-2">
+                {formatHours(summary.totalHours)}
+              </h3>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-content">
+              <p className="text-sm text-secondary">Total Records</p>
+              <h3 className="text-2xl font-bold text-green mt-2">
+                {summary.totalStops}
+              </h3>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-content">
+              <p className="text-sm text-secondary">Average Stop</p>
+              <h3 className="text-2xl font-bold text-yellow mt-2">
+                {formatHours(summary.averageHours)}
+              </h3>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-content">
+              <p className="text-sm text-secondary">Top Mill</p>
+              <h3 className="text-lg font-bold text-red mt-2">
+                {summary.topMill ? summary.topMill.mill : "No Data"}
+              </h3>
+              <p className="text-sm text-secondary mt-1">
+                {summary.topMill ? formatHours(summary.topMill.hours) : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {filterType === "yearly" && year && yearlyEngineStyleChart.length > 0 && (
+        <div className="card-content chart-container">
+          <h3 className="card-title mb-3">{selectedYearlyTitle}</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={yearlyEngineStyleChart}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--border-color)"
+              />
+              <XAxis dataKey="monthLabel" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="stopHours"
+                name="Stop Hours"
+                fill="var(--error-color)"
+              />
+              <Bar
+                dataKey="stops"
+                name="Stop Count"
+                fill="var(--success-color)"
+              />
+              <Line
+                type="monotone"
+                dataKey="stopHours"
+                name="Hours Trend"
+                stroke="var(--error-color)"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="stops"
+                name="Stops Trend"
+                stroke="var(--success-color)"
+                strokeWidth={2}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {filterType === "monthly" && month && monthlyMillChart.length > 0 && (
+        <div className="card-content chart-container">
+          <h3 className="card-title mb-3">{selectedMonthTitle}</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={monthlyMillChart}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--border-color)"
+              />
+              <XAxis dataKey="mill" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="stopHours"
+                name="Stop Hours"
+                fill="var(--warning-color)"
+              />
+              <Bar
+                dataKey="stops"
+                name="Stop Count"
+                fill="var(--primary-color)"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {filterType === "all" && allYearSummaryChart.length > 0 && (
+        <div className="card-content chart-container">
+          <h3 className="card-title mb-3">All Years Summary</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={allYearSummaryChart}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--border-color)"
+              />
+              <XAxis dataKey="period" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="stopHours"
+                name="Stop Hours"
+                fill="var(--primary-color)"
+              />
+              <Bar
+                dataKey="stops"
+                name="Stop Count"
+                fill="var(--success-color)"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      <div className="card-content">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Monthly Trend</h3>
+            </div>
+            <div className="card-content chart-container">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={yearlyTrend}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="var(--border-color)"
+                  />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="stopHours"
+                    name="Stop Hours"
+                    stroke="var(--primary-color)"
+                    strokeWidth={3}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="stops"
+                    name="Stop Count"
+                    stroke="var(--success-color)"
+                    strokeWidth={3}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Mill Share by Stop Hours</h3>
+            </div>
+            <div className="card-content chart-container">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={millShareData}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={85}
+                    label
+                  >
+                    {millShareData.map((entry, index) => (
+                      <Cell
+                        key={entry.name}
+                        fill={CHART_COLORS[index % CHART_COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card-content overflow-x-auto">
+        <div className="alert alert-info">
+          <strong>Data Cleaning Applied:</strong> exact duplicate rows are
+          skipped when the same mill has the same stop time and start time more
+          than once. Also, if a mill already has an active stop, any new stop
+          before that previous start is ignored.
+        </div>
+
+        <div className="alert alert-success">
+          <strong>Longest Stop:</strong>{" "}
+          {summary.longestStop
+            ? `${summary.longestStop.mill} - ${formatHours(summary.longestStop.hours)} - ${summary.longestStop.month} ${summary.longestStop.year}`
+            : "No record found"}
+        </div>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Mill</th>
+              <th>Year</th>
+              <th>Month</th>
+              <th className="text-red">Stop Hours</th>
+              <th>Stop Time</th>
+              <th>Start Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {topRecords.map((item) => (
+              <tr key={item.id}>
+                <td>{item.mill}</td>
+                <td>{item.year}</td>
+                <td>{item.month}</td>
+                <td className="text-red font-semibold">
+                  {formatHours(item.hours)}
+                </td>
+                <td>{item.stopTime}</td>
+                <td>{item.startTime}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

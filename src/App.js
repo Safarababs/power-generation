@@ -51,7 +51,8 @@ import VideoLectures from "./components/Knowledge Hub/Video Lectures/VideoLectur
 import DataDownload from "./components/Temporary Code/DataDownload.jsx";
 import MillRecordsHumanReadable from "./components/Stoppage Dashboard/JSON Handling/MillRecordHandle.jsx";
 import HandledJsonFeederRecord from "./components/Stoppage Dashboard/JSON Handling/HandledJsonTable.jsx";
-
+import FeedersExecutiveSummary from "./components/All Dashboards/Executive Summary/FeedersExecutiveSummary.jsx";
+import data from "./components/All Dashboards/Executive Summary/executive1.json";
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
@@ -192,6 +193,15 @@ function App() {
                   <Route
                     path="/millstripping"
                     element={<MillRecordsTable currentUser={userProfile} />}
+                  />
+                  <Route
+                    path="/feedersummaryexecutive"
+                    element={
+                      <FeedersExecutiveSummary
+                        currentUser={userProfile}
+                        data={data}
+                      />
+                    }
                   />
 
                   {/* SOPs */}
