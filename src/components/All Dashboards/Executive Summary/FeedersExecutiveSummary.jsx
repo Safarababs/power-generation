@@ -327,7 +327,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
   return (
     <div className="card fade-in">
       <div className="card-header flex justify-between items-center">
-        <h2 className="card-title">Mill Executive Summary</h2>
+        <h2 className="text-2xl font-bold">Feeder's Executive Summary</h2>
       </div>
 
       <div className="card-content flex flex-wrap gap-3 items-center border-b">

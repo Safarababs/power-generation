@@ -70,26 +70,28 @@ const SOPsComponent = ({ currentUser }) => {
             <div key={sop.id} className="mb-4 border-b pb-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">{sop.title}</span>
-                <button
-                  onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
-                  className="p-1 rounded hover:bg-gray-200"
-                >
-                  {openId === sop.id ? <FaMinus /> : <FaPlus />}
-                </button>
-                <PDFDownloadLink
-                  document={<SOPPDF sop={sop} />}
-                  fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
-                >
-                  {({ loading }) =>
-                    loading ? (
-                      <span className="text-gray-500">Preparing...</span>
-                    ) : (
-                      <button className="btn-primary text-sm">
-                        Download PDF
-                      </button>
-                    )
-                  }
-                </PDFDownloadLink>
+                <div>
+                  <button
+                    onClick={() => setOpenId(openId === sop.id ? null : sop.id)}
+                    className="p-1 rounded hover:bg-gray-200"
+                  >
+                    {openId === sop.id ? <FaMinus /> : <FaPlus />}
+                  </button>
+                  <PDFDownloadLink
+                    document={<SOPPDF sop={sop} />}
+                    fileName={`${sop.title.replace(/\s+/g, "_")}.pdf`}
+                  >
+                    {({ loading }) =>
+                      loading ? (
+                        <span className="text-gray-500">Preparing...</span>
+                      ) : (
+                        <button className="btn-primary text-sm">
+                          Download PDF
+                        </button>
+                      )
+                    }
+                  </PDFDownloadLink>
+                </div>
               </div>
 
               {openId === sop.id && (

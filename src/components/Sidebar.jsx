@@ -276,6 +276,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
             path: "/DashboardLayout",
           },
           {
+            icon: <FaPlug size={20} />,
+            label: "Feeders Executive Summary",
+            path: "/feedersummaryexecutive",
+          },
+          {
             icon: <FaCogs size={20} />,
             label: "Parameters Summary",
             path: "/summery",
