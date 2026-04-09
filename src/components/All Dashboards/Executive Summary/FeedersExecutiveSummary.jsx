@@ -14,6 +14,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import MillStatusBoard from "../../Daily Readings/Feeders Stoppage/MillStatusBoard";
 
 const MONTH_NAMES = [
   "January",
@@ -325,323 +326,329 @@ export default function FeedersExecutiveSummary({ data = [] }) {
     : "Monthly Record";
 
   return (
-    <div className="card fade-in">
-      <div className="card-header flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Feeder's Executive Summary</h2>
-      </div>
-
-      <div className="card-content flex flex-wrap gap-3 items-center border-b">
-        <div className="flex space-x-2">
-          {["yearly", "monthly", "all"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`btn ${filterType === type ? "btn-primary" : ""}`}
-            >
-              {type.toUpperCase()}
-            </button>
-          ))}
+    <>
+      <MillStatusBoard />
+      <div className="card fade-in">
+        <div className="card-header flex justify-between items-center">
+          <h2 className="text-2xl font-bold">Feeder's Executive Summary</h2>
         </div>
 
-        <select
-          value={year}
-          onChange={(e) => {
-            setYear(e.target.value);
-            if (month && e.target.value && !month.startsWith(e.target.value)) {
-              setMonth("");
-            }
-          }}
-          className="form-select input-date"
-        >
-          <option value="">All Years</option>
-          {years.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
+        <div className="card-content flex flex-wrap gap-3 items-center border-b">
+          <div className="flex space-x-2">
+            {["yearly", "monthly", "all"].map((type) => (
+              <button
+                key={type}
+                onClick={() => setFilterType(type)}
+                className={`btn ${filterType === type ? "btn-primary" : ""}`}
+              >
+                {type.toUpperCase()}
+              </button>
+            ))}
+          </div>
 
-        <select
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="form-select input-date"
-        >
-          <option value="">All Months</option>
-          {records
-            .filter((item) => !year || String(item.year) === year)
-            .map((item) => item.monthKey)
-            .filter((value, index, array) => array.indexOf(value) === index)
-            .sort()
-            .map((item) => (
+          <select
+            value={year}
+            onChange={(e) => {
+              setYear(e.target.value);
+              if (
+                month &&
+                e.target.value &&
+                !month.startsWith(e.target.value)
+              ) {
+                setMonth("");
+              }
+            }}
+            className="form-select input-date"
+          >
+            <option value="">All Years</option>
+            {years.map((item) => (
               <option key={item} value={item}>
-                {formatMonthLabel(item)}
+                {item}
               </option>
             ))}
-        </select>
+          </select>
 
-        <select
-          value={mill}
-          onChange={(e) => setMill(e.target.value)}
-          className="form-select input-date"
-        >
-          <option value="all">All Mills</option>
-          {mills.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
-          ))}
-        </select>
-      </div>
+          <select
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="form-select input-date"
+          >
+            <option value="">All Months</option>
+            {records
+              .filter((item) => !year || String(item.year) === year)
+              .map((item) => item.monthKey)
+              .filter((value, index, array) => array.indexOf(value) === index)
+              .sort()
+              .map((item) => (
+                <option key={item} value={item}>
+                  {formatMonthLabel(item)}
+                </option>
+              ))}
+          </select>
 
-      <div className="card-content">
-        <div className="grid grid-cols-4 gap-4">
-          <div className="card">
-            <div className="card-content">
-              <p className="text-sm text-secondary">Total Stop Hours</p>
-              <h3 className="text-2xl font-bold text-blue mt-2">
-                {formatHours(summary.totalHours)}
-              </h3>
+          <select
+            value={mill}
+            onChange={(e) => setMill(e.target.value)}
+            className="form-select input-date"
+          >
+            <option value="all">All Mills</option>
+            {mills.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="card-content">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="card">
+              <div className="card-content">
+                <p className="text-sm text-secondary">Total Stop Hours</p>
+                <h3 className="text-2xl font-bold text-blue mt-2">
+                  {formatHours(summary.totalHours)}
+                </h3>
+              </div>
             </div>
-          </div>
 
-          <div className="card">
-            <div className="card-content">
-              <p className="text-sm text-secondary">Total Records</p>
-              <h3 className="text-2xl font-bold text-green mt-2">
-                {summary.totalStops}
-              </h3>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-sm text-secondary">Total Records</p>
+                <h3 className="text-2xl font-bold text-green mt-2">
+                  {summary.totalStops}
+                </h3>
+              </div>
             </div>
-          </div>
 
-          <div className="card">
-            <div className="card-content">
-              <p className="text-sm text-secondary">Average Stop</p>
-              <h3 className="text-2xl font-bold text-yellow mt-2">
-                {formatHours(summary.averageHours)}
-              </h3>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-sm text-secondary">Average Stop</p>
+                <h3 className="text-2xl font-bold text-yellow mt-2">
+                  {formatHours(summary.averageHours)}
+                </h3>
+              </div>
             </div>
-          </div>
 
-          <div className="card">
-            <div className="card-content">
-              <p className="text-sm text-secondary">Top Mill</p>
-              <h3 className="text-lg font-bold text-red mt-2">
-                {summary.topMill ? summary.topMill.mill : "No Data"}
-              </h3>
-              <p className="text-sm text-secondary mt-1">
-                {summary.topMill ? formatHours(summary.topMill.hours) : ""}
-              </p>
+            <div className="card">
+              <div className="card-content">
+                <p className="text-sm text-secondary">Top Mill</p>
+                <h3 className="text-lg font-bold text-red mt-2">
+                  {summary.topMill ? summary.topMill.mill : "No Data"}
+                </h3>
+                <p className="text-sm text-secondary mt-1">
+                  {summary.topMill ? formatHours(summary.topMill.hours) : ""}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {filterType === "yearly" && year && yearlyEngineStyleChart.length > 0 && (
-        <div className="card-content chart-container">
-          <h3 className="card-title mb-3">{selectedYearlyTitle}</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={yearlyEngineStyleChart}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border-color)"
-              />
-              <XAxis dataKey="monthLabel" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar
-                dataKey="stopHours"
-                name="Stop Hours"
-                fill="var(--error-color)"
-              />
-              <Bar
-                dataKey="stops"
-                name="Stop Count"
-                fill="var(--success-color)"
-              />
-              <Line
-                type="monotone"
-                dataKey="stopHours"
-                name="Hours Trend"
-                stroke="var(--error-color)"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="stops"
-                name="Stops Trend"
-                stroke="var(--success-color)"
-                strokeWidth={2}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {filterType === "monthly" && month && monthlyMillChart.length > 0 && (
-        <div className="card-content chart-container">
-          <h3 className="card-title mb-3">{selectedMonthTitle}</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyMillChart}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border-color)"
-              />
-              <XAxis dataKey="mill" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar
-                dataKey="stopHours"
-                name="Stop Hours"
-                fill="var(--warning-color)"
-              />
-              <Bar
-                dataKey="stops"
-                name="Stop Count"
-                fill="var(--primary-color)"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      {filterType === "all" && allYearSummaryChart.length > 0 && (
-        <div className="card-content chart-container">
-          <h3 className="card-title mb-3">All Years Summary</h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={allYearSummaryChart}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="var(--border-color)"
-              />
-              <XAxis dataKey="period" />
-              <YAxis />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend />
-              <Bar
-                dataKey="stopHours"
-                name="Stop Hours"
-                fill="var(--primary-color)"
-              />
-              <Bar
-                dataKey="stops"
-                name="Stop Count"
-                fill="var(--success-color)"
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      <div className="card-content">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">Monthly Trend</h3>
-            </div>
+        {filterType === "yearly" &&
+          year &&
+          yearlyEngineStyleChart.length > 0 && (
             <div className="card-content chart-container">
+              <h3 className="card-title mb-3">{selectedYearlyTitle}</h3>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={yearlyTrend}>
+                <BarChart data={yearlyEngineStyleChart}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="var(--border-color)"
                   />
-                  <XAxis dataKey="label" />
+                  <XAxis dataKey="monthLabel" />
                   <YAxis />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
+                  <Bar
+                    dataKey="stopHours"
+                    name="Stop Hours"
+                    fill="var(--error-color)"
+                  />
+                  <Bar
+                    dataKey="stops"
+                    name="Stop Count"
+                    fill="var(--success-color)"
+                  />
                   <Line
                     type="monotone"
                     dataKey="stopHours"
-                    name="Stop Hours"
-                    stroke="var(--primary-color)"
-                    strokeWidth={3}
+                    name="Hours Trend"
+                    stroke="var(--error-color)"
+                    strokeWidth={2}
                   />
                   <Line
                     type="monotone"
                     dataKey="stops"
-                    name="Stop Count"
+                    name="Stops Trend"
                     stroke="var(--success-color)"
-                    strokeWidth={3}
+                    strokeWidth={2}
                   />
-                </LineChart>
+                </BarChart>
               </ResponsiveContainer>
             </div>
+          )}
+
+        {filterType === "monthly" && month && monthlyMillChart.length > 0 && (
+          <div className="card-content chart-container">
+            <h3 className="card-title mb-3">{selectedMonthTitle}</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyMillChart}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--border-color)"
+                />
+                <XAxis dataKey="mill" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Bar
+                  dataKey="stopHours"
+                  name="Stop Hours"
+                  fill="var(--warning-color)"
+                />
+                <Bar
+                  dataKey="stops"
+                  name="Stop Count"
+                  fill="var(--primary-color)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {filterType === "all" && allYearSummaryChart.length > 0 && (
+          <div className="card-content chart-container">
+            <h3 className="card-title mb-3">All Years Summary</h3>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={allYearSummaryChart}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--border-color)"
+                />
+                <XAxis dataKey="period" />
+                <YAxis />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Bar
+                  dataKey="stopHours"
+                  name="Stop Hours"
+                  fill="var(--primary-color)"
+                />
+                <Bar
+                  dataKey="stops"
+                  name="Stop Count"
+                  fill="var(--success-color)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        <div className="card-content">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Monthly Trend</h3>
+              </div>
+              <div className="card-content chart-container">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={yearlyTrend}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--border-color)"
+                    />
+                    <XAxis dataKey="label" />
+                    <YAxis />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="stopHours"
+                      name="Stop Hours"
+                      stroke="var(--primary-color)"
+                      strokeWidth={3}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="stops"
+                      name="Stop Count"
+                      stroke="var(--success-color)"
+                      strokeWidth={3}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Mill Share by Stop Hours</h3>
+              </div>
+              <div className="card-content chart-container">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={millShareData}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={85}
+                      label
+                    >
+                      {millShareData.map((entry, index) => (
+                        <Cell
+                          key={entry.name}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card-content overflow-x-auto">
+          <div className="alert alert-success">
+            <strong>⛔Longest Stop:</strong>{" "}
+            {summary.longestStop
+              ? `${summary.longestStop.mill} - ${formatHours(summary.longestStop.hours)} - ${summary.longestStop.month} ${summary.longestStop.year}`
+              : "No record found"}
+          </div>
+          <div className="alert alert-info">
+            <strong>Note:</strong> If a mill stopped and started in the next
+            month, it is counted as a stop for the month it stopped.
           </div>
 
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">Mill Share by Stop Hours</h3>
-            </div>
-            <div className="card-content chart-container">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={millShareData}
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={85}
-                    label
-                  >
-                    {millShareData.map((entry, index) => (
-                      <Cell
-                        key={entry.name}
-                        fill={CHART_COLORS[index % CHART_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="card-content overflow-x-auto">
-        <div className="alert alert-info">
-          <strong>Data Cleaning Applied:</strong> exact duplicate rows are
-          skipped when the same mill has the same stop time and start time more
-          than once. Also, if a mill already has an active stop, any new stop
-          before that previous start is ignored.
-        </div>
-
-        <div className="alert alert-success">
-          <strong>Longest Stop:</strong>{" "}
-          {summary.longestStop
-            ? `${summary.longestStop.mill} - ${formatHours(summary.longestStop.hours)} - ${summary.longestStop.month} ${summary.longestStop.year}`
-            : "No record found"}
-        </div>
-
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Mill</th>
-              <th>Year</th>
-              <th>Month</th>
-              <th className="text-red">Stop Hours</th>
-              <th>Stop Time</th>
-              <th>Start Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            {topRecords.map((item) => (
-              <tr key={item.id}>
-                <td>{item.mill}</td>
-                <td>{item.year}</td>
-                <td>{item.month}</td>
-                <td className="text-red font-semibold">
-                  {formatHours(item.hours)}
-                </td>
-                <td>{item.stopTime}</td>
-                <td>{item.startTime}</td>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Mill</th>
+                <th>Year</th>
+                <th>Month</th>
+                <th className="text-red">Stop Hours</th>
+                <th>Stop Time</th>
+                <th>Start Time</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {topRecords.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.mill}</td>
+                  <td>{item.year}</td>
+                  <td>{item.month}</td>
+                  <td className="text-red font-semibold">
+                    {formatHours(item.hours)}
+                  </td>
+                  <td>{item.stopTime}</td>
+                  <td>{item.startTime}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

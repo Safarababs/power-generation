@@ -25,7 +25,7 @@ import FullPixelInventory from "./components/Temporary Code/GooglePixel";
 import FeedersTripping from "./pages/Feeders Tripping.jsx";
 import { FeedersTrippingProvider } from "./context/Feeders Tripping Data.jsx";
 import SOPsComponent from "./components/Knowledge Hub/SOP/SOP's.jsx";
-import MillRecordForm from "./components/Daily Readings/Feeders Stoppage/Feeder-tripping.jsx";
+import MillStatusForm from "./components/Daily Readings/Feeders Stoppage/MillStatusForm.jsx";
 import MillRecordsTable from "./components/Stoppage Dashboard/millstripping.jsx";
 import DashboardLayout from "./pages/DashboardLayoutHours.jsx";
 import EngineLogForm from "./components/Daily Readings/Egnien Start  Stop/EngineLogForm.jsx";
@@ -188,7 +188,7 @@ function App() {
                   <Route path="/wash-logs" element={<WashLogForm />} />
                   <Route
                     path="/mills-tripping-record"
-                    element={<MillRecordForm currentUser={userProfile} />}
+                    element={<MillStatusForm currentUser={userProfile} />}
                   />
                   <Route
                     path="/millstripping"
