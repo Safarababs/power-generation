@@ -164,11 +164,11 @@ export default function MillStatusBoard() {
               </small>
             ) : null}
 
-            {!isMobile ? (
+            {/* {!isMobile ? (
               <small style={{ fontSize: "11px", opacity: 0.8 }}>
                 {mill.createdBy || "--"}
               </small>
-            ) : null}
+            ) : null} */}
           </div>
         );
       })}

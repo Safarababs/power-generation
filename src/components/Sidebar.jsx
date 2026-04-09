@@ -543,9 +543,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           <div className="sidebar-logo-icon">
             <FaBolt size={18} />
           </div>
-          {!collapsed && (
-            <span className="font-bold text-lg">NAS PG Samawa</span>
-          )}
+          {!collapsed && <span className="font-bold text-lg">NAS PG-IPS</span>}
         </div>
       </div>
 
