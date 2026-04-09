@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "../../FIrestore/firebase";
 
-const MILL_NAMES = ["CM1", "CM2", "CM3", "RM1", "RM2", "KILN1", "KILN2"];
+const MILL_NAMES = ["KILN1", "KILN2", "RM1", "RM2", "CM1", "CM2", "CM3"];
 
 const formatReadableDate = (value) => {
   if (!value) return "--";
