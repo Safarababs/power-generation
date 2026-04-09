@@ -15,11 +15,11 @@ const AuthPortal = () => {
     <div className="login-portal">
       {/* Left side: Branding + Date/Time */}
       <div className="login-date fade-in">
-        <h1 className="org-title pulse">
-          Welcome To
-          <br /> NAS Power Generation
+        <h1 className="org-title">
+          <span className="pulse">Welcome </span>To
+          <br /> <span>NAS PG-IPS</span>
         </h1>
-        <div className="time pulse">
+        <div className="time">
           {dateTime.toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",

@@ -194,7 +194,7 @@ body {
   flex-direction: column;
   justify-content: center;
   padding: 3rem;
-  color: white;
+  color: var(--text-primary);
 }
 
 .login-date .org-title {
@@ -209,6 +209,7 @@ body {
   opacity: 0.85;
   margin-bottom: 2rem;
   text-align: center;
+  color: red;
 }
 
 .login-date .time {

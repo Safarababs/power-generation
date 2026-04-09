@@ -170,6 +170,17 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/approval-dashboard",
         },
         {
+          icon: <FaExclamationTriangle size={20} />,
+          label: "Equipement Status Form",
+          path: "/equipment-status",
+        },
+        // equipment status dashboard
+        {
+          icon: <FaExclamationTriangle size={20} />,
+          label: "Equipment Status",
+          path: "/equipment-dashboard",
+        },
+        {
           icon: <FaExclamationCircle size={20} />,
           label: "DATA Download",
           path: "/data-download",

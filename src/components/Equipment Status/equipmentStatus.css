@@ -1,0 +1,250 @@
+.eqs-page {
+  width: 100%;
+}
+
+.eqs-two-window-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.eqs-dashboard-section {
+  margin-top: 1rem;
+}
+
+.eqs-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.eqs-card-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.eqs-card-body {
+  padding: 1rem;
+}
+
+.eqs-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.eqs-subtitle {
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.eqs-form-group {
+  margin-bottom: 1rem;
+}
+
+.eqs-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.eqs-input,
+.eqs-select,
+.eqs-textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--surface-color);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.eqs-input:focus,
+.eqs-select:focus,
+.eqs-textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.eqs-btn {
+  width: 100%;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 0.85rem 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.eqs-btn:hover {
+  background: var(--primary-hover);
+}
+
+.eqs-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.eqs-btn-loader-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.eqs-message {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: var(--border-radius);
+  color: var(--text-primary);
+}
+
+.eqs-equipment-list {
+  margin-top: 1rem;
+  max-height: 450px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eqs-equipment-item {
+  text-align: left;
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--surface-color);
+  cursor: pointer;
+  color: var(--text-primary);
+  transition: 0.2s ease;
+}
+
+.eqs-equipment-item:hover,
+.eqs-equipment-item.active {
+  border-color: var(--primary-color);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.eqs-page-heading {
+  margin-bottom: 1rem;
+}
+
+.eqs-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.eqs-page-subtitle {
+  margin-top: 0.35rem;
+  color: var(--text-secondary);
+}
+
+.eqs-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eqs-kpi-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.eqs-kpi-card h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.eqs-kpi-card span {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.eqs-kpi-ok {
+  border-left: 4px solid var(--success-color);
+}
+
+.eqs-kpi-warning {
+  border-left: 4px solid var(--warning-color);
+}
+
+.eqs-kpi-critical {
+  border-left: 4px solid var(--error-color);
+}
+
+.eqs-management-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eqs-alert-item {
+  padding: 0.85rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 0.75rem;
+}
+
+.eqs-critical-item {
+  background: rgba(239, 68, 68, 0.08);
+  border-left: 4px solid var(--error-color);
+}
+
+.eqs-warning-item {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 4px solid var(--warning-color);
+}
+
+.eqs-alert-item p {
+  margin: 0.25rem 0 0 0;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.eqs-table-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.eqs-search-input {
+  max-width: 340px;
+}
+
+.eqs-table-wrap {
+  overflow-x: auto;
+}
+
+@media (max-width: 992px) {
+  .eqs-two-window-grid,
+  .eqs-management-grid,
+  .eqs-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .eqs-table-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .eqs-search-input {
+    max-width: 100%;
+  }
+}

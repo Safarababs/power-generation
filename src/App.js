@@ -53,6 +53,9 @@ import MillRecordsHumanReadable from "./components/Stoppage Dashboard/JSON Handl
 import HandledJsonFeederRecord from "./components/Stoppage Dashboard/JSON Handling/HandledJsonTable.jsx";
 import FeedersExecutiveSummary from "./components/All Dashboards/Executive Summary/FeedersExecutiveSummary.jsx";
 import data from "./components/All Dashboards/Executive Summary/executive1.json";
+import EquipmentPage from "./components/Equipment Status/EquipmentPage.jsx";
+import EquipmentDashboard from "./components/Equipment Status/EquipmentDashboard.jsx";
+
 function App() {
   const auth = getAuth();
   const [user, setUser] = useState(null);
@@ -202,6 +205,16 @@ function App() {
                         data={data}
                       />
                     }
+                  />
+                  {/* equipment-status */}
+                  <Route
+                    path="/equipment-status"
+                    element={<EquipmentPage currentUser={userProfile} />}
+                  />
+                  {/* equipment-dashboard */}
+                  <Route
+                    path="/equipment-dashboard"
+                    element={<EquipmentDashboard currentUser={userProfile} />}
                   />
 
                   {/* SOPs */}
