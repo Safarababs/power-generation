@@ -527,6 +527,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
       icon: <FaCog size={16} />,
       items: [
         {
+          icon: <FaCheckCircle size={20} />,
+          label: "Equipment Status",
+          path: "/equipment-dashboard",
+        },
+        {
           icon: <FaExclamationCircle size={20} />,
           label: "Alerts Approval",
           path: "/alerts-approval",
