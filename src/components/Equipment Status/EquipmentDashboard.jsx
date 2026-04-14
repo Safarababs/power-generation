@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { db } from "../FIrestore/firebase";
 
 function formatDate(value) {
@@ -14,11 +22,20 @@ export default function EquipmentDashboard() {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState("");
   const [activeKpi, setActiveKpi] = useState("Running");
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({
+    equipmentName: "",
+    mode: "",
+    status: "",
+    remarks: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     const q = query(
       collection(db, "equipment_status"),
-      orderBy("createdAt", "desc"),
+      orderBy("createdAt", "asc"),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -110,6 +127,74 @@ export default function EquipmentDashboard() {
     });
   }, [records, search, selectedKpi]);
 
+  const startEdit = (item) => {
+    setEditingId(item.id);
+    setEditForm({
+      equipmentName: item.equipmentName || "",
+      mode: item.mode || "",
+      status: item.status || "",
+      remarks: item.remarks || "",
+    });
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({
+      equipmentName: "",
+      mode: "",
+      status: "",
+      remarks: "",
+    });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const saveEdit = async (id) => {
+    try {
+      setSaving(true);
+
+      await updateDoc(doc(db, "equipment_status", id), {
+        equipmentName: editForm.equipmentName,
+        mode: editForm.mode,
+        status: editForm.status,
+        remarks: editForm.remarks,
+      });
+
+      cancelEdit();
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to update equipment.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this record?",
+    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+      await deleteDoc(doc(db, "equipment_status", id));
+
+      if (editingId === id) {
+        cancelEdit();
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete equipment.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="eqs-dashboard-wrap">
       <div className="eqs-page-heading">
@@ -164,51 +249,159 @@ export default function EquipmentDashboard() {
                 <th>Status</th>
                 <th>Remarks</th>
                 <th>Time</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center">
+                  <td colSpan="7" className="text-center">
                     No data found
                   </td>
                 </tr>
               ) : (
-                filteredRecords.map((item, index) => (
-                  <tr key={item.id}>
-                    <td>{index + 1}</td>
-                    <td>{item.equipmentName}</td>
+                filteredRecords.map((item, index) => {
+                  const isEditing = editingId === item.id;
 
-                    {/* Mode remains based on actual mode */}
-                    <td>
-                      {item.mode === "R"
-                        ? "Running"
-                        : item.mode === "SB"
-                          ? "Stand By"
-                          : item.mode === "UM"
-                            ? "Under Maintenance"
-                            : item.mode}
-                    </td>
+                  return (
+                    <tr key={item.id}>
+                      <td>{index + 1}</td>
 
-                    {/* Status remains separate */}
-                    <td>
-                      <span
-                        className={
-                          item.status === "Critical"
-                            ? "status-badge status-critical"
-                            : item.status === "Warning"
-                              ? "status-badge status-warning"
-                              : "status-badge status-online"
-                        }
-                      >
-                        {item.status || "Ok"}
-                      </span>
-                    </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            className="eqs-input"
+                            value={editForm.equipmentName}
+                            onChange={(e) =>
+                              handleEditChange("equipmentName", e.target.value)
+                            }
+                          />
+                        ) : (
+                          item.equipmentName
+                        )}
+                      </td>
 
-                    <td>{item.remarks || "-"}</td>
-                    <td>{formatDate(item.createdAt)}</td>
-                  </tr>
-                ))
+                      <td>
+                        {isEditing ? (
+                          <select
+                            className="eqs-select"
+                            value={editForm.mode}
+                            onChange={(e) =>
+                              handleEditChange("mode", e.target.value)
+                            }
+                          >
+                            <option value="R">Running</option>
+                            <option value="SB">Stand By</option>
+                            <option value="UM">Under Maintenance</option>
+                            <option value="A">Auto</option>
+                            <option value="M">Manual</option>
+                          </select>
+                        ) : item.mode === "R" ? (
+                          "Running"
+                        ) : item.mode === "SB" ? (
+                          "Stand By"
+                        ) : item.mode === "UM" ? (
+                          "Under Maintenance"
+                        ) : (
+                          item.mode
+                        )}
+                      </td>
+
+                      <td>
+                        {isEditing ? (
+                          <select
+                            className="eqs-select"
+                            value={editForm.status}
+                            onChange={(e) =>
+                              handleEditChange("status", e.target.value)
+                            }
+                          >
+                            <option value="Ok">Ok</option>
+                            <option value="Warning">Warning</option>
+                            <option value="Critical">Critical</option>
+                          </select>
+                        ) : (
+                          <span
+                            className={
+                              item.status === "Critical"
+                                ? "status-badge status-critical"
+                                : item.status === "Warning"
+                                  ? "status-badge status-warning"
+                                  : "status-badge status-online"
+                            }
+                          >
+                            {item.status || "Ok"}
+                          </span>
+                        )}
+                      </td>
+
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            className="eqs-input"
+                            value={editForm.remarks}
+                            onChange={(e) =>
+                              handleEditChange("remarks", e.target.value)
+                            }
+                          />
+                        ) : (
+                          item.remarks || "-"
+                        )}
+                      </td>
+
+                      <td>{formatDate(item.createdAt)}</td>
+
+                      <td>
+                        <div className="eqs-action-btns">
+                          {isEditing ? (
+                            <>
+                              <button
+                                type="button"
+                                className="eqs-table-btn eqs-save-btn"
+                                onClick={() => saveEdit(item.id)}
+                                disabled={saving}
+                              >
+                                {saving ? "Saving..." : "Save"}
+                              </button>
+
+                              <button
+                                type="button"
+                                className="eqs-table-btn eqs-cancel-btn"
+                                onClick={cancelEdit}
+                                disabled={saving}
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="eqs-table-btn eqs-edit-btn"
+                                onClick={() => startEdit(item)}
+                              >
+                                Edit
+                              </button>
+
+                              <button
+                                type="button"
+                                className="eqs-table-btn eqs-delete-btn"
+                                onClick={() => handleDelete(item.id)}
+                                disabled={deletingId === item.id}
+                              >
+                                {deletingId === item.id
+                                  ? "Deleting..."
+                                  : "Delete"}
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
