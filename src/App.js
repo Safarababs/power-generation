@@ -9,7 +9,6 @@ import { DataProvider } from "./context/DataContext";
 import Layout from "./components/Layout";
 
 // Pages & Components
-import Dashboard from "./pages/Dashboard";
 import Generation from "./pages/Generation";
 import Monitoring from "./pages/Monitoring";
 import Controls from "./pages/Controls";
