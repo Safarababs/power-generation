@@ -21,7 +21,6 @@ const FuelReadingsEntry = ({ currentUser }) => {
 
   const [yesterdayData, setYesterdayData] = useState([]);
 
-  // ✅ Add errors state
   const [errors, setErrors] = useState(
     Array(5)
       .fill(null)
@@ -35,23 +34,40 @@ const FuelReadingsEntry = ({ currentUser }) => {
       })),
   );
 
-  // Fetch yesterday’s readings for placeholders
+  const DAILY_LIMITS = {
+    hfoKg: 50000,
+    hfoLtr: 50000,
+    lfoKg: 50000,
+    lfoLtr: 50000,
+    gasNm3: 50000,
+    gasKg: 50000,
+  };
+
   useEffect(() => {
     const fetchYesterday = async () => {
-      const yesterdayDate = new Date(entryDate);
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
-      const yesterdayDoc = await getDoc(doc(db, "fuelReadings", yesterdayKey));
-      if (yesterdayDoc.exists()) {
-        setYesterdayData(yesterdayDoc.data().fuelReadings || []);
-      } else {
+      try {
+        const yesterdayDate = new Date(entryDate);
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayKey = yesterdayDate.toISOString().split("T")[0];
+
+        const yesterdayDoc = await getDoc(
+          doc(db, "fuelReadings", yesterdayKey),
+        );
+
+        if (yesterdayDoc.exists()) {
+          setYesterdayData(yesterdayDoc.data().fuelReadings || []);
+        } else {
+          setYesterdayData([]);
+        }
+      } catch (error) {
+        console.error("Error fetching yesterday data:", error);
         setYesterdayData([]);
       }
     };
+
     fetchYesterday();
   }, [entryDate]);
 
-  // Handle input change
   const handleFuelChange = (index, field, value) => {
     const newFuelReadings = [...fuelReadings];
     newFuelReadings[index] = {
@@ -60,17 +76,38 @@ const FuelReadingsEntry = ({ currentUser }) => {
     };
     setFuelReadings(newFuelReadings);
 
-    // Reset error for that field when user edits
     const newErrors = [...errors];
     newErrors[index] = { ...newErrors[index], [field]: false };
     setErrors(newErrors);
   };
 
+  const hasAnyValue = (engine) => {
+    return (
+      engine.hfoKg !== "" ||
+      engine.hfoLtr !== "" ||
+      engine.lfoKg !== "" ||
+      engine.lfoLtr !== "" ||
+      engine.gasNm3 !== "" ||
+      engine.gasKg !== ""
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
       let hasError = false;
-      let newErrors = [...errors]; // copy current errors
+
+      const newErrors = Array(5)
+        .fill(null)
+        .map(() => ({
+          hfoKg: false,
+          hfoLtr: false,
+          lfoKg: false,
+          lfoLtr: false,
+          gasNm3: false,
+          gasKg: false,
+        }));
 
       const consumption = fuelReadings.map((engine, index) => {
         const yesterdayEngine = yesterdayData[index] || {
@@ -82,40 +119,81 @@ const FuelReadingsEntry = ({ currentUser }) => {
           gasKg: 0,
         };
 
-        const diffHfoKg = (engine.hfoKg || 0) - (yesterdayEngine.hfoKg || 0);
-        const diffHfoLtr = (engine.hfoLtr || 0) - (yesterdayEngine.hfoLtr || 0);
-        const diffLfoKg = (engine.lfoKg || 0) - (yesterdayEngine.lfoKg || 0);
-        const diffLfoLtr = (engine.lfoLtr || 0) - (yesterdayEngine.lfoLtr || 0);
-        const diffGasNm3 = (engine.gasNm3 || 0) - (yesterdayEngine.gasNm3 || 0);
-        const diffGasKg = (engine.gasKg || 0) - (yesterdayEngine.gasKg || 0);
+        if (!hasAnyValue(engine)) {
+          newErrors[index].hfoKg = true;
+          newErrors[index].hfoLtr = true;
+          newErrors[index].lfoKg = true;
+          newErrors[index].lfoLtr = true;
+          if (index >= 3) {
+            newErrors[index].gasNm3 = true;
+            newErrors[index].gasKg = true;
+          }
+          hasError = true;
+        }
 
-        // Validate each difference and mark errors
-        if (diffHfoKg > 50000 || diffHfoKg < 0) {
+        const currentHfoKg = Number(engine.hfoKg || 0);
+        const currentHfoLtr = Number(engine.hfoLtr || 0);
+        const currentLfoKg = Number(engine.lfoKg || 0);
+        const currentLfoLtr = Number(engine.lfoLtr || 0);
+        const currentGasNm3 = Number(engine.gasNm3 || 0);
+        const currentGasKg = Number(engine.gasKg || 0);
+
+        const prevHfoKg = Number(yesterdayEngine.hfoKg || 0);
+        const prevHfoLtr = Number(yesterdayEngine.hfoLtr || 0);
+        const prevLfoKg = Number(yesterdayEngine.lfoKg || 0);
+        const prevLfoLtr = Number(yesterdayEngine.lfoLtr || 0);
+        const prevGasNm3 = Number(yesterdayEngine.gasNm3 || 0);
+        const prevGasKg = Number(yesterdayEngine.gasKg || 0);
+
+        const diffHfoKg = currentHfoKg - prevHfoKg;
+        const diffHfoLtr = currentHfoLtr - prevHfoLtr;
+        const diffLfoKg = currentLfoKg - prevLfoKg;
+        const diffLfoLtr = currentLfoLtr - prevLfoLtr;
+        const diffGasNm3 = currentGasNm3 - prevGasNm3;
+        const diffGasKg = currentGasKg - prevGasKg;
+
+        if (diffHfoKg < 0 || diffHfoKg > DAILY_LIMITS.hfoKg) {
           newErrors[index].hfoKg = true;
           hasError = true;
         }
-        if (diffHfoLtr > 50000 || diffHfoLtr < 0) {
+        if (diffHfoLtr < 0 || diffHfoLtr > DAILY_LIMITS.hfoLtr) {
           newErrors[index].hfoLtr = true;
           hasError = true;
         }
-        if (diffLfoKg > 50000 || diffLfoKg < 0) {
+        if (diffLfoKg < 0 || diffLfoKg > DAILY_LIMITS.lfoKg) {
           newErrors[index].lfoKg = true;
           hasError = true;
         }
-        if (diffLfoLtr > 50000 || diffLfoLtr < 0) {
+        if (diffLfoLtr < 0 || diffLfoLtr > DAILY_LIMITS.lfoLtr) {
           newErrors[index].lfoLtr = true;
           hasError = true;
         }
-        if (diffGasNm3 > 50000 || diffGasNm3 < 0) {
+        if (diffGasNm3 < 0 || diffGasNm3 > DAILY_LIMITS.gasNm3) {
           newErrors[index].gasNm3 = true;
           hasError = true;
         }
-        if (diffGasKg > 50000 || diffGasKg < 0) {
+        if (diffGasKg < 0 || diffGasKg > DAILY_LIMITS.gasKg) {
           newErrors[index].gasKg = true;
           hasError = true;
         }
 
-        // Capacity logic
+        if (index < 3 && (currentGasNm3 > 0 || currentGasKg > 0)) {
+          newErrors[index].gasNm3 = true;
+          newErrors[index].gasKg = true;
+          hasError = true;
+        }
+
+        if (index >= 3) {
+          const gasNm3Entered = engine.gasNm3 !== "";
+          const gasKgEntered = engine.gasKg !== "";
+
+          if (gasNm3Entered !== gasKgEntered) {
+            newErrors[index].gasNm3 = true;
+            newErrors[index].gasKg = true;
+            hasError = true;
+          }
+        }
+
         let capacity = 9780;
         if (index >= 3) {
           capacity = diffGasNm3 > 200 || diffGasKg > 200 ? 8997 : 9766;
@@ -132,7 +210,6 @@ const FuelReadingsEntry = ({ currentUser }) => {
         };
       });
 
-      // ✅ Update errors once after the loop
       setErrors(newErrors);
 
       if (hasError) {
@@ -140,23 +217,22 @@ const FuelReadingsEntry = ({ currentUser }) => {
         return;
       }
 
-      // Save to Firestore if no errors
       await setDoc(doc(db, "fuelReadings", entryDate), {
         date: entryDate,
         fuelReadings,
         consumption,
         createdBy: {
-          name: currentUser?.name,
-          email: currentUser?.email,
-          department: currentUser?.department,
-          empNumber: currentUser?.empNumber,
+          name: currentUser?.name || "",
+          email: currentUser?.email || "",
+          department: currentUser?.department || "",
+          empNumber: currentUser?.empNumber || "",
         },
+        updatedAt: new Date(),
       });
 
       alert("Fuel readings saved successfully!");
-      // Reset form...
     } catch (error) {
-      console.error("Error: ", error);
+      console.error("Error saving fuel readings:", error);
       alert("Error saving fuel readings: " + error.message);
     }
   };
@@ -165,11 +241,11 @@ const FuelReadingsEntry = ({ currentUser }) => {
     <div className="card">
       <div className="card-content">
         <h2 className="card-title mb-6">Fuel Readings Entry</h2>
+
         <form
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {/* Date Picker */}
           <div className="col-span-full">
             <label className="text-secondary font-medium mb-2 block">
               Reading Date
@@ -184,12 +260,10 @@ const FuelReadingsEntry = ({ currentUser }) => {
             />
           </div>
 
-          {/* Engine Inputs */}
           {fuelReadings.map((engine, index) => (
             <div key={index} className="p-4 rounded-lg bg-gray-100">
               <h3 className="text-lg font-semibold mb-4">Engine {index + 1}</h3>
 
-              {/* HFO */}
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
                   HFO Reading (Kg)
@@ -233,7 +307,6 @@ const FuelReadingsEntry = ({ currentUser }) => {
                 />
               </div>
 
-              {/* LFO */}
               <div className="mb-4">
                 <label className="text-secondary font-medium mb-2 block">
                   LFO Reading (Liters)
@@ -255,7 +328,6 @@ const FuelReadingsEntry = ({ currentUser }) => {
                 />
               </div>
 
-              {/* Gas (only for engines 4 & 5) */}
               {index >= 3 && (
                 <>
                   <div className="mb-4">
@@ -308,7 +380,6 @@ const FuelReadingsEntry = ({ currentUser }) => {
             </div>
           ))}
 
-          {/* Submit */}
           <div className="col-span-full flex justify-end mt-4">
             <button type="submit" className="btn-primary">
               Submit Fuel Readings

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaBolt, FaPlay, FaPause, FaSync, FaCog } from "react-icons/fa";
+import { FaBolt, FaPlay, FaPause } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
+import { useNavigate } from "react-router-dom";
 import {
   collection,
   query,
@@ -11,7 +12,7 @@ import {
 import { db } from "../components/FIrestore/firebase";
 
 const Generation = () => {
-  const [selectedGenerator, setSelectedGenerator] = useState(null);
+  const navigate = useNavigate();
   const [engineReadings, setEngineReadings] = useState([]);
   const [fuelReadings, setFuelReadings] = useState([]);
   const [engines, setEngines] = useState([]);
@@ -92,6 +93,9 @@ const Generation = () => {
     const kWh = engineReading.kwh || 0;
     if (kWh === 0) return 0;
     return (fuelKg / kWh).toFixed(3);
+  };
+  const navigateToStopPage = () => {
+    navigate("/start-stop-logs");
   };
 
   return (
@@ -227,26 +231,20 @@ const Generation = () => {
 
                   <div className="flex space-x-2 pt-4 border-t">
                     {isRunning ? (
-                      <button className="flex-1 btn btn-danger">
-                        <FaPause size={16} className="btn-icon" /> Stop
+                      <button
+                        className="flex-1 btn btn-danger"
+                        onClick={navigateToStopPage}
+                      >
+                        <FaPause size={16} className="btn-icon" /> Stop Now
                       </button>
                     ) : (
-                      <button className="flex-1 btn btn-success">
-                        <FaPlay size={16} className="btn-icon" /> Start
+                      <button
+                        className="flex-1 btn btn-success"
+                        onClick={navigateToStopPage}
+                      >
+                        <FaPlay size={16} className="btn-icon" /> Start Now
                       </button>
                     )}
-
-                    <button className="flex-1 btn btn-primary">
-                      <FaSync size={16} className="btn-icon" /> Maintain
-                    </button>
-
-                    <button
-                      onClick={() => setSelectedGenerator(idx)}
-                      className="btn"
-                      style={{ backgroundColor: "rgba(0, 0, 0, 0.05)" }}
-                    >
-                      <FaCog size={16} />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -254,20 +252,6 @@ const Generation = () => {
           );
         })}
       </div>
-
-      {/* Selected Generator Details */}
-      {selectedGenerator !== null && (
-        <div className="card mt-6">
-          <div className="card-content">
-            <h3 className="text-lg font-semibold">
-              Engine {selectedGenerator + 1} Settings
-            </h3>
-            <p className="text-secondary">
-              Here you can show extra details or controls…
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

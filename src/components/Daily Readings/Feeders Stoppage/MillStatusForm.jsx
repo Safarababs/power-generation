@@ -199,6 +199,7 @@ export default function MillStatusForm({ currentUser }) {
 
   return (
     <>
+      <MillStatusBoard />
       <div className="card fade-in">
         <div className="card-header flex justify-between items-center">
           <div>
@@ -329,7 +330,6 @@ export default function MillStatusForm({ currentUser }) {
           </form>
         </div>
       </div>
-      <MillStatusBoard />
     </>
   );
 }

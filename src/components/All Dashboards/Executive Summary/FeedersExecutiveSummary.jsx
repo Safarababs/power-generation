@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -14,6 +14,8 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "../../FIrestore/firebase";
 import MillStatusBoard from "../../Daily Readings/Feeders Stoppage/MillStatusBoard";
 
 const MONTH_NAMES = [
@@ -41,6 +43,23 @@ const CHART_COLORS = [
   "#f97316",
 ];
 
+function getSafeDate(value) {
+  if (!value) return null;
+
+  if (value?.toDate) {
+    const d = value.toDate();
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  if (typeof value === "object" && typeof value.seconds === "number") {
+    const d = new Date(value.seconds * 1000);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function parseHours(record) {
   if (typeof record.totalStop === "number") return record.totalStop;
 
@@ -49,25 +68,26 @@ function parseHours(record) {
     if (!Number.isNaN(parsed)) return parsed;
   }
 
-  if (record.rawStop && record.rawStart) {
-    const stop = new Date(record.rawStop).getTime();
-    const start = new Date(record.rawStart).getTime();
+  const stopDate = getSafeDate(record.rawStop || record.stopTime);
+  const startDate = getSafeDate(record.rawStart || record.startTime);
 
-    if (!Number.isNaN(stop) && !Number.isNaN(start) && start >= stop) {
-      return Number(((start - stop) / (1000 * 60 * 60)).toFixed(2));
-    }
+  if (stopDate && startDate && startDate >= stopDate) {
+    return Number(
+      ((startDate.getTime() - stopDate.getTime()) / (1000 * 60 * 60)).toFixed(
+        2,
+      ),
+    );
   }
 
   return 0;
 }
 
 function normalizeRecord(record) {
-  const stopDate = record.rawStop
-    ? new Date(record.rawStop)
-    : new Date(record.stopTime);
-  const startDate = record.rawStart
-    ? new Date(record.rawStart)
-    : new Date(record.startTime);
+  const stopDate = getSafeDate(record.rawStop || record.stopTime);
+  const startDate = getSafeDate(record.rawStart || record.startTime);
+
+  if (!stopDate) return null;
+
   const hours = parseHours(record);
   const year = stopDate.getFullYear();
   const monthIndex = stopDate.getMonth();
@@ -76,6 +96,7 @@ function normalizeRecord(record) {
 
   return {
     ...record,
+    mill: record.mill || record.millName,
     stopDate,
     startDate,
     hours,
@@ -83,7 +104,7 @@ function normalizeRecord(record) {
     monthIndex,
     month,
     monthKey,
-    duplicateKey: `${record.mill}__${record.rawStop || record.stopTime}__${record.rawStart || record.startTime}`,
+    duplicateKey: `${record.mill || record.millName}__${record.rawStop || record.stopTime}__${record.rawStart || record.startTime}`,
   };
 }
 
@@ -114,12 +135,120 @@ function CustomTooltip({ active, payload, label }) {
   );
 }
 
+function buildFirebaseStoppages(history = []) {
+  const grouped = history.reduce((acc, item) => {
+    const mill = item.millName;
+    if (!mill) return acc;
+
+    if (!acc[mill]) acc[mill] = [];
+    acc[mill].push(item);
+    return acc;
+  }, {});
+
+  const stoppages = [];
+
+  Object.entries(grouped).forEach(([millName, records]) => {
+    const sorted = [...records].sort((a, b) => {
+      const aDate =
+        getSafeDate(a.createdAt) ||
+        getSafeDate(a.stopTime) ||
+        getSafeDate(a.startTime) ||
+        new Date(0);
+
+      const bDate =
+        getSafeDate(b.createdAt) ||
+        getSafeDate(b.stopTime) ||
+        getSafeDate(b.startTime) ||
+        new Date(0);
+
+      return aDate.getTime() - bDate.getTime();
+    });
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const current = sorted[i];
+      const next = sorted[i + 1];
+
+      const currentStopped = current.currentlyRunning === false;
+      const nextStarted = next.currentlyRunning === true;
+
+      if (!currentStopped || !nextStarted) continue;
+      if (!current.stopTime || !next.startTime) continue;
+
+      const stopDate = getSafeDate(current.stopTime);
+      const startDate = getSafeDate(next.startTime);
+
+      if (!stopDate || !startDate) continue;
+      if (startDate <= stopDate) continue;
+
+      stoppages.push({
+        id: `${millName}-${current.stopTime}-${next.startTime}`,
+        mill: millName,
+        rawStop: current.stopTime,
+        rawStart: next.startTime,
+        stopTime: current.stopTime,
+        startTime: next.startTime,
+        source: "firebase",
+      });
+    }
+  });
+
+  return stoppages;
+}
+
+function mergeSummarySources(jsonData = [], firebaseHistory = []) {
+  const firebaseStoppages = buildFirebaseStoppages(firebaseHistory);
+  const combined = [...jsonData, ...firebaseStoppages];
+  const seen = new Set();
+
+  return combined.filter((item) => {
+    const mill = item.mill || item.millName;
+    const stop = item.rawStop || item.stopTime;
+    const start = item.rawStart || item.startTime;
+    const key = `${mill}__${stop}__${start}`;
+
+    if (!mill || !stop || !start) return false;
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+}
+
 export default function FeedersExecutiveSummary({ data = [] }) {
+  const [firebaseHistory, setFirebaseHistory] = useState([]);
+  const [filterType, setFilterType] = useState("yearly");
+  const [month, setMonth] = useState("");
+  const [mill, setMill] = useState("all");
+  const currentYear = new Date().getFullYear().toString();
+  const [year, setYear] = useState(currentYear);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, "millStatusHistory"),
+      orderBy("createdAt", "asc"),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const records = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      setFirebaseHistory(records);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const mergedSourceData = useMemo(() => {
+    return mergeSummarySources(data || [], firebaseHistory || []);
+  }, [data, firebaseHistory]);
+
   const records = useMemo(() => {
-    const normalized = data
+    const normalized = mergedSourceData
       .map(normalizeRecord)
       .filter(
         (item) =>
+          item &&
           item.stopDate instanceof Date &&
           !Number.isNaN(item.stopDate.getTime()),
       )
@@ -137,7 +266,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
 
       const millKey = item.mill;
       const itemStop = item.stopDate.getTime();
-      const itemStart = item.startDate.getTime();
+      const itemStart = item.startDate?.getTime?.() ?? itemStop;
       const activeStop = lastOpenStopByMill[millKey];
 
       if (activeStop && itemStop < activeStop.startDate.getTime()) {
@@ -151,7 +280,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
     });
 
     return cleaned;
-  }, [data]);
+  }, [mergedSourceData]);
 
   const years = useMemo(() => {
     return Array.from(new Set(records.map((item) => String(item.year)))).sort();
@@ -160,11 +289,6 @@ export default function FeedersExecutiveSummary({ data = [] }) {
   const mills = useMemo(() => {
     return Array.from(new Set(records.map((item) => item.mill))).sort();
   }, [records]);
-
-  const [filterType, setFilterType] = useState("yearly");
-  const [year, setYear] = useState("");
-  const [month, setMonth] = useState("");
-  const [mill, setMill] = useState("all");
 
   const filteredRecords = useMemo(() => {
     return records.filter((item) => {
@@ -325,9 +449,28 @@ export default function FeedersExecutiveSummary({ data = [] }) {
     ? `Monthly Record - ${formatMonthLabel(month)}`
     : "Monthly Record";
 
+  function formatReadableDateTime(value) {
+    if (!value) return "--";
+
+    const date =
+      value?.toDate?.() || // Firestore Timestamp
+      (value?.seconds ? new Date(value.seconds * 1000) : new Date(value));
+
+    if (Number.isNaN(date.getTime())) return "--";
+
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  }
+
   return (
     <>
       <MillStatusBoard />
+
       <div className="card fade-in">
         <div className="card-header flex justify-between items-center">
           <h2 className="text-2xl font-bold">Feeder's Executive Summary</h2>
@@ -350,6 +493,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
             value={year}
             onChange={(e) => {
               setYear(e.target.value);
+
               if (
                 month &&
                 e.target.value &&
@@ -361,6 +505,12 @@ export default function FeedersExecutiveSummary({ data = [] }) {
             className="form-select input-date"
           >
             <option value="">All Years</option>
+
+            {/* Ensure current year always appears */}
+            {!years.includes(currentYear) && (
+              <option value={currentYear}>{currentYear}</option>
+            )}
+
             {years.map((item) => (
               <option key={item} value={item}>
                 {item}
@@ -616,6 +766,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
               ? `${summary.longestStop.mill} - ${formatHours(summary.longestStop.hours)} - ${summary.longestStop.month} ${summary.longestStop.year}`
               : "No record found"}
           </div>
+
           <div className="alert alert-info">
             <strong>Note:</strong> If a mill stopped and started in the next
             month, it is counted as a stop for the month it stopped.
@@ -624,6 +775,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
           <table className="table">
             <thead>
               <tr>
+                <th>Sr No.</th>
                 <th>Mill</th>
                 <th>Year</th>
                 <th>Month</th>
@@ -633,18 +785,31 @@ export default function FeedersExecutiveSummary({ data = [] }) {
               </tr>
             </thead>
             <tbody>
-              {topRecords.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.mill}</td>
-                  <td>{item.year}</td>
-                  <td>{item.month}</td>
-                  <td className="text-red font-semibold">
-                    {formatHours(item.hours)}
-                  </td>
-                  <td>{item.stopTime}</td>
-                  <td>{item.startTime}</td>
-                </tr>
-              ))}
+              {topRecords
+                .filter((item) => item.source === "firebase")
+                .sort((a, b) => {
+                  const aTime = new Date(a.rawStop || a.stopTime).getTime();
+                  const bTime = new Date(b.rawStop || b.stopTime).getTime();
+                  return bTime - aTime;
+                })
+                .slice(0, 10)
+                .map((item, index) => (
+                  <tr key={item.id || item.duplicateKey}>
+                    <td>{index + 1}</td>
+                    <td>{item.mill}</td>
+                    <td>{item.year}</td>
+                    <td>{item.month}</td>
+                    <td className="text-red font-semibold">
+                      {formatHours(item.hours)}
+                    </td>
+                    <td>
+                      {formatReadableDateTime(item.rawStop || item.stopTime)}
+                    </td>
+                    <td>
+                      {formatReadableDateTime(item.rawStart || item.startTime)}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>

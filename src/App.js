@@ -52,9 +52,10 @@ import DataDownload from "./components/Temporary Code/DataDownload.jsx";
 import MillRecordsHumanReadable from "./components/Stoppage Dashboard/JSON Handling/MillRecordHandle.jsx";
 import HandledJsonFeederRecord from "./components/Stoppage Dashboard/JSON Handling/HandledJsonTable.jsx";
 import FeedersExecutiveSummary from "./components/All Dashboards/Executive Summary/FeedersExecutiveSummary.jsx";
-import data from "./components/All Dashboards/Executive Summary/executive1.json";
+import data from "./components/All Dashboards/Executive Summary/executive.json";
 import EquipmentPage from "./components/Equipment Status/EquipmentPage.jsx";
 import EquipmentDashboard from "./components/Equipment Status/EquipmentDashboard.jsx";
+import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/OperatorDashboard.jsx";
 
 function App() {
   const auth = getAuth();
@@ -115,7 +116,6 @@ function App() {
               <Layout currentUser={userProfile}>
                 <Routes>
                   <Route path="/Moharram" element={<FullPixelInventory />} />
-
                   {/* General Manager Overview */}
                   <Route
                     path="/"
@@ -124,11 +124,11 @@ function App() {
                       userProfile?.designation === "General Manager" ? (
                         <ExecutiveDashboard />
                       ) : (
-                        <Dashboard currentUser={userProfile} />
+                        <OperatorDashboard currentUser={userProfile} />
                       )
                     }
                   />
-
+                  {/* // <Dashboard currentUser={userProfile} /> */}
                   {/* All Dashboards */}
                   <Route
                     path="/mechanical-Dashboard"
@@ -147,7 +147,6 @@ function App() {
                     element={<ServicesDashboard />}
                   />
                   <Route path="/videoslectures" element={<VideoLectures />} />
-
                   {/* Other Pages */}
                   <Route path="/generation" element={<Generation />} />
                   <Route path="/monitoring" element={<Monitoring />} />
@@ -162,7 +161,6 @@ function App() {
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/parameteranalyse" element={<AnalyzeButton />} />
                   <Route path="/summery" element={<SummaryViewer />} />
-
                   {/* Readings */}
                   <Route
                     path="/DashboardLayout"
@@ -216,7 +214,6 @@ function App() {
                     path="/equipment-dashboard"
                     element={<EquipmentDashboard currentUser={userProfile} />}
                   />
-
                   {/* SOPs */}
                   <Route
                     path="/sop"
@@ -236,16 +233,13 @@ function App() {
                       <DepartmentSOPApproval currentUser={userProfile} />
                     }
                   />
-
                   {/* Engines-safety */}
                   <Route
                     path="/engines-safety"
                     element={<ProtectionsSafety />}
                   />
-
                   {/* Attendance */}
                   <Route path="/attendance" element={<MarkAttendance />} />
-
                   {/* Approval dashboards */}
                   <Route
                     path="/approval-dashboard"

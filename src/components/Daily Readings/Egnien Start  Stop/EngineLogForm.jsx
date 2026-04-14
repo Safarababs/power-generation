@@ -21,137 +21,226 @@ export default function EngineLogForm({ currentUser }) {
   const [status, setStatus] = useState("stopped");
   const [eventTime, setEventTime] = useState("");
   const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [lastLog, setLastLog] = useState(null);
 
   const fetchStatus = async (id) => {
-    const q = query(
-      collection(db, "engineLogs"),
-      where("engineId", "==", id),
-      orderBy("eventDateTime", "desc"),
-      limit(1),
-    );
-    const snap = await getDocs(q);
-    if (snap.empty) {
-      setStatus("stopped");
-      return;
+    try {
+      const q = query(
+        collection(db, "engineLogs"),
+        where("engineId", "==", id),
+        orderBy("eventDateTime", "desc"),
+        limit(1),
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        setStatus("stopped");
+        setLastLog(null);
+        return;
+      }
+
+      const lastDoc = snap.docs[0].data();
+      setLastLog(lastDoc);
+      setStatus(lastDoc.eventType === "start" ? "running" : "stopped");
+    } catch (error) {
+      console.error("Error fetching engine status:", error);
+      alert("Failed to fetch engine status.");
     }
-    const lastEvent = snap.docs[0].data().eventType;
-    setStatus(lastEvent === "start" ? "running" : "stopped");
   };
 
   useEffect(() => {
     fetchStatus(engineId);
   }, [engineId]);
 
-  const updateEngineStatus = async (engineId, eventType, eventTime) => {
-    await setDoc(doc(db, "engineStatus", engineId), {
-      engineId,
+  const updateEngineStatus = async (
+    selectedEngineId,
+    eventType,
+    selectedTime,
+  ) => {
+    await setDoc(doc(db, "engineStatus", selectedEngineId), {
+      engineId: selectedEngineId,
       currentStatus: eventType === "start" ? "running" : "stopped",
       lastEventType: eventType,
-      lastEventTime: new Date(eventTime),
+      lastEventTime: new Date(selectedTime),
       updatedAt: new Date(),
       createdBy: {
-        name: currentUser?.name,
-        email: currentUser?.email,
-        department: currentUser?.department,
-        empNumber: currentUser?.empNumber,
+        name: currentUser?.name || "",
+        email: currentUser?.email || "",
+        department: currentUser?.department || "",
+        empNumber: currentUser?.empNumber || "",
       },
     });
   };
 
-  const handleSubmit = async () => {
-    if (!eventTime) return alert("Enter event time");
-    const eventType = status === "running" ? "stop" : "start";
+  const updateMonthlyTotals = async (
+    selectedEngineId,
+    eventType,
+    selectedTime,
+  ) => {
+    const [y, m] = selectedTime.split("T")[0].split("-");
+    const monthKey = `${y}_${m}`;
+    const monthDocRef = doc(db, "engine_start_stop", monthKey);
+    const monthSnap = await getDoc(monthDocRef);
 
-    await addDoc(collection(db, "engineLogs"), {
-      engineId,
-      eventType,
-      eventDateTime: new Date(eventTime),
-      reason: eventType === "stop" ? reason : "",
-      loggedAt: serverTimestamp(),
-      createdBy: {
-        name: currentUser?.name,
-        email: currentUser?.email,
-        department: currentUser?.department,
-        empNumber: currentUser?.empNumber,
-      },
-    });
+    let current = { starts: 0, stops: 0 };
+    if (monthSnap.exists()) {
+      current = monthSnap.data()?.[selectedEngineId] || {
+        starts: 0,
+        stops: 0,
+      };
+    }
 
-    const updateMonthlyTotals = async (engineId, eventType, eventTime) => {
-      const [y, m] = eventTime.split("T")[0].split("-");
-      const monthKey = `${y}_${m}`; // e.g. "2026_03"
-      const monthDocRef = doc(db, "engine_start_stop", monthKey);
-      const monthSnap = await getDoc(monthDocRef);
-
-      let current = {};
-      if (monthSnap.exists()) {
-        current = monthSnap.data()[engineId] || { starts: 0, stops: 0 };
-      }
-
-      await setDoc(
-        monthDocRef,
-        {
-          [engineId]: {
-            starts: current.starts + (eventType === "start" ? 1 : 0),
-            stops: current.stops + (eventType === "stop" ? 1 : 0),
-            updatedAt: new Date(),
-            createdBy: {
-              name: currentUser?.name,
-              email: currentUser?.email,
-              department: currentUser?.department,
-              empNumber: currentUser?.empNumber,
-            },
+    await setDoc(
+      monthDocRef,
+      {
+        [selectedEngineId]: {
+          starts: current.starts + (eventType === "start" ? 1 : 0),
+          stops: current.stops + (eventType === "stop" ? 1 : 0),
+          updatedAt: new Date(),
+          createdBy: {
+            name: currentUser?.name || "",
+            email: currentUser?.email || "",
+            department: currentUser?.department || "",
+            empNumber: currentUser?.empNumber || "",
           },
         },
-        { merge: true },
-      );
-    };
+      },
+      { merge: true },
+    );
+  };
 
-    await updateEngineStatus(engineId, eventType, eventTime);
-    await updateMonthlyTotals(engineId, eventType, eventTime);
+  const validateEntry = () => {
+    if (!eventTime) {
+      alert("Enter event time");
+      return false;
+    }
 
-    alert(`${eventType.toUpperCase()} logged`);
-    setReason("");
-    fetchStatus(engineId);
+    const selectedTime = new Date(eventTime);
+    const now = new Date();
+
+    if (Number.isNaN(selectedTime.getTime())) {
+      alert("Invalid event time");
+      return false;
+    }
+
+    if (selectedTime > now) {
+      alert("Event time cannot be in the future");
+      return false;
+    }
+
+    const eventType = status === "running" ? "stop" : "start";
+
+    if (eventType === "stop" && !reason.trim()) {
+      alert("Enter reason for stop");
+      return false;
+    }
+
+    if (eventType === "stop" && reason.trim().length < 3) {
+      alert("Reason must be at least 3 characters");
+      return false;
+    }
+
+    if (lastLog) {
+      const lastTime = lastLog.eventDateTime?.toDate
+        ? lastLog.eventDateTime.toDate()
+        : new Date(lastLog.eventDateTime);
+
+      if (selectedTime <= lastTime) {
+        alert("Event time must be later than the last logged event");
+        return false;
+      }
+
+      if (lastLog.eventType === eventType) {
+        alert(
+          `Invalid sequence. Last event was already ${eventType.toUpperCase()}.`,
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (loading) return;
+
+    const isValid = validateEntry();
+    if (!isValid) return;
+
+    setLoading(true);
+
+    try {
+      const eventType = status === "running" ? "stop" : "start";
+
+      await addDoc(collection(db, "engineLogs"), {
+        engineId,
+        eventType,
+        eventDateTime: new Date(eventTime),
+        reason: eventType === "stop" ? reason.trim() : reason.trim(),
+        loggedAt: serverTimestamp(),
+        createdBy: {
+          name: currentUser?.name || "",
+          email: currentUser?.email || "",
+          department: currentUser?.department || "",
+          empNumber: currentUser?.empNumber || "",
+        },
+      });
+
+      await updateEngineStatus(engineId, eventType, eventTime);
+      await updateMonthlyTotals(engineId, eventType, eventTime);
+
+      alert(`${eventType.toUpperCase()} logged successfully`);
+      setReason("");
+      setEventTime("");
+      await fetchStatus(engineId);
+    } catch (error) {
+      console.error("Error saving engine log:", error);
+      alert("Error saving engine log: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div
       className="container max-w-lg mx-auto p-6 rounded-lg shadow-md 
-                  bg-[var(--surface-color)] text-[var(--text-primary)] space-y-6"
+                 bg-[var(--surface-color)] text-[var(--text-primary)] space-y-6"
     >
       <h2 className="text-2xl font-bold border-b border-[var(--border-color)] pb-2">
         Engine Log Entry
       </h2>
 
-      {/* Engine Selector */}
       <div className="flex flex-col space-y-2">
         <label className="font-medium">Select Engine</label>
         <select
           value={engineId}
           onChange={(e) => setEngineId(e.target.value)}
           className="form-input"
+          disabled={loading}
         >
-          {engines.map((e) => (
-            <option key={e}>{e}</option>
+          {engines.map((engine) => (
+            <option key={engine} value={engine}>
+              {engine}
+            </option>
           ))}
         </select>
       </div>
 
-      {/* Current Status */}
       <div className="flex items-center space-x-2">
         <span className="font-medium">Current Status:</span>
         <span
           className={`px-3 py-1 rounded-full text-sm font-bold ${
             status === "running"
-              ? "bg-green-500 text-green"
-              : "bg-red-500 text-red"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
           }`}
         >
           {status.toUpperCase()}
         </span>
       </div>
 
-      {/* Event Time */}
       <div className="flex flex-col space-y-2">
         <label className="font-medium">Event Time</label>
         <input
@@ -159,32 +248,40 @@ export default function EngineLogForm({ currentUser }) {
           value={eventTime}
           onChange={(e) => setEventTime(e.target.value)}
           className="form-input"
+          disabled={loading}
         />
       </div>
 
-      {/* Reason for Start/Stop */}
-
       <div className="flex flex-col space-y-2">
-        <label className="font-medium">Reason for Start</label>
+        <label className="font-medium">
+          {status === "running" ? "Reason for Stop" : "Reason for Start"}
+        </label>
         <input
           placeholder="Enter reason"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           className="form-input"
+          disabled={loading}
         />
       </div>
 
-      {/* Submit Button */}
       <button
         onClick={handleSubmit}
-        className="btn-primary"
+        disabled={loading}
+        className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         style={
           status === "running"
-            ? { color: "white", backgroundColor: "green" }
-            : { color: "white", backgroundColor: "red" }
+            ? { color: "white", backgroundColor: "red" }
+            : { color: "white", backgroundColor: "green" }
         }
       >
-        {status === "running" ? "STOP NOW" : "START NOW"}
+        {status === "running"
+          ? loading
+            ? "Stopping..."
+            : "Stop Engine"
+          : loading
+            ? "Starting..."
+            : "Start Engine"}
       </button>
     </div>
   );

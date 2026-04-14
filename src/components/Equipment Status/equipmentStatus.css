@@ -149,25 +149,44 @@
   color: var(--text-secondary);
 }
 
+/* Updated KPI Grid: 5 items in one row */
 .eqs-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
 }
 
+/* KPI card now works like button */
 .eqs-kpi-card {
   background: var(--surface-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow);
   padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 96px;
+}
+
+.eqs-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.eqs-kpi-card.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+  background: rgba(59, 130, 246, 0.06);
 }
 
 .eqs-kpi-card h4 {
   margin: 0 0 0.5rem 0;
   color: var(--text-secondary);
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .eqs-kpi-card span {
@@ -176,8 +195,17 @@
   color: var(--text-primary);
 }
 
-.eqs-kpi-ok {
-  border-left: 4px solid var(--success-color);
+/* KPI types */
+.eqs-kpi-running {
+  border-left: 4px solid var(--primary-color);
+}
+
+.eqs-kpi-standby {
+  border-left: 4px solid #64748b;
+}
+
+.eqs-kpi-maintenance {
+  border-left: 4px solid #8b5cf6;
 }
 
 .eqs-kpi-warning {
@@ -186,6 +214,11 @@
 
 .eqs-kpi-critical {
   border-left: 4px solid var(--error-color);
+}
+
+/* old styles can stay if used elsewhere */
+.eqs-kpi-ok {
+  border-left: 4px solid var(--success-color);
 }
 
 .eqs-management-grid {
@@ -232,11 +265,46 @@
   overflow-x: auto;
 }
 
+/* Optional status badge polish */
+.status-badge {
+  display: inline-block;
+  min-width: 88px;
+  text-align: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.status-online {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+}
+
+.status-warning {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.status-critical {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+}
+
+@media (max-width: 1200px) {
+  .eqs-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 992px) {
   .eqs-two-window-grid,
-  .eqs-management-grid,
-  .eqs-kpi-grid {
+  .eqs-management-grid {
     grid-template-columns: 1fr;
+  }
+
+  .eqs-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .eqs-table-header {
@@ -246,5 +314,11 @@
 
   .eqs-search-input {
     max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .eqs-kpi-grid {
+    grid-template-columns: 1fr;
   }
 }
