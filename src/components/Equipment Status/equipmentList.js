@@ -71,4 +71,5 @@ export const EQUIPMENT_LIST = [
   "Hydrophore Unit 2",
   "HFO Transfer Pump # 01",
   "HFO Transfer Pump # 02",
+  "Other",
 ];

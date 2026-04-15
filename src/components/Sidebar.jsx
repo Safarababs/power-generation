@@ -57,6 +57,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/DashboardLayout",
         },
         {
+          icon: <FaChartLine size={20} />,
+          label: "Equipment's Status",
+          path: "/equipment-dashboard",
+        },
+        {
           icon: <FaCogs size={20} />,
           label: "Engine's Record",
           path: "/enginelogtable",
@@ -277,6 +282,16 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
             path: "/",
           },
           {
+            icon: <FaPlug size={20} />,
+            label: "Feeders Executive Summary",
+            path: "/feedersummaryexecutive",
+          },
+          {
+            icon: <FaExclamationTriangle size={20} />,
+            label: "Equipment Status",
+            path: "/equipment-dashboard",
+          },
+          {
             icon: <FaChartLine size={20} />,
             label: "Generation",
             path: "/generation",
@@ -286,11 +301,7 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
             label: "Monitoring",
             path: "/DashboardLayout",
           },
-          {
-            icon: <FaPlug size={20} />,
-            label: "Feeders Executive Summary",
-            path: "/feedersummaryexecutive",
-          },
+
           {
             icon: <FaCogs size={20} />,
             label: "Parameters Summary",

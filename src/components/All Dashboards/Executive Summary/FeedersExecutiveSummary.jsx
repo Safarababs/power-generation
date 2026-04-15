@@ -506,10 +506,10 @@ export default function FeedersExecutiveSummary({ data = [] }) {
           >
             <option value="">All Years</option>
 
-            {/* Ensure current year always appears */}
+            {/* Ensure current year always appears
             {!years.includes(currentYear) && (
               <option value={currentYear}>{currentYear}</option>
-            )}
+            )} */}
 
             {years.map((item) => (
               <option key={item} value={item}>

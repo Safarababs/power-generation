@@ -18,10 +18,10 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
-export default function EquipmentDashboard() {
+export default function EquipmentDashboard({ currentUser }) {
   const [records, setRecords] = useState([]);
   const [search, setSearch] = useState("");
-  const [activeKpi, setActiveKpi] = useState("Running");
+  const [activeKpi, setActiveKpi] = useState("All");
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
     equipmentName: "",
@@ -51,6 +51,7 @@ export default function EquipmentDashboard() {
 
   const summary = useMemo(() => {
     return {
+      All: records.length,
       running: records.filter((r) => r.mode === "R").length,
       OK: records.filter((r) => r.status === "Ok").length,
       standby: records.filter((r) => r.mode === "SB").length,
@@ -62,6 +63,13 @@ export default function EquipmentDashboard() {
 
   const kpiButtons = useMemo(
     () => [
+      {
+        key: "All",
+        label: "All Equipments",
+        count: summary.All,
+        filter: () => true,
+        className: "eqs-kpi-all",
+      },
       {
         key: "Running",
         label: "Running",
@@ -204,7 +212,7 @@ export default function EquipmentDashboard() {
         </p>
       </div>
 
-      {/* 6 KPI buttons in one row */}
+      {/* 7 KPI buttons in one row */}
       <div className="eqs-kpi-grid">
         {kpiButtons.map((kpi) => (
           <button
@@ -249,7 +257,9 @@ export default function EquipmentDashboard() {
                 <th>Status</th>
                 <th>Remarks</th>
                 <th>Time</th>
-                <th>Actions</th>
+                {currentUser?.department === "operation" &&
+                  (currentUser?.designation === "developer" ||
+                    currentUser?.designation === "MO") && <th>Actions</th>}
               </tr>
             </thead>
             <tbody>
@@ -377,26 +387,31 @@ export default function EquipmentDashboard() {
                             </>
                           ) : (
                             <>
-                              <button
-                                type="button"
-                                className="eqs-table-btn eqs-edit-btn"
-                                onClick={() => startEdit(item)}
-                              >
-                                Edit
-                              </button>
-
-                              <button
-                                type="button"
-                                className="eqs-table-btn eqs-delete-btn"
-                                onClick={() => handleDelete(item.id)}
-                                disabled={deletingId === item.id}
-                              >
-                                {deletingId === item.id
-                                  ? "Deleting..."
-                                  : "Delete"}
-                              </button>
+                              {currentUser?.department === "operation" &&
+                              (currentUser?.designation === "developer" ||
+                                currentUser?.designation === "MO") ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="eqs-table-btn eqs-edit-btn"
+                                    onClick={() => startEdit(item)}
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="eqs-table-btn eqs-delete-btn"
+                                    onClick={() => handleDelete(item.id)}
+                                    disabled={deletingId === item.id}
+                                  >
+                                    {deletingId === item.id
+                                      ? "Deleting..."
+                                      : "Delete"}
+                                  </button>
+                                </>
+                              ) : null}
                             </>
-                          )}
+                          )}{" "}
                         </div>
                       </td>
                     </tr>

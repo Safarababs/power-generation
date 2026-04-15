@@ -91,8 +91,9 @@ export default function EquipmentForm({ selectedEquipment }) {
               type="text"
               className="eqs-input"
               value={formData.equipmentName}
+              onChange={(e) => handleChange("equipmentName", e.target.value)}
               placeholder="Select from second window"
-              readOnly
+              //    readOnly
             />
           </div>
 
