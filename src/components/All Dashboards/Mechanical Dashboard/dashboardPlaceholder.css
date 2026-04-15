@@ -1,0 +1,104 @@
+.ph-page {
+  width: 100%;
+  padding: 1.25rem;
+}
+
+.ph-hero-card {
+  position: relative;
+  overflow: hidden;
+  padding: 1.5rem;
+  border-radius: 20px;
+  color: #fff;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+}
+
+.ph-electrical .ph-hero-card {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.ph-mechanical .ph-hero-card {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+}
+
+.ph-services .ph-hero-card {
+  background: linear-gradient(135deg, #06b6d4, #0f766e);
+}
+
+.ph-utility .ph-hero-card {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+
+.ph-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.ph-title {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.ph-subtitle {
+  margin-top: 0.75rem;
+  max-width: 760px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.ph-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.ph-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.ph-card h3 {
+  margin: 0 0 0.85rem 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ph-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.ph-card ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: #475569;
+}
+
+.ph-card li {
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 992px) {
+  .ph-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ph-title {
+    font-size: 1.6rem;
+  }
+}

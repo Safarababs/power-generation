@@ -55,6 +55,7 @@ import data from "./components/All Dashboards/Executive Summary/executive.json";
 import EquipmentPage from "./components/Equipment Status/EquipmentPage.jsx";
 import EquipmentDashboard from "./components/Equipment Status/EquipmentDashboard.jsx";
 import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/OperatorDashboard.jsx";
+import EquipmentExecutiveSummary from "./components/Equipment Status/EquipmentExecutiveSummary.jsx";
 
 function App() {
   const auth = getAuth();
@@ -212,6 +213,10 @@ function App() {
                   <Route
                     path="/equipment-dashboard"
                     element={<EquipmentDashboard currentUser={userProfile} />}
+                  />
+                  <Route
+                    path="/equipment-summary"
+                    element={<EquipmentExecutiveSummary />}
                   />
                   {/* SOPs */}
                   <Route

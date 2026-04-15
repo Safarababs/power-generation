@@ -175,6 +175,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/approval-dashboard",
         },
         {
+          icon: <FaExclamationCircle size={20} />,
+          label: "Equipment Summary",
+          path: "/equipment-summary",
+        },
+        {
           icon: <FaExclamationTriangle size={20} />,
           label: "Equipement Status Form",
           path: "/equipment-status",
@@ -282,14 +287,14 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
             path: "/",
           },
           {
+            icon: <FaExclamationCircle size={20} />,
+            label: "Equipment Summary",
+            path: "/equipment-summary",
+          },
+          {
             icon: <FaPlug size={20} />,
             label: "Feeders Executive Summary",
             path: "/feedersummaryexecutive",
-          },
-          {
-            icon: <FaExclamationTriangle size={20} />,
-            label: "Equipment Status",
-            path: "/equipment-dashboard",
           },
           {
             icon: <FaChartLine size={20} />,
@@ -541,6 +546,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           icon: <FaCheckCircle size={20} />,
           label: "Equipment Status",
           path: "/equipment-dashboard",
+        },
+        {
+          icon: <FaCheckCircle size={20} />,
+          label: "Equipment Summary",
+          path: "/equipment-summary",
         },
         {
           icon: <FaExclamationTriangle size={20} />,

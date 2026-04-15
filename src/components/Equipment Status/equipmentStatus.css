@@ -149,10 +149,10 @@
   color: var(--text-secondary);
 }
 
-/* Updated KPI Grid: 7 items in one row */
+/* Updated KPI Grid: 4 items in one row */
 .eqs-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -197,7 +197,7 @@
 
 /* KPI types */
 .eqs-kpi-all {
-  border-left: 4px solid #fff;
+  border-left: 4px solid #ea018d;
 }
 
 .eqs-kpi-running {
@@ -209,20 +209,107 @@
 }
 
 .eqs-kpi-maintenance {
-  border-left: 4px solid #8b5cf6;
+  border-left: 4px solid var(--error-color);
 }
 
 .eqs-kpi-warning {
   border-left: 4px solid var(--warning-color);
 }
 
-.eqs-kpi-critical {
-  border-left: 4px solid var(--error-color);
+.eqs-kpi-auto {
+  border-left: 4px solid #01b8ea;
+}
+
+.eqs-kpi-manual {
+  border-left: 4px solid white;
 }
 
 /* old styles can stay if used elsewhere */
 .eqs-kpi-ok {
   border-left: 4px solid var(--success-color);
+}
+
+.eqs-exec-top-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eqs-exec-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.eqs-exec-hero-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.eqs-health-score {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.eqs-health-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  color: var(--text-primary);
+}
+
+.eqs-exec-insights {
+  margin: 0;
+  padding-left: 1.25rem;
+  color: var(--text-primary);
+}
+
+.eqs-exec-insights li {
+  margin-bottom: 0.65rem;
+  line-height: 1.45;
+}
+
+.eqs-kpi-all {
+  border-left: 4px solid #0f172a;
+}
+
+.eqs-kpi-auto {
+  border-left: 4px solid #06b6d4;
+}
+
+.eqs-kpi-manual {
+  border-left: 4px solid #f97316;
+}
+
+@media (max-width: 1200px) {
+  .eqs-exec-kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .eqs-exec-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .eqs-exec-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .eqs-health-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .eqs-exec-kpi-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .eqs-management-grid {
