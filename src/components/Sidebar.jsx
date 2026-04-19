@@ -175,6 +175,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/approval-dashboard",
         },
         {
+          icon: <FaBell size={20} />,
+          label: "Tanks Dip",
+          path: "/tanks-dip",
+        },
+        {
           icon: <FaExclamationCircle size={20} />,
           label: "Equipment Summary",
           path: "/equipment-summary",

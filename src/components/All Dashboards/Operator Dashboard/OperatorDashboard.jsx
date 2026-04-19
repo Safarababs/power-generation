@@ -128,6 +128,62 @@ function getEngineCapacity(engineName, fuelItem = {}) {
   return 0;
 }
 
+function calculateEngineHoursInWindow(logs, windowStart, windowEnd, now) {
+  if (!logs.length) return 0;
+
+  const sorted = [...logs].sort((a, b) => {
+    const aTime = getSafeDate(a.eventDateTime) || new Date(0);
+    const bTime = getSafeDate(b.eventDateTime) || new Date(0);
+    return aTime.getTime() - bTime.getTime();
+  });
+
+  let total = 0;
+  let runningStart = null;
+
+  // Check whether engine was already running at window start
+  const logsBeforeWindow = sorted.filter((log) => {
+    const t = getSafeDate(log.eventDateTime);
+    return t && t < windowStart;
+  });
+
+  const lastBeforeWindow = logsBeforeWindow[logsBeforeWindow.length - 1];
+  if (lastBeforeWindow?.eventType === "start") {
+    runningStart = windowStart;
+  }
+
+  sorted.forEach((log) => {
+    const logTime = getSafeDate(log.eventDateTime);
+    if (!logTime) return;
+    if (logTime < windowStart || logTime > windowEnd) return;
+
+    if (log.eventType === "start") {
+      if (!runningStart) {
+        runningStart = logTime;
+      }
+    }
+
+    if (log.eventType === "stop") {
+      if (runningStart) {
+        const effectiveEnd = logTime > windowEnd ? windowEnd : logTime;
+        if (effectiveEnd > runningStart) {
+          total += hoursBetween(runningStart, effectiveEnd);
+        }
+        runningStart = null;
+      }
+    }
+  });
+
+  // If still running, count until now (or window end)
+  if (runningStart) {
+    const effectiveEnd = now < windowEnd ? now : windowEnd;
+    if (effectiveEnd > runningStart) {
+      total += hoursBetween(runningStart, effectiveEnd);
+    }
+  }
+
+  return total;
+}
+
 function SummaryBox({ label, value, tone = "blue" }) {
   return (
     <div className={`operator-summary-box tone-${tone}`}>
@@ -227,6 +283,7 @@ export default function OperatorDashboard() {
   const [millCurrentStatus, setMillCurrentStatus] = useState({});
   const [millHistory, setMillHistory] = useState([]);
   const [engineStatus, setEngineStatus] = useState({});
+  const [engineLogs, setEngineLogs] = useState([]);
   const [boilerStatus, setBoilerStatus] = useState({});
   const [roStatus, setRoStatus] = useState({});
   const [generationDoc, setGenerationDoc] = useState(null);
@@ -273,6 +330,19 @@ export default function OperatorDashboard() {
       },
     );
 
+    const engineLogsQuery = query(
+      collection(db, "engineLogs"),
+      orderBy("eventDateTime", "asc"),
+    );
+
+    const unsubEngineLogs = onSnapshot(engineLogsQuery, (snapshot) => {
+      const records = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      setEngineLogs(records);
+    });
+
     const unsubBoilers = onSnapshot(
       collection(db, "boilerStatus"),
       (snapshot) => {
@@ -296,6 +366,7 @@ export default function OperatorDashboard() {
       unsubMills();
       unsubMillHistory();
       unsubEngines();
+      unsubEngineLogs();
       unsubBoilers();
       unsubRO();
     };
@@ -333,7 +404,7 @@ export default function OperatorDashboard() {
     let totalKwh = 0;
     let totalRhrs = 0;
     let totalCapacityHours = 0;
-    let totalFuelKg = 0;
+    let totalFuelLtr = 0;
 
     generation.forEach((item, index) => {
       const kwh = Number(item?.kwh || 0);
@@ -349,9 +420,9 @@ export default function OperatorDashboard() {
     });
 
     fuelConsumption.forEach((item) => {
-      totalFuelKg += Number(item?.hfoKg || 0);
-      totalFuelKg += Number(item?.lfoKg || 0);
-      totalFuelKg += Number(item?.gasKg || 0);
+      totalFuelLtr += Number(item?.hfoLtr || 0);
+      totalFuelLtr += Number(item?.lfoLtr || 0);
+      totalFuelLtr += Number(item?.gasLtr || 0);
     });
 
     return {
@@ -359,7 +430,7 @@ export default function OperatorDashboard() {
       totalRhrs,
       generationPercent:
         totalCapacityHours > 0 ? (totalKwh / totalCapacityHours) * 100 : 0,
-      totalFuelKg,
+      totalFuelLtr,
       runningMills: Object.values(millCurrentStatus).filter(
         (item) => item?.currentlyRunning === true,
       ).length,
@@ -377,42 +448,36 @@ export default function OperatorDashboard() {
         ? getSafeDate(mill.startTime)
         : getSafeDate(mill.stopTime || mill.startTime);
 
-      const effectiveStart =
-        anchor && anchor < currentWindow.start ? currentWindow.start : anchor;
-
       return {
         id: millName,
         name: millName,
         status: running ? "running" : "stopped",
         sinceDate: formatDate(anchor),
         sinceTime: formatTime(anchor),
-        hoursLabel: effectiveStart
-          ? `${running ? "Running" : "Stopped"}: ${formatHours(hoursBetween(effectiveStart, now))}`
-          : "--",
       };
     });
-  }, [millCurrentStatus, currentWindow.start, now]);
+  }, [millCurrentStatus]);
 
   const engineBoardItems = useMemo(() => {
     return ENGINE_NAMES.map((engineId, index) => {
       const engine = engineStatus[engineId] || {};
       const running = engine.currentStatus === "running";
       const lastEvent = getSafeDate(engine.lastEventTime);
-      const effectiveStart =
-        lastEvent && lastEvent < currentWindow.start
-          ? currentWindow.start
-          : lastEvent;
-      const endTime = running ? now : lastEvent;
 
-      // life time hours from meter reading + current window hours if running
-      const currentWindowHours =
-        effectiveStart && endTime ? hoursBetween(effectiveStart, endTime) : 0;
+      const baseHours = Number(engineMeterReadings[index]?.rhrs || 0);
 
-      const lifetimeHours = engineMeterReadings[index]?.rhrs || 0;
+      const logsForEngine = engineLogs.filter(
+        (log) => log.engineId === engineId,
+      );
 
-      const totalHours = running
-        ? lifetimeHours + currentWindowHours
-        : lifetimeHours;
+      const currentWindowHours = calculateEngineHoursInWindow(
+        logsForEngine,
+        currentWindow.start,
+        currentWindow.end,
+        now,
+      );
+
+      const totalHours = baseHours + currentWindowHours;
 
       return {
         id: engineId,
@@ -421,13 +486,16 @@ export default function OperatorDashboard() {
         sinceDate: formatDate(lastEvent),
         sinceTime: formatTime(lastEvent),
         lifetimeHours: totalHours > 0 ? formatHours(totalHours) : null,
-        hoursLabel:
-          effectiveStart && endTime
-            ? `${running ? "RHrs" : "Stopped"}: ${formatHours(hoursBetween(effectiveStart, endTime))}`
-            : "--",
       };
     });
-  }, [engineStatus, currentWindow.start, now, engineMeterReadings]);
+  }, [
+    engineStatus,
+    engineMeterReadings,
+    engineLogs,
+    currentWindow.start,
+    currentWindow.end,
+    now,
+  ]);
 
   const yesterdayPowerRows = useMemo(() => {
     return ENGINE_NAMES.map((engineId, index) => {
@@ -521,13 +589,13 @@ export default function OperatorDashboard() {
         `${name}: ${(roStatus[name]?.currentStatus || "NO DATA").toUpperCase()}`,
     ).join(" | ");
 
-    let totalHfoKg = 0;
+    let totalHfoLtr = 0;
     let totalLfoLtr = 0;
     let totalGasNm3 = 0;
     let totalGasKg = 0;
 
     fuelConsumption.forEach((item) => {
-      totalHfoKg += Number(item?.hfoKg || 0);
+      totalHfoLtr += Number(item?.hfoLtr || 0);
       totalLfoLtr += Number(item?.lfoLtr || 0);
       totalGasNm3 += Number(item?.gasNm3 || 0);
       totalGasKg += Number(item?.gasKg || 0);
@@ -536,7 +604,7 @@ export default function OperatorDashboard() {
     return [
       ["Boilers", boilerRow],
       ["RO Plant", roRow],
-      ["HFO", `${formatNumber(totalHfoKg)} kg`],
+      ["HFO", `${formatNumber(totalHfoLtr)} ltr`],
       ["LFO", `${formatNumber(totalLfoLtr)} ltr`],
       ["Gas Nm³", formatNumber(totalGasNm3)],
       ["Gas Kg", `${formatNumber(totalGasKg)} kg`],
@@ -555,7 +623,6 @@ export default function OperatorDashboard() {
 
             <div className="operator-window-text">
               <div>
-                {/* <span>Current Window</span> */}
                 <strong>
                   {new Date().toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -563,8 +630,6 @@ export default function OperatorDashboard() {
                     year: "numeric",
                   })}{" "}
                   {formatTime(now)}
-                  {/* {formatShortDateTime(currentWindow.start)} →{" "}
-                  {formatShortDateTime(currentWindow.end)} */}
                 </strong>
               </div>
             </div>
@@ -582,7 +647,11 @@ export default function OperatorDashboard() {
             value={formatNumber(topMetrics.runningMills)}
             tone="blue"
           />
-
+          <SummaryBox
+            label="Avg Load"
+            value={formatNumber(topMetrics.totalKwh / 24 / 1000) + " MW"}
+            tone="red"
+          />
           <SummaryBox
             label="Generation %"
             value={formatPercent(topMetrics.generationPercent)}
@@ -600,7 +669,7 @@ export default function OperatorDashboard() {
           />
           <SummaryBox
             label="Total Fuel"
-            value={`${formatNumber(topMetrics.totalFuelKg)} kg`}
+            value={`${formatNumber(topMetrics.totalFuelLtr)} ltr`}
             tone="red"
           />
         </section>

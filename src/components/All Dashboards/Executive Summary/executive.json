@@ -21405,7 +21405,7 @@
     "id": "A3INrspUoqYMzlF981Mo",
     "mill": "Kiln 1",
     "stopTime": "9 January 2025 12:31:00 AM",
-    "startTime": "12 January 2025 10:48:00 AM",
+    "startTime": "12 January 2025 10:48:00 PM",
     "totalStop": "82.28 hrs",
     "rawStop": "2025-01-08T21:31:00.000Z",
     "rawStart": "2025-01-12T07:48:00.000Z"
@@ -21494,75 +21494,13 @@
   {
     "id": "q5BqWEN7pRPcQUmkFEFJ",
     "mill": "Kiln 1",
-    "stopTime": "4 June 2025 1:25:00 PM",
-    "startTime": "8 June 2025 10:00:00 AM",
-    "totalStop": "92.58 hrs",
-    "rawStop": "2025-06-04T10:25:00.000Z",
-    "rawStart": "2025-06-08T07:00:00.000Z"
+    "stopTime": "14 June 2025 3:26:00 PM",
+    "startTime": "25 June 2025 6:32:00 PM",
+    "totalStop": "267.1 hrs",
+    "rawStop": "2025-06-14T15:26:00.000Z",
+    "rawStart": "2025-06-25T18:32:00.000Z"
   },
-  {
-    "id": "9g4jFvRy20PtozEjW7vC",
-    "mill": "Kiln 1",
-    "stopTime": "12 June 2025 3:15:00 AM",
-    "startTime": "12 June 2025 4:30:00 AM",
-    "totalStop": "1.25 hrs",
-    "rawStop": "2025-06-12T00:15:00.000Z",
-    "rawStart": "2025-06-12T01:30:00.000Z"
-  },
-  {
-    "id": "DNiUEFfNqNcMmv8da9Ne",
-    "mill": "Kiln 1",
-    "stopTime": "17 June 2025 9:41:00 AM",
-    "startTime": "17 June 2025 10:07:00 AM",
-    "totalStop": "0.43 hrs",
-    "rawStop": "2025-06-17T06:41:00.000Z",
-    "rawStart": "2025-06-17T07:07:00.000Z"
-  },
-  {
-    "id": "aJ88QGkmdpJgknNGVrfk",
-    "mill": "Kiln 1",
-    "stopTime": "8 July 2025 3:01:00 PM",
-    "startTime": "8 July 2025 3:47:00 PM",
-    "totalStop": "0.77 hrs",
-    "rawStop": "2025-07-08T12:01:00.000Z",
-    "rawStart": "2025-07-08T12:47:00.000Z"
-  },
-  {
-    "id": "RQ9rhWgCIFoSI6UGJRwW",
-    "mill": "Kiln 1",
-    "stopTime": "19 July 2025 8:07:00 AM",
-    "startTime": "19 July 2025 8:21:00 AM",
-    "totalStop": "0.23 hrs",
-    "rawStop": "2025-07-19T05:07:00.000Z",
-    "rawStart": "2025-07-19T05:21:00.000Z"
-  },
-  {
-    "id": "7SMKXT4QFzUn3KdV0sq3",
-    "mill": "Kiln 1",
-    "stopTime": "29 July 2025 8:35:00 AM",
-    "startTime": "29 July 2025 8:53:00 AM",
-    "totalStop": "0.30 hrs",
-    "rawStop": "2025-07-29T05:35:00.000Z",
-    "rawStart": "2025-07-29T05:53:00.000Z"
-  },
-  {
-    "id": "1Ahp4FEQxjDM9fu52H3r",
-    "mill": "Kiln 1",
-    "stopTime": "30 July 2025 3:35:00 AM",
-    "startTime": "30 July 2025 6:00:00 AM",
-    "totalStop": "2.42 hrs",
-    "rawStop": "2025-07-30T00:35:00.000Z",
-    "rawStart": "2025-07-30T03:00:00.000Z"
-  },
-  {
-    "id": "wEVS4nXqiX7oAnbOtnjH",
-    "mill": "Kiln 1",
-    "stopTime": "14 July 2025 3:26:00 PM",
-    "startTime": "25 July 2025 6:42:00 PM",
-    "totalStop": "267.27 hrs",
-    "rawStop": "2025-07-14T12:26:00.000Z",
-    "rawStart": "2025-07-25T15:42:00.000Z"
-  },
+
   {
     "id": "dXUIrSTSvQdMhRnOZAKg",
     "mill": "Kiln 1",
@@ -22260,8 +22198,8 @@
     "id": "biiP8pnhyLYscRMDg3dp",
     "mill": "Kiln 2",
     "stopTime": "1 June 2025 12:05:00 PM",
-    "startTime": "7 June 2025 3:46:00 PM",
-    "totalStop": "147.68 hrs",
+    "startTime": "8 June 2025 12:21:00 AM",
+    "totalStop": "147.27 hrs",
     "rawStop": "2025-06-01T09:05:00.000Z",
     "rawStart": "2025-06-07T12:46:00.000Z"
   },
@@ -22683,7 +22621,7 @@
     "id": "1adVbdYrSCMOJ0Vl1yZv",
     "mill": "RM2",
     "stopTime": "1 June 2025 12:05:00 PM",
-    "startTime": "7 June 2025 12:21:00 AM",
+    "startTime": "8 June 2025 12:21:00 AM",
     "totalStop": "132.27 hrs",
     "rawStop": "2025-06-01T09:05:00.000Z",
     "rawStart": "2025-06-06T21:21:00.000Z"

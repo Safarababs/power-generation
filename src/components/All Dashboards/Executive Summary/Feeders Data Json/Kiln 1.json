@@ -1,0 +1,22 @@
+[
+  [
+    "2025",
+    {
+      "mill": "Kiln 1",
+      "stopTime": "14 June 2025 3:26:00 PM",
+      "startTime": "25 June 2025 6:32:00 PM",
+      "totalStop": "267.1 hrs",
+      "rawStop": "2025-06-14T15:26:00.000Z",
+      "rawStart": "2025-06-25T18:32:00.000Z"
+    },
+    {
+      "id": "q5BqWEN7pRPcQUmkFEFJ",
+      "mill": "Kiln 1",
+      "stopTime": "14 June 2025 3:26:00 PM",
+      "startTime": "25 June 2025 6:32:00 PM",
+      "totalStop": "92.58 hrs",
+      "rawStop": "2025-06-14T10:25:00.000Z",
+      "rawStart": "2025-06-08T07:00:00.000Z"
+    }
+  ]
+]

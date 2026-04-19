@@ -55,7 +55,9 @@ import data from "./components/All Dashboards/Executive Summary/executive.json";
 import EquipmentPage from "./components/Equipment Status/EquipmentPage.jsx";
 import EquipmentDashboard from "./components/Equipment Status/EquipmentDashboard.jsx";
 import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/OperatorDashboard.jsx";
+//import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/OperatorDashboardParts/OperatorDashboard.jsx";
 import EquipmentExecutiveSummary from "./components/Equipment Status/EquipmentExecutiveSummary.jsx";
+import FuelAndTankFormsPage from "./components/Daily Readings/Fuel Readings/FuelAndTankFormsPage.jsx";
 
 function App() {
   const auth = getAuth();
@@ -184,6 +186,10 @@ function App() {
                   <Route
                     path="/fuel-readings"
                     element={<FuelReadingsEntry currentUser={userProfile} />}
+                  />
+                  <Route
+                    path="/tanks-dip"
+                    element={<FuelAndTankFormsPage currentUser={userProfile} />}
                   />
                   <Route path="/feeders" element={<FeedersTripping />} />
                   <Route path="/wash-logs" element={<WashLogForm />} />
