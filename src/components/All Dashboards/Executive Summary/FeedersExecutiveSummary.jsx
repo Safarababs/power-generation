@@ -220,7 +220,7 @@ export default function FeedersExecutiveSummary({ data = [] }) {
   const [month, setMonth] = useState("");
   const [mill, setMill] = useState("all");
   const currentYear = new Date().getFullYear().toString();
-  const [year, setYear] = useState(currentYear);
+  const [year, setYear] = useState();
 
   useEffect(() => {
     const q = query(
@@ -505,12 +505,10 @@ export default function FeedersExecutiveSummary({ data = [] }) {
             className="form-select input-date"
           >
             <option value="">All Years</option>
-
-            {/* Ensure current year always appears
+            {/* Ensure current year always appears */}
             {!years.includes(currentYear) && (
               <option value={currentYear}>{currentYear}</option>
-            )} */}
-
+            )}
             {years.map((item) => (
               <option key={item} value={item}>
                 {item}

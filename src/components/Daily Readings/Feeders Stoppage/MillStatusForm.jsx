@@ -270,7 +270,7 @@ export default function MillStatusForm({ currentUser }) {
                 <label className="form-label">Start Time</label>
                 <input
                   type="datetime-local"
-                  className="form-input input-date"
+                  className="form-select"
                   value={formData.startTime}
                   onChange={(e) =>
                     setFormData((prev) => ({
@@ -286,7 +286,7 @@ export default function MillStatusForm({ currentUser }) {
                 <label className="form-label">Stop Time</label>
                 <input
                   type="datetime-local"
-                  className="form-input input-date"
+                  className="form-select"
                   value={formData.stopTime}
                   onChange={(e) =>
                     setFormData((prev) => ({

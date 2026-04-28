@@ -14,20 +14,6 @@ body {
   line-height: 1.5;
 }
 
-@font-face {
-  font-family: "JameelNoori";
-  src: url("../public/fonts/AlQalam\ Taj\ Nastaleeq\ Regular.ttf")
-    format("truetype");
-  font-weight: normal;
-  font-style: normal;
-}
-
-.font-urdu {
-  font-family: "JameelNoori", serif;
-  direction: rtl;
-  text-align: right;
-}
-
 .text-line-height {
   line-height: 2.2; /* or your desired spacing */
   font-size: 1.8rem;
@@ -1278,4 +1264,22 @@ body {
   min-width: 80px; /* consistent button width */
   height: 2.5rem; /* consistent button height */
   flex-shrink: 0; /* prevent shrinking */
+}
+
+/* Executive report chart fixes */
+.executive-chart-content {
+  overflow-x: hidden !important;
+}
+
+.executive-chart-container {
+  position: relative;
+  width: 100%;
+  height: 24rem;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .executive-chart-container {
+    height: 20rem;
+  }
 }

@@ -58,6 +58,8 @@ import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/Op
 //import OperatorDashboard from "./components/All Dashboards/Operator Dashboard/OperatorDashboardParts/OperatorDashboard.jsx";
 import EquipmentExecutiveSummary from "./components/Equipment Status/EquipmentExecutiveSummary.jsx";
 import FuelAndTankFormsPage from "./components/Daily Readings/Fuel Readings/FuelAndTankFormsPage.jsx";
+import MonthlyDGR from "./components/Daily Readings/Monthly DGR/MonthlyDGR.jsx";
+import MonthlyReportViewsPage from "./pages/DGRMonthlyView.jsx";
 
 function App() {
   const auth = getAuth();
@@ -187,6 +189,11 @@ function App() {
                     path="/fuel-readings"
                     element={<FuelReadingsEntry currentUser={userProfile} />}
                   />
+                  <Route
+                    path="/MonthlyDGR"
+                    element={<MonthlyReportViewsPage />}
+                  />
+                  <Route path="/monthly-dgr-form" element={<MonthlyDGR />} />
                   <Route
                     path="/tanks-dip"
                     element={<FuelAndTankFormsPage currentUser={userProfile} />}

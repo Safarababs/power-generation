@@ -175,6 +175,17 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           path: "/approval-dashboard",
         },
         {
+          icon: <FaExclamationCircle size={20} />,
+          label: "DGR Monthly View",
+          path: "/MonthlyDGR",
+        },
+
+        {
+          icon: <FaFileSignature size={20} />,
+          label: "Monthly DGR Entry",
+          path: "/monthly-dgr-form",
+        },
+        {
           icon: <FaBell size={20} />,
           label: "Tanks Dip",
           path: "/tanks-dip",
@@ -551,6 +562,11 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
           icon: <FaCheckCircle size={20} />,
           label: "Equipment Status",
           path: "/equipment-dashboard",
+        },
+        {
+          icon: <FaExclamationCircle size={20} />,
+          label: "DGR Monthly View",
+          path: "/MonthlyDGR",
         },
         {
           icon: <FaCheckCircle size={20} />,
