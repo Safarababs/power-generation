@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   filterExecutiveReports,
   getAvailableYears,
@@ -18,7 +18,7 @@ export default function useJsonExecutiveReports(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadReports = async () => {
+  const loadReports = useCallback(async () => {
     setLoading(true);
     setError("");
 
@@ -30,11 +30,11 @@ export default function useJsonExecutiveReports(
     } finally {
       setLoading(false);
     }
-  };
+  }, [jsonPath]);
 
   useEffect(() => {
     loadReports();
-  }, [jsonPath]);
+  }, [loadReports]);
 
   const reports = useMemo(
     () => filterExecutiveReports(allReports, filters),

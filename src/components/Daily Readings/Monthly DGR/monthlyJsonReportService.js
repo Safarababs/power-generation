@@ -79,19 +79,6 @@ const emptyLubeUsage = () => ({
   shellArginaS4Bn40: { topup: 0, replace: 0, total: 0 },
 });
 
-const emptyOil = () => ({
-  opening: 0,
-  received: 0,
-  transferredToCement: 0,
-  dgSets: 0,
-  bs: 0,
-  volvo: 0,
-  cat: 0,
-  boilers: 0,
-  closing: 0,
-  totalConsumption: 0,
-});
-
 const normalizeOil = (oil = {}) => {
   const normalized = {
     opening: numberValue(oil.opening),
