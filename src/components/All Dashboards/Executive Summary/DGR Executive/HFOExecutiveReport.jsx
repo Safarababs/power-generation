@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -50,10 +50,16 @@ function pieLabel({ name, percent }) {
 export default function HFOExecutiveReport({ reports, summary, filters }) {
   const selectedEngine = filters?.engine || "all";
 
-  const getHfoEngineValue = (report) => {
-    if (selectedEngine === "all") return Number(report.oils.hfo.dgSets || 0);
-    return Number(report.machines?.[selectedEngine]?.hfo || 0);
-  };
+  const getHfoEngineValue = useCallback(
+    (report) => {
+      if (selectedEngine === "all") {
+        return Number(report.oils.hfo.dgSets || 0);
+      }
+
+      return Number(report.machines?.[selectedEngine]?.hfo || 0);
+    },
+    [selectedEngine],
+  );
 
   const hfoTrend = useMemo(
     () =>
@@ -63,7 +69,7 @@ export default function HFOExecutiveReport({ reports, summary, filters }) {
         closing: item.oils.hfo.closing,
         engineConsumption: getHfoEngineValue(item),
       })),
-    [reports, selectedEngine],
+    [reports, getHfoEngineValue],
   );
 
   const selectedEngineConsumption = hfoTrend.reduce(

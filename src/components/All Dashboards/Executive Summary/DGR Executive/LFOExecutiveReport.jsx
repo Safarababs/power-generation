@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -50,10 +50,16 @@ function pieLabel({ name, percent }) {
 export default function LFOExecutiveReport({ reports, summary, filters }) {
   const selectedEngine = filters?.engine || "all";
 
-  const getLfoEngineValue = (report) => {
-    if (selectedEngine === "all") return Number(report.oils.lfo.dgSets || 0);
-    return Number(report.machines?.[selectedEngine]?.lfo || 0);
-  };
+  const getLfoEngineValue = useCallback(
+    (report) => {
+      if (selectedEngine === "all") {
+        return Number(report.oils.lfo.dgSets || 0);
+      }
+
+      return Number(report.machines?.[selectedEngine]?.lfo || 0);
+    },
+    [selectedEngine],
+  );
 
   const lfoTrend = useMemo(
     () =>
@@ -63,7 +69,7 @@ export default function LFOExecutiveReport({ reports, summary, filters }) {
         closing: item.oils.lfo.closing,
         engineConsumption: getLfoEngineValue(item),
       })),
-    [reports, selectedEngine],
+    [reports, getLfoEngineValue],
   );
 
   const selectedEngineConsumption = lfoTrend.reduce(
