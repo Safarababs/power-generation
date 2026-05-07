@@ -749,8 +749,8 @@
       "oils": {
         "hfo": {
           "opening": 3457000,
-          "received": 294500,
-          "transferredToCement": 0,
+          "received": 5008000,
+          "transferredToCement": 4713500,
           "dgSets": 446265,
           "bs": 0,
           "volvo": 0,
@@ -951,7 +951,7 @@
             "cat": "0",
             "dgSets": "446265",
             "closing": "3305235",
-            "received": "294500",
+            "received": "5008000",
             "bs": "0",
             "opening": "3457000",
             "transferredToCement": "0",
@@ -1733,8 +1733,8 @@
       "oils": {
         "hfo": {
           "opening": 1254217,
-          "received": 3167000,
-          "transferredToCement": 0,
+          "received": 12135500,
+          "transferredToCement": 8968500,
           "dgSets": 1564655,
           "bs": 0,
           "volvo": 0,
@@ -1950,10 +1950,10 @@
           "hfo": {
             "opening": "1254217",
             "volvo": "0",
-            "transferredToCement": "0",
+            "transferredToCement": "8968500",
             "boilers": "75067",
             "closing": "2781495",
-            "received": "3167000",
+            "received": "12135500",
             "bs": "",
             "dgSets": "1564655",
             "cat": "0"
@@ -2225,8 +2225,8 @@
       "oils": {
         "hfo": {
           "opening": 2781495,
-          "received": 2848500,
-          "transferredToCement": 0,
+          "received": 8778500,
+          "transferredToCement": 5930000,
           "dgSets": 1642795,
           "bs": 0,
           "volvo": 0,
@@ -2362,8 +2362,8 @@
             "cat": "0",
             "bs": "",
             "closing": "3961560",
-            "received": "2848500",
-            "transferredToCement": "0",
+            "received": "8778500",
+            "transferredToCement": "5930000",
             "volvo": "0",
             "boilers": "25640",
             "opening": "2781495"
@@ -2717,8 +2717,8 @@
       "oils": {
         "hfo": {
           "opening": 3961560,
-          "received": 1478000,
-          "transferredToCement": 0,
+          "received": 8365000,
+          "transferredToCement": 6887000,
           "dgSets": 2214110,
           "bs": 0,
           "volvo": 0,
@@ -2846,10 +2846,10 @@
           },
           "hfo": {
             "bs": "",
-            "received": "1478000",
+            "received": "8365000",
             "closing": "3225450",
             "boilers": "",
-            "transferredToCement": "",
+            "transferredToCement": "6887000",
             "volvo": "0",
             "opening": "3961560",
             "dgSets": "2214110",
@@ -3189,13 +3189,13 @@
         }
       },
       "energy": {
-        "generated": 9662550,
+        "generated": 9662500,
         "exported": 9403845,
         "inHouse": 258655,
         "roConsumption": 37467.3,
         "gasGenerationKwh": 0,
         "gasConsumptionNm3": 0,
-        "hfoGenerationKwh": 9662550,
+        "hfoGenerationKwh": 9662500,
         "gasSfocNm3PerKwh": 0
       },
       "performance": {
@@ -3209,8 +3209,8 @@
       "oils": {
         "hfo": {
           "opening": 3225450,
-          "received": 2333500,
-          "transferredToCement": 0,
+          "received": 10000000,
+          "transferredToCement": 7666500,
           "dgSets": 2154050,
           "bs": 0,
           "volvo": 0,
@@ -3329,12 +3329,12 @@
             "dgSets": "2154050",
             "cat": "0",
             "volvo": "0",
-            "transferredToCement": "0",
+            "transferredToCement": "7666500",
             "boilers": "",
             "opening": "3225450",
             "bs": "",
             "closing": "3404900",
-            "received": "2333500"
+            "received": "10000000"
           },
           "lubeOil": {
             "cat": "0",
@@ -3432,7 +3432,7 @@
         },
         "energy": {
           "exported": "9403845",
-          "generated": "9662550",
+          "generated": "9662500",
           "inHouse": "258655",
           "roConsumption": "37467.3"
         },
@@ -3701,8 +3701,8 @@
       "oils": {
         "hfo": {
           "opening": 3404900,
-          "received": 2259500,
-          "transferredToCement": 0,
+          "received": 10027000,
+          "transferredToCement": 7767500,
           "dgSets": 1919300,
           "bs": 0,
           "volvo": 0,
@@ -3855,10 +3855,10 @@
             "dgSets": "1919300",
             "cat": "0",
             "bs": "",
-            "received": "2259500",
+            "received": "10027000",
             "closing": "3745100",
             "boilers": "",
-            "transferredToCement": "",
+            "transferredToCement": "7767500",
             "volvo": "0",
             "opening": "3404900"
           }
@@ -4193,8 +4193,8 @@
       "oils": {
         "hfo": {
           "opening": 3745100,
-          "received": 1250500,
-          "transferredToCement": 0,
+          "received": 9893000,
+          "transferredToCement": 8642500,
           "dgSets": 2033600,
           "bs": 0,
           "volvo": 0,
@@ -4399,10 +4399,10 @@
           "hfo": {
             "boilers": "10600",
             "volvo": "0",
-            "transferredToCement": "",
+            "transferredToCement": "8642500",
             "opening": "3745100",
             "bs": "",
-            "received": "1250500",
+            "received": "9893000",
             "closing": "2951400",
             "cat": "0",
             "dgSets": "2033600"
@@ -4685,8 +4685,8 @@
       "oils": {
         "hfo": {
           "opening": 2951400,
-          "received": 2790500,
-          "transferredToCement": 0,
+          "received": 11122000,
+          "transferredToCement": 8331500,
           "dgSets": 1955300,
           "bs": 0,
           "volvo": 0,
@@ -4893,10 +4893,10 @@
             "dgSets": "1955300",
             "opening": "2951400",
             "volvo": "0",
-            "transferredToCement": "",
+            "transferredToCement": "8331500",
             "boilers": "2400",
             "closing": "3784200",
-            "received": "2790500",
+            "received": "11122000",
             "bs": ""
           }
         },
@@ -5177,8 +5177,8 @@
       "oils": {
         "hfo": {
           "opening": 3784200,
-          "received": 2516500,
-          "transferredToCement": 1005443,
+          "received": 8398500,
+          "transferredToCement": 6887443,
           "dgSets": 1850707,
           "bs": 0,
           "volvo": 0,
@@ -5276,7 +5276,7 @@
         "dgRunningHours": 1332.28,
         "totalLubeConsumptionByEngines": 5330
       },
-      "remarks": "1. Total 5882000 Liters HFO Recieved Fro Cement\n2. Total 2516500 Liters HFO Recieved for PG\n3. Total 1005443 liters HFO transferred from PG Storage tank to cement mill tank.",
+      "remarks": "1. Total 5882000 Liters HFO Recieved Fro Cement\n2. Total 8398500 Liters HFO Recieved for PG\n3. Total 1005443 liters HFO transferred from PG Storage tank to cement mill tank.",
       "raw": {
         "id": "2021-10",
         "year": "2021",
@@ -5305,13 +5305,13 @@
             "dgSets": "1000"
           },
           "hfo": {
-            "received": "2516500",
+            "received": "8398500",
             "closing": "3429650",
             "bs": "",
             "opening": "3784200",
             "boilers": "14900",
             "volvo": "0",
-            "transferredToCement": "1005443",
+            "transferredToCement": "6887443",
             "cat": "0",
             "dgSets": "1850707"
           }
@@ -5320,7 +5320,7 @@
           "sloc": "0.250",
           "sfoc": "212.05"
         },
-        "remarks": "1. Total 5882000 Liters HFO Recieved Fro Cement\n2. Total 2516500 Liters HFO Recieved for PG\n3. Total 1005443 liters HFO transferred from PG Storage tank to cement mill tank.",
+        "remarks": "1. Total 5882000 Liters HFO Recieved Fro Cement\n2. Total 8398500 Liters HFO Recieved for PG\n3. Total 1005443 liters HFO transferred from PG Storage tank to cement mill tank.",
         "month": "10",
         "machines": {
           "dg2": {
@@ -5669,8 +5669,8 @@
       "oils": {
         "hfo": {
           "opening": 3429650,
-          "received": 886500,
-          "transferredToCement": 0,
+          "received": 7810500,
+          "transferredToCement": 6924000,
           "dgSets": 2142250,
           "bs": 0,
           "volvo": 0,
@@ -5876,11 +5876,11 @@
             "cat": "0",
             "dgSets": "2142250",
             "bs": "",
-            "received": "886500",
+            "received": "7810500",
             "closing": "2171599",
             "boilers": "2301",
             "volvo": "0",
-            "transferredToCement": "",
+            "transferredToCement": "6924000",
             "opening": "3429650"
           }
         },
@@ -6161,8 +6161,8 @@
       "oils": {
         "hfo": {
           "opening": 2171600,
-          "received": 4004500,
-          "transferredToCement": 0,
+          "received": 15497500,
+          "transferredToCement": 11493000,
           "dgSets": 2291700,
           "bs": 0,
           "volvo": 0,
@@ -6260,7 +6260,7 @@
         "dgRunningHours": 1500.6599999999999,
         "totalLubeConsumptionByEngines": 8405
       },
-      "remarks": "1. Total 15497500 liters HFO Recieved\n2. Total 4004500 liters HFO for PG\n3. Total 11493000 liters HFO for Cement",
+      "remarks": "1. Total 15497500 liters HFO Recieved\n2. Total 15497500 liters HFO for PG\n3. Total 11493000 liters HFO for Cement",
       "raw": {
         "id": "2021-12",
         "machines": {
@@ -6340,7 +6340,7 @@
           "sloc": "0.219",
           "sfoc": "211.15"
         },
-        "remarks": "1. Total 15497500 liters HFO Recieved\n2. Total 4004500 liters HFO for PG\n3. Total 11493000 liters HFO for Cement",
+        "remarks": "1. Total 15497500 liters HFO Recieved\n2. Total 15497500 liters HFO for PG\n3. Total 11493000 liters HFO for Cement",
         "oils": {
           "lfo": {
             "cat": "30",
@@ -6354,12 +6354,12 @@
             "volvo": "30"
           },
           "hfo": {
-            "received": "4004500",
+            "received": "15497500",
             "closing": "3881600",
             "bs": "",
             "opening": "2171600",
             "boilers": "2800",
-            "transferredToCement": "",
+            "transferredToCement": "11493000",
             "volvo": "0",
             "dgSets": "2291700",
             "cat": "0"
@@ -13299,7 +13299,7 @@
           "fuelMode": "hfoLfo",
           "monthHours": 392.6,
           "totalHours": 11439.2,
-          "generation": 2713400,
+          "generation": 4318200,
           "hfo": 963989,
           "lfo": 0,
           "efficiency": 69,
@@ -13634,9 +13634,9 @@
         }
       },
       "totals": {
-        "totalMachineGeneration": 8002900,
+        "totalMachineGeneration": 9607700,
         "totalRunningHours": 1207.4,
-        "dgGeneration": 8002900,
+        "dgGeneration": 9607700,
         "dgRunningHours": 1205.5,
         "totalLubeConsumptionByEngines": 7995
       },
@@ -18219,7 +18219,7 @@
           "fuelMode": "hfoLfo",
           "monthHours": 124.8,
           "totalHours": 17968.9,
-          "generation": 77480,
+          "generation": 774800,
           "hfo": 173385,
           "lfo": 1776,
           "efficiency": 63.5,
@@ -18283,7 +18283,7 @@
           "fuelMode": "hfoLfo",
           "monthHours": 642.2,
           "totalHours": 15629.3,
-          "generation": 432500,
+          "generation": 4302500,
           "hfo": 962813,
           "lfo": 0,
           "efficiency": 68.5,
@@ -18554,9 +18554,9 @@
         }
       },
       "totals": {
-        "totalMachineGeneration": 3223562,
+        "totalMachineGeneration": 7790882,
         "totalRunningHours": 1206.4,
-        "dgGeneration": 3222080,
+        "dgGeneration": 7790882,
         "dgRunningHours": 1194.9,
         "totalLubeConsumptionByEngines": 11275
       },

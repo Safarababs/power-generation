@@ -47,26 +47,53 @@ function pieLabel({ name, percent }) {
   return `${name} ${(percent * 100).toFixed(1)}%`;
 }
 
-export default function HFOExecutiveReport({ reports, summary }) {
+export default function HFOExecutiveReport({ reports, summary, filters }) {
+  const selectedEngine = filters?.engine || "all";
+
+  const getHfoEngineValue = (report) => {
+    if (selectedEngine === "all") return Number(report.oils.hfo.dgSets || 0);
+    return Number(report.machines?.[selectedEngine]?.hfo || 0);
+  };
+
   const hfoTrend = useMemo(
     () =>
       reports.map((item) => ({
         monthKey: item.monthKey,
         received: item.oils.hfo.received,
         closing: item.oils.hfo.closing,
+        engineConsumption: getHfoEngineValue(item),
       })),
-    [reports],
+    [reports, selectedEngine],
+  );
+
+  const selectedEngineConsumption = hfoTrend.reduce(
+    (sum, item) => sum + Number(item.engineConsumption || 0),
+    0,
   );
 
   const consumptionPie = useMemo(() => {
+    if (selectedEngine !== "all") {
+      const total = reports.reduce(
+        (sum, item) => sum + Number(item.machines?.[selectedEngine]?.hfo || 0),
+        0,
+      );
+
+      return [
+        {
+          name: selectedEngine.toUpperCase(),
+          value: total,
+        },
+      ].filter((item) => item.value > 0);
+    }
+
     const total = reports.reduce(
       (acc, item) => {
-        acc.dgSets += item.oils.hfo.dgSets || 0;
+        acc.dgSets += Number(item.oils.hfo.dgSets || 0);
         acc.blackStartVolvo +=
-          (item.oils.hfo.bs || 0) + (item.oils.hfo.volvo || 0);
-        acc.cat += item.oils.hfo.cat || 0;
-        acc.boilers += item.oils.hfo.boilers || 0;
-        acc.cementTransfer += item.oils.hfo.transferredToCement || 0;
+          Number(item.oils.hfo.bs || 0) + Number(item.oils.hfo.volvo || 0);
+        acc.cat += Number(item.oils.hfo.cat || 0);
+        acc.boilers += Number(item.oils.hfo.boilers || 0);
+        acc.cementTransfer += Number(item.oils.hfo.transferredToCement || 0);
         return acc;
       },
       {
@@ -85,7 +112,7 @@ export default function HFOExecutiveReport({ reports, summary }) {
       { name: "Boilers", value: total.boilers },
       { name: "Cement Transfer", value: total.cementTransfer },
     ].filter((item) => item.value > 0);
-  }, [reports]);
+  }, [reports, selectedEngine]);
 
   const cards = [
     {
@@ -94,8 +121,11 @@ export default function HFOExecutiveReport({ reports, summary }) {
       color: "var(--primary-color)",
     },
     {
-      label: "HFO Consumed",
-      value: summary.totals.hfoConsumed,
+      label:
+        selectedEngine === "all"
+          ? "HFO DG Consumption"
+          : `${selectedEngine.toUpperCase()} HFO`,
+      value: selectedEngineConsumption,
       color: "var(--warning-color)",
     },
     {
@@ -131,7 +161,7 @@ export default function HFOExecutiveReport({ reports, summary }) {
                     stroke="var(--border-color)"
                   />
                   <XAxis dataKey="monthKey" />
-                  <YAxis />
+                  <YAxis width={"auto"} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Line
@@ -158,7 +188,7 @@ export default function HFOExecutiveReport({ reports, summary }) {
                     stroke="var(--border-color)"
                   />
                   <XAxis dataKey="monthKey" />
-                  <YAxis />
+                  <YAxis width={"auto"} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Area
@@ -181,7 +211,7 @@ export default function HFOExecutiveReport({ reports, summary }) {
             <div className="card-header">
               <h3 className="card-title">HFO Consumption Distribution</h3>
             </div>
-            <div className="card-content " style={{ height: "24rem" }}>
+            <div className="card-content" style={{ height: "24rem" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -204,6 +234,48 @@ export default function HFOExecutiveReport({ reports, summary }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="card-content overflow-x-auto">
+        <h3 className="card-title mb-3">Monthly HFO Verification Table</h3>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Received</th>
+              <th>
+                {selectedEngine === "all"
+                  ? "DG Sets"
+                  : `${selectedEngine.toUpperCase()} HFO`}
+              </th>
+              <th>Black Start / Volvo</th>
+              <th>CAT</th>
+              <th>Boilers</th>
+              <th>Cement Transfer</th>
+              <th>Closing</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reports.map((item) => (
+              <tr key={item.monthKey}>
+                <td>{item.monthKey}</td>
+                <td>{formatNumber(item.oils.hfo.received)}</td>
+                <td>{formatNumber(getHfoEngineValue(item))}</td>
+                <td>
+                  {formatNumber(
+                    Number(item.oils.hfo.bs || 0) +
+                      Number(item.oils.hfo.volvo || 0),
+                  )}
+                </td>
+                <td>{formatNumber(item.oils.hfo.cat)}</td>
+                <td>{formatNumber(item.oils.hfo.boilers)}</td>
+                <td>{formatNumber(item.oils.hfo.transferredToCement)}</td>
+                <td>{formatNumber(item.oils.hfo.closing)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </ExecutiveReportShell>
   );

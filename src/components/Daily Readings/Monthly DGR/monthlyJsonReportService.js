@@ -159,14 +159,16 @@ const normalizeMachine = (engineKey, engine = {}) => {
 };
 
 const normalizeLubeOils = (rawOils = {}) => {
+  const source = rawOils.lubeOil || rawOils;
+
   const lubeOil = {
-    ti4040: normalizeOil(rawOils.ti4040),
-    ti4020: normalizeOil(rawOils.ti4020),
-    shellArginaS5Bn55: normalizeOil(rawOils.shellArginaS5Bn55),
-    shellArginaS4Bn40: normalizeOil(rawOils.shellArginaS4Bn40),
+    ti4040: normalizeOil(source.ti4040),
+    ti4020: normalizeOil(source.ti4020),
+    shellArginaS5Bn55: normalizeOil(source.shellArginaS5Bn55),
+    shellArginaS4Bn40: normalizeOil(source.shellArginaS4Bn40),
   };
 
-  const hasNewLube = ALL_LUBE_KEYS.some(
+  const hasTypedLubeData = ALL_LUBE_KEYS.some(
     (key) =>
       lubeOil[key].opening ||
       lubeOil[key].received ||
@@ -174,9 +176,9 @@ const normalizeLubeOils = (rawOils = {}) => {
       lubeOil[key].totalConsumption,
   );
 
-  if (!hasNewLube && rawOils.lubeOil) {
+  if (!hasTypedLubeData && source.opening !== undefined) {
     lubeOil.ti4040 = {
-      ...normalizeOil(rawOils.lubeOil),
+      ...normalizeOil(source),
       legacySource: true,
     };
   }

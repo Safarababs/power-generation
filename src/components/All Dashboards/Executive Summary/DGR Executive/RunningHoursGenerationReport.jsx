@@ -142,6 +142,34 @@ export default function RunningHoursGenerationReport({ summary }) {
           </div>
         </div>
       </div>
+      <div className="card-content overflow-x-auto">
+        <h3 className="card-title mb-3">Engine Verification Table</h3>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Engine</th>
+              <th>Running Hours</th>
+              <th>Generation</th>
+              <th>HFO</th>
+              <th>LFO</th>
+              <th>Lube Oil</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summary.byMachine.map((item) => (
+              <tr key={item.key}>
+                <td>{item.name}</td>
+                <td>{formatNumber(item.runningHours)}</td>
+                <td>{formatNumber(item.generation)}</td>
+                <td>{formatNumber(item.hfo)}</td>
+                <td>{formatNumber(item.lfo)}</td>
+                <td>{formatNumber(item.lube)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </ExecutiveReportShell>
   );
 }

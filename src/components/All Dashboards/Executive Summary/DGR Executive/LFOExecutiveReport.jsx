@@ -47,26 +47,53 @@ function pieLabel({ name, percent }) {
   return `${name} ${(percent * 100).toFixed(1)}%`;
 }
 
-export default function LFOExecutiveReport({ reports, summary }) {
+export default function LFOExecutiveReport({ reports, summary, filters }) {
+  const selectedEngine = filters?.engine || "all";
+
+  const getLfoEngineValue = (report) => {
+    if (selectedEngine === "all") return Number(report.oils.lfo.dgSets || 0);
+    return Number(report.machines?.[selectedEngine]?.lfo || 0);
+  };
+
   const lfoTrend = useMemo(
     () =>
       reports.map((item) => ({
         monthKey: item.monthKey,
         received: item.oils.lfo.received,
         closing: item.oils.lfo.closing,
+        engineConsumption: getLfoEngineValue(item),
       })),
-    [reports],
+    [reports, selectedEngine],
+  );
+
+  const selectedEngineConsumption = lfoTrend.reduce(
+    (sum, item) => sum + Number(item.engineConsumption || 0),
+    0,
   );
 
   const consumptionPie = useMemo(() => {
+    if (selectedEngine !== "all") {
+      const total = reports.reduce(
+        (sum, item) => sum + Number(item.machines?.[selectedEngine]?.lfo || 0),
+        0,
+      );
+
+      return [
+        {
+          name: selectedEngine.toUpperCase(),
+          value: total,
+        },
+      ].filter((item) => item.value > 0);
+    }
+
     const total = reports.reduce(
       (acc, item) => {
-        acc.dgSets += item.oils.lfo.dgSets || 0;
+        acc.dgSets += Number(item.oils.lfo.dgSets || 0);
         acc.blackStartVolvo +=
-          (item.oils.lfo.bs || 0) + (item.oils.lfo.volvo || 0);
-        acc.cat += item.oils.lfo.cat || 0;
-        acc.boilers += item.oils.lfo.boilers || 0;
-        acc.cementTransfer += item.oils.lfo.transferredToCement || 0;
+          Number(item.oils.lfo.bs || 0) + Number(item.oils.lfo.volvo || 0);
+        acc.cat += Number(item.oils.lfo.cat || 0);
+        acc.boilers += Number(item.oils.lfo.boilers || 0);
+        acc.cementTransfer += Number(item.oils.lfo.transferredToCement || 0);
         return acc;
       },
       {
@@ -85,12 +112,7 @@ export default function LFOExecutiveReport({ reports, summary }) {
       { name: "Boilers", value: total.boilers },
       { name: "Cement Transfer", value: total.cementTransfer },
     ].filter((item) => item.value > 0);
-  }, [reports]);
-
-  const lfoEngineConsumption = reports.reduce(
-    (sum, item) => sum + item.oils.lfo.dgSets,
-    0,
-  );
+  }, [reports, selectedEngine]);
 
   const cards = [
     {
@@ -99,8 +121,11 @@ export default function LFOExecutiveReport({ reports, summary }) {
       color: "var(--primary-color)",
     },
     {
-      label: "LFO Consumed",
-      value: summary.totals.lfoConsumed,
+      label:
+        selectedEngine === "all"
+          ? "LFO DG Consumption"
+          : `${selectedEngine.toUpperCase()} LFO`,
+      value: selectedEngineConsumption,
       color: "var(--warning-color)",
     },
     {
@@ -109,8 +134,8 @@ export default function LFOExecutiveReport({ reports, summary }) {
       color: "var(--success-color)",
     },
     {
-      label: "Engine Consumption",
-      value: lfoEngineConsumption,
+      label: "Selected Engine",
+      value: selectedEngine === "all" ? summary.byMachine.length : 1,
       color: "var(--error-color)",
     },
   ];
@@ -136,7 +161,7 @@ export default function LFOExecutiveReport({ reports, summary }) {
                     stroke="var(--border-color)"
                   />
                   <XAxis dataKey="monthKey" />
-                  <YAxis />
+                  <YAxis width={"auto"} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Line
@@ -163,7 +188,7 @@ export default function LFOExecutiveReport({ reports, summary }) {
                     stroke="var(--border-color)"
                   />
                   <XAxis dataKey="monthKey" />
-                  <YAxis />
+                  <YAxis width={"auto"} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   <Area
@@ -186,7 +211,7 @@ export default function LFOExecutiveReport({ reports, summary }) {
             <div className="card-header">
               <h3 className="card-title">LFO Consumption Distribution</h3>
             </div>
-            <div className="card-content chart-container">
+            <div className="card-content" style={{ height: "24rem" }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -209,6 +234,48 @@ export default function LFOExecutiveReport({ reports, summary }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="card-content overflow-x-auto">
+        <h3 className="card-title mb-3">Monthly LFO Verification Table</h3>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Received</th>
+              <th>
+                {selectedEngine === "all"
+                  ? "DG Sets"
+                  : `${selectedEngine.toUpperCase()} LFO`}
+              </th>
+              <th>Black Start / Volvo</th>
+              <th>CAT</th>
+              <th>Boilers</th>
+              <th>Cement Transfer</th>
+              <th>Closing</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reports.map((item) => (
+              <tr key={item.monthKey}>
+                <td>{item.monthKey}</td>
+                <td>{formatNumber(item.oils.lfo.received)}</td>
+                <td>{formatNumber(getLfoEngineValue(item))}</td>
+                <td>
+                  {formatNumber(
+                    Number(item.oils.lfo.bs || 0) +
+                      Number(item.oils.lfo.volvo || 0),
+                  )}
+                </td>
+                <td>{formatNumber(item.oils.lfo.cat)}</td>
+                <td>{formatNumber(item.oils.lfo.boilers)}</td>
+                <td>{formatNumber(item.oils.lfo.transferredToCement)}</td>
+                <td>{formatNumber(item.oils.lfo.closing)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </ExecutiveReportShell>
   );

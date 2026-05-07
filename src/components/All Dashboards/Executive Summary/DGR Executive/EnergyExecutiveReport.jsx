@@ -162,6 +162,37 @@ export default function EnergyExecutiveReport({ summary }) {
           </div>
         </div>
       </div>
+
+      {/* ===============Reports Table================ */}
+      <div className="card-content overflow-x-auto">
+        <h3 className="card-title mb-3">Monthly Energy Verification Table</h3>
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Total Generation</th>
+              <th>Gas Generation</th>
+              <th>HFO Generation</th>
+              <th>Gas Consumption</th>
+              <th>Running Hours</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {summary.byMonth.map((item) => (
+              <tr key={item.monthKey}>
+                <td>{item.monthKey}</td>
+                <td>{formatNumber(item.totalGeneration)}</td>
+                <td>{formatNumber(item.gasGeneration)}</td>
+                <td>{formatNumber(item.hfoGeneration)}</td>
+                <td>{formatNumber(item.gasConsumption)}</td>
+                <td>{formatNumber(item.runningHours)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </ExecutiveReportShell>
   );
 }

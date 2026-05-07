@@ -23,7 +23,7 @@ export default function DGRMonthlyExecutive() {
 
   const tabs = [
     { key: "energy", label: "ENERGY" },
-    { key: "hours", label: "HOURS + GENERATION" },
+    { key: "hours", label: "RHrs/GENERATION" },
     { key: "hfo", label: "HFO" },
     { key: "lfo", label: "LFO" },
     { key: "lube", label: "LUBE OIL" },
@@ -86,15 +86,27 @@ export default function DGRMonthlyExecutive() {
             ) : null}
 
             {activeReport === "hfo" ? (
-              <HFOExecutiveReport reports={reports} summary={summary} />
+              <HFOExecutiveReport
+                reports={reports}
+                summary={summary}
+                filters={filters}
+              />
             ) : null}
 
             {activeReport === "lfo" ? (
-              <LFOExecutiveReport reports={reports} summary={summary} />
+              <LFOExecutiveReport
+                reports={reports}
+                summary={summary}
+                filters={filters}
+              />
             ) : null}
 
             {activeReport === "lube" ? (
-              <LubeOilExecutiveReport reports={reports} summary={summary} />
+              <LubeOilExecutiveReport
+                reports={reports}
+                summary={summary}
+                filters={filters}
+              />
             ) : null}
           </>
         ) : null}

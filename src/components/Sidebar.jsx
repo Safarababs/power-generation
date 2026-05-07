@@ -308,6 +308,12 @@ const Sidebar = ({ collapsed, mobileOpen, closeSidebar, currentUser }) => {
             path: "/equipment-summary",
           },
           {
+            icon: <FaExclamationCircle size={20} />,
+            label: "DGR Monthly View",
+            path: "/MonthlyDGR",
+          },
+
+          {
             icon: <FaPlug size={20} />,
             label: "Feeders Executive Summary",
             path: "/feedersummaryexecutive",
