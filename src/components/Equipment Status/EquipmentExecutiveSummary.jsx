@@ -32,8 +32,17 @@ const MODE_COLORS = {
 
 function formatDate(value) {
   if (!value) return "-";
-  if (value?.toDate) return value.toDate().toLocaleString();
-  return new Date(value).toLocaleString();
+  if (value?.toDate)
+    return value.toDate().toLocaleString("en-US", {
+      month: "long",
+
+      year: "numeric",
+    });
+  return value.toLocaleString("en-US", {
+    month: "long",
+
+    year: "numeric",
+  });
 }
 
 function getModeLabel(mode) {
@@ -392,7 +401,7 @@ export default function EquipmentExecutiveSummary() {
                 <th>Mode</th>
                 <th>Status</th>
                 <th>Remarks</th>
-                <th>Updated At</th>
+                <th>Fault Exist date</th>
               </tr>
             </thead>
             <tbody>
