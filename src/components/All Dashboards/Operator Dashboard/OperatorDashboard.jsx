@@ -669,7 +669,7 @@ export default function OperatorDashboard() {
           />
           <SummaryBox
             label="Total Fuel"
-            value={`${formatNumber(topMetrics.totalFuelLtr)} ltr`}
+            value={formatNumber(topMetrics.totalKwh * 0.225)}
             tone="red"
           />
         </section>

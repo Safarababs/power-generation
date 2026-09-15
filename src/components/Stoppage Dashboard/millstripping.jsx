@@ -15,7 +15,7 @@ const MillRecordsTable = ({ currentUser }) => {
   const [records, setRecords] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({
-    mill: "",
+    millName: "",
     stopTime: "",
     startTime: "",
   });
@@ -24,16 +24,24 @@ const MillRecordsTable = ({ currentUser }) => {
     const fetchData = async () => {
       try {
         const q = query(
-          collection(db, "millRecords"),
-          limit(10),
+          collection(db, "millStatusHistory"),
+          limit(200),
           orderBy("createdAt", "desc"),
         );
 
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => {
-          const d = doc.data();
-          const stop = d.stopTime?.toDate();
-          const start = d.startTime?.toDate();
+        const data = snapshot.docs.map((docSnap) => {
+          const d = docSnap.data();
+
+          // Safe parser for ISO strings
+          const safeDate = (val) => {
+            if (!val) return null;
+            const dt = new Date(val);
+            return isNaN(dt.getTime()) ? null : dt;
+          };
+
+          const stop = safeDate(d.stopTime);
+          const start = safeDate(d.startTime);
 
           const dateFormatter = new Intl.DateTimeFormat("en-GB", {
             day: "numeric",
@@ -43,15 +51,14 @@ const MillRecordsTable = ({ currentUser }) => {
 
           let totalStop = null;
           if (stop && start) {
-            let diffMs = start - stop;
-            if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000;
+            const diffMs = stop - start;
             const diffHours = diffMs / (1000 * 60 * 60);
             totalStop = diffHours.toFixed(2) + " hrs";
           }
 
           return {
-            id: doc.id,
-            mill: d.mill,
+            id: docSnap.id,
+            millName: d.millName,
             stopTime: stop
               ? `${dateFormatter.format(stop)} ${stop.toLocaleTimeString()}`
               : "",
@@ -75,15 +82,13 @@ const MillRecordsTable = ({ currentUser }) => {
 
   // ✅ Helper: who can edit
   const canEdit =
-    currentUser?.department === "uty" ||
-    (currentUser?.department === "operation" &&
-      (currentUser?.designation === "developer" ||
-        currentUser?.designation === "Office Assistant"));
+    currentUser?.designation === "developer" &&
+    currentUser?.department === "operation";
 
   const handleEdit = (rec) => {
     setEditingId(rec.id);
     setEditData({
-      mill: rec.mill,
+      millName: rec.millName,
       stopTime: rec.rawStop?.toISOString().slice(0, 16),
       startTime: rec.rawStart?.toISOString().slice(0, 16),
     });
@@ -91,9 +96,9 @@ const MillRecordsTable = ({ currentUser }) => {
 
   const handleUpdate = async () => {
     try {
-      const ref = doc(db, "millRecords", editingId);
+      const ref = doc(db, "millStatusHistory", editingId);
       await updateDoc(ref, {
-        mill: editData.mill,
+        millName: editData.millName,
         stopTime: new Date(editData.stopTime),
         startTime: new Date(editData.startTime),
       });
@@ -106,7 +111,7 @@ const MillRecordsTable = ({ currentUser }) => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       try {
-        await deleteDoc(doc(db, "millRecords", id));
+        await deleteDoc(doc(db, "millStatusHistory", id));
       } catch (err) {
         console.error("Error deleting record:", err);
       }
@@ -124,7 +129,6 @@ const MillRecordsTable = ({ currentUser }) => {
               <th>Mill Name</th>
               <th>Stop Time</th>
               <th>Start Time</th>
-
               <th>Total Stop Time</th>
               {canEdit ? <th>Actions</th> : null}
             </tr>
@@ -137,9 +141,9 @@ const MillRecordsTable = ({ currentUser }) => {
                     <td>
                       <input
                         type="text"
-                        value={editData.mill}
+                        value={editData.millName}
                         onChange={(e) =>
-                          setEditData({ ...editData, mill: e.target.value })
+                          setEditData({ ...editData, millName: e.target.value })
                         }
                         className="form-input"
                       />
@@ -167,51 +171,44 @@ const MillRecordsTable = ({ currentUser }) => {
                         className="form-input"
                       />
                     </td>
-                    <td>{rec.createdAt}</td>
                     <td>{rec.totalStop}</td>
                     <td>
-                      (
                       <button
                         onClick={handleUpdate}
                         className="btn btn-success m-1"
                       >
                         Save
                       </button>
-                      ) (
                       <button
                         onClick={() => setEditingId(null)}
                         className="btn btn-warning m-1"
                       >
                         Cancel
                       </button>
-                      )
                     </td>
                   </>
                 ) : (
                   <>
-                    <td>{rec.mill}</td>
+                    <td>{rec.millName}</td>
                     <td>{rec.stopTime}</td>
                     <td>{rec.startTime}</td>
                     <td>{rec.totalStop}</td>
-
-                    <td>
-                      {canEdit ? (
+                    {canEdit ? (
+                      <td>
                         <button
                           onClick={() => handleEdit(rec)}
                           className="btn btn-primary m-1"
                         >
                           Edit
                         </button>
-                      ) : null}
-                      {canEdit ? (
                         <button
                           onClick={() => handleDelete(rec.id)}
                           className="btn btn-danger m-1"
                         >
                           Delete
                         </button>
-                      ) : null}
-                    </td>
+                      </td>
+                    ) : null}
                   </>
                 )}
               </tr>

@@ -35,12 +35,10 @@ function formatDate(value) {
   if (value?.toDate)
     return value.toDate().toLocaleString("en-US", {
       month: "long",
-
       year: "numeric",
     });
   return value.toLocaleString("en-US", {
     month: "long",
-
     year: "numeric",
   });
 }

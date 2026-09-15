@@ -1,14 +1,10 @@
 import React from "react";
-import OperationDashboard from "../Operation Dashboard/OperationDashboard";
+import OperatorDashboard from "../Operator Dashboard/OperatorDashboard";
 
 function ExecutiveDashboard() {
   return (
     <div className="executive-dashboard">
-      {/* Heading */}
-      <header className="title">
-        <h1>Executive Dashboard – Power Plant Overview</h1>
-      </header>
-      <OperationDashboard />
+      <OperatorDashboard />
 
       {/* KPI Cards */}
       {/* <section className="kpi-section">
