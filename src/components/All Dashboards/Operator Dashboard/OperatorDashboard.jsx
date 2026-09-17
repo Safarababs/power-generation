@@ -669,7 +669,11 @@ export default function OperatorDashboard() {
           />
           <SummaryBox
             label="Total Fuel"
-            value={formatNumber(topMetrics.totalKwh * 0.225)}
+            value={
+              formatPercent(topMetrics.generationPercent) > 60
+                ? formatNumber(topMetrics.totalKwh * 0.225)
+                : formatNumber(topMetrics.totalKwh * 0.2255)
+            }
             tone="red"
           />
         </section>
